@@ -8,14 +8,21 @@
 
   var CAMPAIGNS = ['Todas las Campañas', 'Portabilidad Fibra 600MB', 'Plan Negocio Pyme', 'Upgrade Plan Móvil 5G', 'Paquete Triple Play Pro', 'Seguro Protección Familiar'];
   var PRODUCTS_CATALOG = [
-    { name: 'Fibra Óptica 500MB Simétrica', category: 'Residencial', price: 299 },
-    { name: 'Fibra Óptica 800MB Gamer + IP Fija', category: 'Residencial Premium', price: 390 },
-    { name: 'Plan Negocio Fibra 1GB + 3 Líneas', category: 'Empresarial', price: 540 },
-    { name: 'Portabilidad Móvil Ilimitada 5G', category: 'Móvil', price: 280 },
-    { name: 'Triple Play Fibra 400MB + Streaming', category: 'Residencial', price: 340 },
-    { name: 'Seguro Protección Plus Integral', category: 'Servicios Adicionales', price: 190 },
-    { name: 'Ciberseguridad Pyme Cloud Endpoint', category: 'Empresarial', price: 420 }
+    { name: 'Plan Max 29.90', category: 'Plan Max', price: 29.90 },
+    { name: 'Plan Max 39.90', category: 'Plan Max', price: 39.90 },
+    { name: 'Plan Max 49.90', category: 'Plan Max', price: 49.90 },
+    { name: 'Plan Max 56.90', category: 'Plan Max', price: 56.90 },
+    { name: 'Plan Max 60.90', category: 'Plan Max', price: 60.90 },
+    { name: 'Plan Max Ilimitado 69.90', category: 'Plan Max Ilimitado', price: 69.90 },
+    { name: 'Plan Max Ilimitado 79.90', category: 'Plan Max Ilimitado', price: 79.90 },
+    { name: 'Plan Max Ilimitado 95.90', category: 'Plan Max Ilimitado', price: 95.90 },
+    { name: 'Plan Max Ilimitado 109.90', category: 'Plan Max Ilimitado', price: 109.90 },
+    { name: 'Plan Max Ilimitado 159.90', category: 'Plan Max Ilimitado', price: 159.90 },
+    { name: 'Plan Max Ilimitado 189.90', category: 'Plan Max Ilimitado', price: 189.90 },
+    { name: 'Plan Max Ilimitado 289.90', category: 'Plan Max Ilimitado', price: 289.90 }
   ];
+  var DOCUMENT_TYPES = ['DNI', 'RUC', 'CE'];
+  var SALE_TYPES = ['Alta', 'Portabilidad', 'Renovación'];
 
   var INITIAL_LEADS_RAW = [
     { id: 'lead-101', clientName: 'Mariana Silva Morales', city: 'CDMX', campaign: 'Portabilidad Fibra 600MB', priority: 'alta' },
@@ -160,26 +167,31 @@
 
   function statusBadge(status) {
     var map = {
-      venta_cerrada: ['emerald', 'check', 'Venta Cerrada'],
-      en_curso: ['blue', 'phone', 'En Llamada'],
-      contactado: ['indigo', 'userCheck', 'Contactado'],
-      rellamada: ['amber', 'clock', 'Rellamada'],
-      no_contesta: ['slate', 'phone', 'No Contesta'],
-      rechazado: ['rose', 'alertTriangle', 'No Interesado']
+      venta_cerrada: ['emerald', 'Venta Cerrada'],
+      en_curso: ['blue', 'En Llamada'],
+      contactado: ['indigo', 'Contactado'],
+      rellamada: ['amber', 'Rellamada'],
+      no_contesta: ['slate', 'No Contesta'],
+      rechazado: ['rose', 'No Interesado']
     };
-    CALL_DISPOSITIONS.forEach(function (item) { map[item[0]] = [item[1], '', item[2]]; });
-    var m = map[status] || ['slate', '', 'Pendiente'];
-    return '<span class="status-badge ' + m[0] + '">' + (m[1] ? icon(m[1]) : '') + m[2] + '</span>';
+    CALL_DISPOSITIONS.forEach(function (item) { map[item[0]] = [item[1], item[2]]; });
+    var m = map[status] || ['slate', 'Pendiente'];
+    return '<span class="status-badge ' + m[0] + '"><span class="status-dot"></span>' + m[1] + '</span>';
   }
   function saleStatusBadge(status) {
     var map = {
-      aprobada: ['emerald', 'check', 'Activa'],
-      auditada: ['indigo', 'shield', 'Auditada QA'],
-      en_verificacion: ['amber', 'clock', 'En Verificación'],
-      rechazada: ['rose', '', 'Caída']
+      aprobada: ['emerald', 'Activa'],
+      auditada: ['indigo', 'Auditada QA'],
+      en_verificacion: ['amber', 'En Verificación'],
+      rechazada: ['rose', 'Caída']
     };
-    var m = map[status] || ['slate', '', status];
-    return '<span class="status-badge ' + m[0] + '">' + (m[1] ? icon(m[1]) : '') + m[2] + '</span>';
+    var m = map[status] || ['slate', status];
+    return '<span class="status-badge ' + m[0] + '"><span class="status-dot"></span>' + m[1] + '</span>';
+  }
+  function initials(name) {
+    var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   }
 
   /* ---------- render: header labels ---------- */
@@ -345,7 +357,7 @@
           '<div class="sale-top-row"><span class="sale-folio">' + esc(s.folio) + '</span><span class="sale-client">' + esc(s.clientName) + '</span><span>•</span><span style="font-size:12px;color:var(--slate-500)">' + esc(s.clientPhone) + '</span></div>' +
           '<div class="sale-mid-row"><span class="sale-product">' + esc(s.productName) + '</span><span>•</span><span class="sale-category">' + esc(s.category) + '</span><span>•</span><span style="font-size:11px;color:var(--slate-500)">Asesor: <strong>' + esc(s.advisorName) + '</strong></span></div>' +
           (s.notes ? '<p class="sale-notes">"' + esc(s.notes) + '"</p>' : '') +
-          '</div></div><div class="sale-right"><div><div class="sale-amount">$' + s.amount.toLocaleString() + '</div><div class="sale-date">' + esc(dateStr) + '</div></div>' +
+          '</div></div><div class="sale-right"><div><div class="sale-amount">S/' + s.amount.toLocaleString() + '</div><div class="sale-date">' + esc(dateStr) + '</div></div>' +
           '<div class="sale-actions">' + saleStatusBadge(s.status) + '<button type="button" class="btn-detail" data-action="sale-detail" data-sale-id="' + s.id + '" title="Ver detalles completos">' + icon('fileText') + '</button></div></div></div>';
       }).join('');
 
@@ -435,7 +447,6 @@
   }
   function renderUploadModal() {
     if (!uploadOpen) return;
-    var p0 = PRODUCTS_CATALOG[0];
     var clientName = uploadPrefill ? uploadPrefill.name : '';
     var clientPhone = uploadPrefill ? uploadPrefill.phone : '';
     document.getElementById('modal-root').innerHTML =
@@ -447,22 +458,27 @@
       '<div id="upload-form-error"></div>' +
       '<div class="form-group"><label>Asesor que realizó la venta</label><select disabled>' +
       '<option>' + esc(ADVISOR.name) + ' (Asesor)</option></select></div>' +
+      '<div class="form-group"><label>Nombres y Apellidos Completos</label><div class="field-with-icon">' + icon('user') + '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '"></div></div>' +
       '<div class="form-grid">' +
-      '<div class="form-group"><label>Nombre Completo del Cliente</label><div class="field-with-icon">' + icon('user') + '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '"></div></div>' +
-      '<div class="form-group"><label>Teléfono de Contacto</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-client-phone" required placeholder="Número de contacto" value="' + esc(clientPhone) + '"></div></div>' +
-      '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Producto o Plan Vendido</label><div class="field-with-icon">' + icon('package') + '<select id="select-product">' +
-      PRODUCTS_CATALOG.map(function (p) { return '<option value="' + esc(p.name) + '" data-price="' + p.price + '" data-cat="' + esc(p.category) + '">' + esc(p.name) + ' ($' + p.price + ')</option>'; }).join('') +
+      '<div class="form-group"><label>Tipo de Documento</label><div class="field-with-icon">' + icon('fileText') + '<select id="select-doc-type" required>' +
+      '<option value="" disabled selected>Seleccionar</option>' +
+      DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '">' + d + '</option>'; }).join('') +
       '</select></div></div>' +
-      '<div class="form-group"><label>Monto Facturado ($)</label><div class="field-with-icon">' + icon('dollar') + '<input type="number" id="input-amount" min="1" step="0.01" required value="' + p0.price + '"></div></div>' +
+      '<div class="form-group"><label>Número de Documento</label><div class="field-with-icon">' + icon('fileText') + '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric"></div></div>' +
       '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Método de Pago</label><div class="field-with-icon">' + icon('card') + '<select id="select-payment">' +
-      ['Tarjeta Domiciliada', 'Tarjeta de Crédito', 'Transferencia bancaria', 'Débito Automático', 'Pago en sucursal'].map(function (m) { return '<option>' + m + '</option>'; }).join('') +
+      '<div class="form-group"><label>Teléfono</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-client-phone" required placeholder="Número de contacto" value="' + esc(clientPhone) + '"></div></div>' +
+      '<div class="form-group"><label>Teléfono de Referencia</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-reference-phone" placeholder="Número de un familiar o contacto"></div></div>' +
+      '</div><div class="form-grid">' +
+      '<div class="form-group"><label>Plan</label><div class="field-with-icon">' + icon('package') + '<select id="select-product" required>' +
+      '<option value="" disabled selected>Seleccionar</option>' +
+      PRODUCTS_CATALOG.map(function (p) { return '<option value="' + esc(p.name) + '" data-price="' + p.price + '" data-cat="' + esc(p.category) + '">' + esc(p.name) + ' (S/' + p.price + ')</option>'; }).join('') +
       '</select></div></div>' +
-      '<div class="form-group"><label>Estado Inicial de Validación</label><select id="select-status" disabled>' +
-      '<option value="en_verificacion" selected>En verificación (Pendiente docs)</option></select></div>' +
+      '<div class="form-group"><label>Tipo</label><div class="field-with-icon">' + icon('package') + '<select id="select-sale-type" required>' +
+      '<option value="" disabled selected>Seleccionar</option>' +
+      SALE_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
+      '</select></div></div>' +
       '</div>' +
-      '<div class="form-group"><label>Observaciones / Número de Contrato / Folio</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44."></textarea></div></div>' +
+      '<div class="form-group"><label>Observaciones</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44."></textarea></div></div>' +
       '<div class="form-actions"><button type="button" class="btn-outline" id="btn-cancel-upload">Cancelar</button>' +
       '<button type="submit" class="btn-close-sale">' + icon('check') + 'Confirmar y Subir Venta</button></div>' +
       '</form></div></div>';
@@ -470,26 +486,28 @@
     document.getElementById('btn-close-upload').addEventListener('click', closeUploadModal);
     document.getElementById('btn-cancel-upload').addEventListener('click', closeUploadModal);
     document.getElementById('upload-modal-backdrop').addEventListener('click', function (e) { if (e.target.id === 'upload-modal-backdrop') closeUploadModal(); });
-    document.getElementById('select-product').addEventListener('change', function (e) {
-      var opt = e.target.selectedOptions[0];
-      document.getElementById('input-amount').value = opt.getAttribute('data-price');
-    });
     document.getElementById('form-upload-sale').addEventListener('submit', function (e) {
       e.preventDefault();
       var name = document.getElementById('input-client-name').value.trim();
+      var docType = document.getElementById('select-doc-type').value;
+      var docNumber = document.getElementById('input-doc-number').value.trim();
       var phone = document.getElementById('input-client-phone').value.trim();
-      var amount = Number(document.getElementById('input-amount').value);
-      if (!name || !phone || !isFinite(amount) || amount <= 0) {
-        document.getElementById('upload-form-error').innerHTML = '<div class="modal-form-error">Ingresa nombre, teléfono y un importe válido mayor que cero.</div>';
+      var saleType = document.getElementById('select-sale-type').value;
+      var prodOpt = document.getElementById('select-product').selectedOptions[0];
+      if (!name || !docType || !docNumber || !phone || !saleType || !prodOpt.value) {
+        document.getElementById('upload-form-error').innerHTML = '<div class="modal-form-error">Completa nombre, documento, teléfono, plan y tipo antes de continuar.</div>';
         return;
       }
-      var prodOpt = document.getElementById('select-product').selectedOptions[0];
       var sale = {
         id: uid(), folio: 'KRT-' + new Date().getFullYear() + '-' + uid().slice(3, 11).toUpperCase(),
         advisorId: ADVISOR.id, advisorName: ADVISOR.name, advisorAvatar: '',
         clientName: name, clientPhone: phone,
-        productName: prodOpt.value, category: prodOpt.getAttribute('data-cat'), amount: amount,
-        paymentMethod: document.getElementById('select-payment').value,
+        documentType: docType,
+        documentNumber: docNumber,
+        referencePhone: document.getElementById('input-reference-phone').value.trim(),
+        saleType: saleType,
+        productName: prodOpt.value, category: prodOpt.getAttribute('data-cat'), amount: Number(prodOpt.getAttribute('data-price')),
+        paymentMethod: '',
         status: 'en_verificacion', notes: document.getElementById('input-notes').value.trim(),
         leadId: uploadPrefill ? uploadPrefill.leadId : undefined,
         createdAt: new Date().toISOString(), timestamp: new Date().toISOString()
@@ -611,10 +629,15 @@
       '<div class="modal-head dark"><div><span style="font-size:11px;font-family:ui-monospace,monospace;font-weight:700;color:#818cf8">' + esc(sale.folio) + '</span><h3>Detalles de Venta</h3></div>' +
       '<button type="button" class="modal-close" id="btn-close-detail">' + icon('x') + '</button></div>' +
       '<div class="modal-body">' +
-      detailRow('Cliente:', esc(sale.clientName)) + detailRow('Teléfono:', esc(sale.clientPhone)) +
-      detailRow('Asesor:', esc(sale.advisorName)) + detailRow('Producto:', esc(sale.productName)) +
-      detailRow('Monto Facturado:', '<span style="color:var(--emerald-600);font-family:ui-monospace,monospace;font-weight:800">$' + sale.amount.toLocaleString() + '</span>') +
-      detailRow('Método de Pago:', esc(sale.paymentMethod)) + detailRow('Estado:', saleStatusBadge(sale.status)) +
+      detailRow('Cliente:', esc(sale.clientName)) +
+      detailRow('Documento:', sale.documentType ? esc(sale.documentType) + ' ' + esc(sale.documentNumber) : '—') +
+      detailRow('Teléfono:', esc(sale.clientPhone)) +
+      detailRow('Teléfono de Referencia:', esc(sale.referencePhone) || '—') +
+      detailRow('Asesor:', esc(sale.advisorName)) +
+      detailRow('Tipo:', esc(sale.saleType) || '—') +
+      detailRow('Plan:', esc(sale.productName)) +
+      detailRow('Monto Facturado:', '<span style="color:var(--emerald-600);font-family:ui-monospace,monospace;font-weight:800">S/' + sale.amount.toLocaleString() + '</span>') +
+      (sale.paymentMethod ? detailRow('Método de Pago:', esc(sale.paymentMethod)) : '') + detailRow('Estado:', saleStatusBadge(sale.status)) +
       '<div><span style="color:var(--slate-500);font-weight:600;display:block;margin-bottom:4px;">Notas / Observaciones:</span>' +
       '<p style="background:var(--slate-50);padding:10px;border-radius:12px;border:1px solid var(--slate-200);color:var(--slate-700);margin:0;">' + esc(sale.notes || 'Sin observaciones registradas.') + '</p></div>' +
       '<div class="form-actions"><button type="button" class="btn-dark" id="btn-accept-detail" style="border-radius:12px;">Aceptar</button></div>' +
