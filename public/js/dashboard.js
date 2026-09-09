@@ -46,19 +46,21 @@
   /* ---------- icons ---------- */
   var ICONS = {
     headphones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
-    user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     userCheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
     logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
-    dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+    dashboard: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
     phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
-    dollar: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+    dollar: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M14.5 9.5a2.5 2.5 0 0 0-5 0c0 3 5 1.5 5 4.5a2.5 2.5 0 0 1-5 0"/>',
+    receipt: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/>',
     search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     filter: '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
     clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
     mapPin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
-    check: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+    check: '<polyline points="20 6 9 17 4 12"/>',
+    checkCircle: '<circle cx="12" cy="12" r="9"/><polyline points="9 12 11 14 15 10"/>',
     trendUp: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
     trendDown: '<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>',
     fileText: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
@@ -69,18 +71,24 @@
     card: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
     shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>',
     message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-    sparkles: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>',
-    volume: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 4.9a10 10 0 0 1 0 14.2"/>',
-    phoneOff: '<path d="M10.7 13.3a16 16 0 0 0 3.4 2.6l1.3-1.27a2 2 0 0 1 2.1-.45c.86.31 1.77.53 2.7.65A2 2 0 0 1 22 16.92z"/><line x1="23" y1="1" x2="1" y2="23"/>',
     alertTriangle: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
   };
   function icon(name, cls) {
-    return '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24">' + (ICONS[name] || '') + '</svg>';
+    return '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || '') + '</svg>';
   }
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
+  }
+
+  function avatarColorClass(name) {
+    var palette = ['avatar-indigo', 'avatar-emerald', 'avatar-amber', 'avatar-rose', 'avatar-cyan', 'avatar-violet'];
+    var hash = 0;
+    for (var i = 0; i < (name || '').length; i++) {
+      hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
+    }
+    return palette[Math.abs(hash) % palette.length];
   }
 
   /* ---------- seed & storage ---------- */
@@ -127,7 +135,21 @@
     return seed();
   }
 
-  var CALL_DISPOSITIONS = [["venta_cerrada","disposition-venta_cerrada","VENTA CERRADA","#00ff00"],["preventa","disposition-preventa","PREVENTA","#0b5394"],["agendado","disposition-agendado","AGENDADO","#ff9900"],["no_contesta","disposition-no_contesta","NO CONTESTA","#ffff00"],["buzon_de_voz","disposition-buzon_de_voz","BUZON DE VOZ","#bfe1f6"],["corta_llamada","disposition-corta_llamada","CORTA LLAMADA","#bfe1f6"],["en_ejecucion","disposition-en_ejecucion","EN EJECUCION","#3c4043"],["sin_cobertura","disposition-sin_cobertura","SIN COBERTURA","#ff0000"],["no_califica","disposition-no_califica","NO CALIFICA","#ffe599"],["no_desea","disposition-no_desea","NO DESEA","#783f04"],["contacto_con_terceros","disposition-contacto_con_terceros","CONTACTO CON TERCEROS","#13764f"],["desea_hogar","disposition-desea_hogar","DESEA HOGAR","#3c4043"],["servicio_activo","disposition-servicio_activo","SERVICIO ACTIVO","#3c4043"]];
+  var CALL_DISPOSITIONS = [
+    ["venta_cerrada","disposition-venta_cerrada","Venta Cerrada","#10b981"],
+    ["preventa","disposition-preventa","Preventa","#3b82f6"],
+    ["agendado","disposition-agendado","Agendado","#f59e0b"],
+    ["no_contesta","disposition-no_contesta","No Contesta","#eab308"],
+    ["buzon_de_voz","disposition-buzon_de_voz","Buzón de Voz","#38bdf8"],
+    ["corta_llamada","disposition-corta_llamada","Corta Llamada","#94a3b8"],
+    ["en_ejecucion","disposition-en_ejecucion","En Ejecución","#818cf8"],
+    ["sin_cobertura","disposition-sin_cobertura","Sin Cobertura","#f43f5e"],
+    ["no_califica","disposition-no_califica","No Califica","#fb923c"],
+    ["no_desea","disposition-no_desea","No Desea","#e11d48"],
+    ["contacto_con_terceros","disposition-contacto_con_terceros","Contacto con Terceros","#14b8a6"],
+    ["desea_hogar","disposition-desea_hogar","Desea Hogar","#6366f1"],
+    ["servicio_activo","disposition-servicio_activo","Servicio Activo","#64748b"]
+  ];
   var state = load();
   // Contacto solicitado para probar la marcación desde la base existente.
   if (!state.leads.some(function (lead) { return String(lead.phone || '').replace(/\D/g, '') === '930929211'; })) {
@@ -146,6 +168,7 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); storageError = false; }
     catch (e) { storageError = true; }
     document.getElementById('storage-error').hidden = !storageError;
+    if (operationsReady) queueOperationsSync();
   }
 
   /* ---------- filters (per-section local state) ---------- */
@@ -171,12 +194,14 @@
       en_curso: ['blue', 'En Llamada'],
       contactado: ['indigo', 'Contactado'],
       rellamada: ['amber', 'Rellamada'],
-      no_contesta: ['slate', 'No Contesta'],
+      no_contesta: ['yellow', 'No Contesta'],
       rechazado: ['rose', 'No Interesado']
     };
     CALL_DISPOSITIONS.forEach(function (item) { map[item[0]] = [item[1], item[2]]; });
+    var trackingLabels = {instalado:'Instalado',caida:'Caída',rechazo_campo:'Rechazo en campo',tecnico_casa:'Técnicos en casa',levantar_sot:'Levantar SOT',tecnicos_camino:'Técnicos en camino',instalado_no_validado:'Instalado no validado',reasignacion:'Reasignación',derivado_planta_externa:'Derivado a planta externa',rechazo:'Rechazo',rechazo_mesa:'Rechazo en mesa'};
+    if (trackingLabels[status]) map[status] = [status === 'instalado' ? 'emerald' : 'slate', trackingLabels[status]];
     var m = map[status] || ['slate', 'Pendiente'];
-    return '<span class="status-badge ' + m[0] + '"><span class="status-dot"></span>' + m[1] + '</span>';
+    return '<span class="status-badge ' + m[0] + '"><span class="status-dot"></span><span class="status-text">' + m[1] + '</span></span>';
   }
   function saleStatusBadge(status) {
     var map = {
@@ -186,21 +211,27 @@
       rechazada: ['rose', 'Caída']
     };
     var m = map[status] || ['slate', status];
-    return '<span class="status-badge ' + m[0] + '"><span class="status-dot"></span>' + m[1] + '</span>';
+    return '<span class="status-badge ' + m[0] + '"><span class="status-dot"></span><span class="status-text">' + m[1] + '</span></span>';
   }
   function initials(name) {
     var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return '?';
+    if (!parts.length) return '—';
     return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   }
 
   /* ---------- render: header labels ---------- */
   function initStaticLabels() {
-    document.getElementById('icon-user-chip').innerHTML = icon('user') + esc(USERNAME);
-    document.getElementById('btn-logout').innerHTML = icon('logout') + 'Salir';
-    document.getElementById('tab-btn-tablero').innerHTML = icon('dashboard') + 'Tablero y métricas';
-    document.getElementById('tab-btn-llamadas').innerHTML = icon('phone') + 'Base de llamadas <span class="tab-count" id="count-llamadas"></span>';
-    document.getElementById('tab-btn-ventas').innerHTML = icon('dollar') + 'Mis ventas <span class="tab-count" id="count-ventas"></span>';
+    var userEl = document.getElementById('icon-user-chip');
+    if (userEl) {
+      userEl.innerHTML = '<span class="user-chip-avatar">' + esc(initials(USERNAME)) + '</span><span class="user-chip-info"><strong class="user-chip-name">' + esc(USERNAME) + '</strong><span class="user-chip-sub">Asesor Comercial</span></span>';
+    }
+    var logoutBtn = document.getElementById('btn-logout');
+    if (logoutBtn) {
+      logoutBtn.innerHTML = icon('logout') + '<span>Cerrar sesión</span>';
+    }
+    document.getElementById('tab-btn-tablero').innerHTML = icon('dashboard') + '<span>Tablero y métricas</span>';
+    document.getElementById('tab-btn-llamadas').innerHTML = icon('phone') + '<span>Base de llamadas</span><span class="tab-count" id="count-llamadas"></span>';
+    document.getElementById('tab-btn-ventas').innerHTML = icon('receipt') + '<span>Mis ventas</span><span class="tab-count" id="count-ventas"></span>';
   }
 
   /* ---------- render: metrics banner + kpis ---------- */
@@ -208,15 +239,15 @@
     var leads = state.leads, sales = state.sales;
     document.getElementById('section-banner').innerHTML =
       '<div class="section-banner-left"><div class="section-banner-icon">' + icon('userCheck') + '</div>' +
-      '<div><p class="section-banner-label">Mi gestión comercial</p><p class="section-banner-title">Bienvenido, ' + esc(USERNAME) + '</p></div></div>' +
-      '<p class="section-banner-right">' + leads.length + ' contactos asignados por Back Office</p>';
+      '<div><p class="section-banner-label">Gestión Comercial</p><h2 class="section-banner-title">Panel de Asesor · ' + esc(USERNAME) + '</h2></div></div>' +
+      '<div class="section-banner-right"><span class="status-live-dot"></span> ' + leads.length + ' contactos asignados en cartera</div>';
 
     var todayStr = today();
     var cards = [
-      { label: 'Ventas activas', value: sales.filter(function (s) { return s.status === 'aprobada' || s.status === 'auditada'; }).length, detail: 'Confirmadas o auditadas', icon: 'check', cls: 'emerald' },
-      { label: 'Ventas caídas', value: sales.filter(function (s) { return s.status === 'rechazada'; }).length, detail: 'Ventas rechazadas', icon: 'trendDown', cls: 'rose' },
-      { label: 'Ventas diarias', value: sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === todayStr; }).length, detail: 'Registradas hoy', icon: 'trendUp', cls: 'indigo' },
-      { label: 'Mis ventas', value: sales.length, detail: sales.filter(function (s) { return s.status === 'en_verificacion'; }).length + ' pendientes de verificación', icon: 'fileText', cls: 'amber' }
+      { label: 'Ventas activas', value: sales.filter(function (s) { return s.status === 'aprobada' || s.status === 'auditada'; }).length, detail: 'Confirmadas y validadas', icon: 'check', cls: 'emerald' },
+      { label: 'Ventas caídas', value: sales.filter(function (s) { return s.status === 'rechazada'; }).length, detail: 'Rechazos u objeciones', icon: 'trendDown', cls: 'rose' },
+      { label: 'Ventas del día', value: sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === todayStr; }).length, detail: 'Registradas en la jornada', icon: 'trendUp', cls: 'indigo' },
+      { label: 'Total registradas', value: sales.length, detail: sales.filter(function (s) { return s.status === 'en_verificacion'; }).length + ' pendientes de validación', icon: 'fileText', cls: 'amber' }
     ];
     document.getElementById('kpi-grid').innerHTML = cards.map(function (c) {
       return '<div class="kpi-card"><div class="kpi-head"><span class="kpi-label">' + c.label + '</span>' +
@@ -288,43 +319,43 @@
     opts = opts || {};
     var compact = !!opts.compact;
     var rowsHtml = leads.length === 0
-      ? '<tr><td colspan="8" class="table-empty">' + icon('phone') + 'No se encontraron contactos en la base con los filtros seleccionados.</td></tr>'
+      ? '<tr><td colspan="8" class="table-empty">' + icon('phone') + '<p>No se encontraron contactos en la base con los filtros seleccionados.</p></td></tr>'
       : leads.map(function (l) {
         return '<tr class="' + (l.status === 'en_curso' ? 'in-call' : '') + '" data-lead-id="' + l.id + '">' +
-          '<td><div class="cell-name">' + esc(l.phone || '—') + '</div></td><td><div class="row-actions">' +
-          '<button type="button" class="btn-call" data-action="call" data-lead-id="' + esc(l.id) + '" title="Gestionar llamada">' + icon('phone') + 'Llamar</button>' +
-          '<button type="button" class="btn-icon-outline" data-action="sale" data-lead-id="' + esc(l.id) + '" ' + (l.status === 'venta_cerrada' ? 'disabled' : '') + ' title="Registrar venta directa" aria-label="Registrar venta directa">' + icon('check') + '</button></div></td>' +
-          '<td><span class="cell-name">' + esc(l.phone2 || '—') + '</span></td>' +
-          '<td>' + esc(l.whatsappUser || '—') + '</td>' +
-          '<td><span class="cell-notes">' + esc(l.notes || 'Sin observaciones') + '</span></td>' +
+          '<td><div class="cell-phone">' + esc(l.phone || '—') + '</div></td><td><div class="row-actions">' +
+          '<button type="button" class="btn-call" data-action="call" data-lead-id="' + esc(l.id) + '" title="Gestionar llamada con MicroSIP">' + icon('phone') + '<span>Llamar</span></button>' +
+          '<button type="button" class="btn-icon-sale" data-action="sale" data-lead-id="' + esc(l.id) + '" ' + (l.status === 'venta_cerrada' ? 'disabled' : '') + ' title="Registrar venta directa" aria-label="Registrar venta directa">' + icon('check') + '</button></div></td>' +
+          '<td><span class="cell-subtle-phone">' + esc(l.phone2 || '—') + '</span></td>' +
+          '<td><span class="cell-whatsapp">' + esc(l.whatsappUser || '—') + '</span></td>' +
+          '<td><div class="cell-notes" title="' + esc(l.notes || '') + '">' + esc(l.notes || 'Sin observaciones') + '</div></td>' +
           '<td>' + statusBadge(l.status) + '</td>' +
-          '<td>' + esc(l.zone || l.city || '—') + '</td>' +
-          '<td><span class="attempts-date">' + esc(l.assignedAt ? (isNaN(Date.parse(l.assignedAt)) ? l.assignedAt : new Date(l.assignedAt).toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})) : '—') + '</span></td></tr>';
+          '<td><span class="cell-zone">' + esc(l.zone || l.city || '—') + '</span></td>' +
+          '<td><span class="cell-time">' + esc(l.assignedAt ? (isNaN(Date.parse(l.assignedAt)) ? l.assignedAt : new Date(l.assignedAt).toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})) : '—') + '</span></td></tr>';
       }).join('');
 
     var filtersHtml = compact ? '' :
       '<div class="filters-grid">' +
       '<div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-leads" placeholder="Buscar por teléfono, WhatsApp o zona..." value="' + esc(leadsFilter.search) + '"></div>' +
       '<div class="field-with-icon">' + icon('filter') + '<select id="select-lead-status">' +
-      ['todos:Todos los Estados', 'pendiente:Pendientes'].concat(CALL_DISPOSITIONS.map(function (item) { return item[0] + ':' + item[2]; }), ['contactado:Contactado (anterior)', 'rellamada:Rellamada (anterior)', 'rechazado:Rechazado (anterior)', 'en_curso:En llamada (anterior)'])
+      ['todos:Todos los estados', 'pendiente:Pendientes'].concat(CALL_DISPOSITIONS.map(function (item) { return item[0] + ':' + item[2]; }), ['contactado:Contactado (anterior)', 'rellamada:Rellamada (anterior)', 'rechazado:Rechazado (anterior)', 'en_curso:En llamada (anterior)'])
         .map(function (o) { var p = o.split(':'); return '<option value="' + p[0] + '"' + (leadsFilter.status === p[0] ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') +
       '</select></div>' +
-      '<select id="select-lead-campaign" class="plain-select">' +
+      '<div class="field-with-icon">' + icon('package') + '<select id="select-lead-campaign" class="plain-select">' +
       CAMPAIGNS.map(function (c) { return '<option value="' + esc(c) + '"' + (leadsFilter.campaign === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') +
-      '</select></div>';
+      '</select></div></div>';
 
     var header = compact ? '' :
       '<div class="table-card-header"><div class="table-card-header-row"><div>' +
-      '<h2 class="table-card-title">' + icon('phone') + 'Mi base de llamadas</h2>' +
-      '<p class="table-card-subtitle">Tus contactos asignados por Back Office para llamadas y seguimiento.</p></div>' +
+      '<h2 class="table-card-title">Base de llamadas</h2>' +
+      '<p class="table-card-subtitle">Contactos asignados por Back Office para gestión y seguimiento comercial.</p></div>' +
       '<span class="pill-badge">Asignado por Back Office</span></div>' + filtersHtml + '</div>';
 
     var footer = compact ? '' :
-      '<div class="table-footer"><span>Mostrando ' + leads.length + ' contactos de ' + state.leads.length + ' totales en la base</span><span>Base de demostración</span></div>';
+      '<div class="table-footer"><span>Mostrando ' + leads.length + ' de ' + state.leads.length + ' contactos asignados</span><span class="table-footer-source">Cartera activa</span></div>';
 
     return '<div class="table-card">' + header +
       '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-      '<th>Teléfono 1</th><th>Tipificación</th><th>Teléfono 2</th><th>Usuario WhatsApp</th><th>Observaciones</th><th>Estado</th><th>Zona</th><th>Hora asignada</th>' +
+      '<th>Teléfono</th><th>Marcación / Gestión</th><th>Teléfono 2</th><th>WhatsApp</th><th>Observaciones</th><th>Estado</th><th>Zona</th><th>Asignado</th>' +
       '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' + footer + '</div>';
   }
 
@@ -349,27 +380,52 @@
     opts = opts || {};
     var compact = !!opts.compact;
     var rows = sales.length === 0
-      ? '<div class="table-empty">' + icon('dollar') + 'No hay registros de ventas que coincidan con la búsqueda.</div>'
+      ? '<div class="table-empty">' + icon('receipt') + '<p>No hay registros de ventas que coincidan con los filtros aplicados.</p></div>'
       : sales.map(function (s) {
-        var dateStr = s.createdAt ? new Date(s.createdAt).toLocaleString('es-PE') : s.timestamp;
-        return '<div class="sale-row" data-sale-id="' + s.id + '"><div class="sale-left">' +
-          '<div class="sale-avatar">' + icon('user') + '</div><div>' +
-          '<div class="sale-top-row"><span class="sale-folio">' + esc(s.folio) + '</span><span class="sale-client">' + esc(s.clientName) + '</span><span>•</span><span style="font-size:12px;color:var(--slate-500)">' + esc(s.clientPhone) + '</span></div>' +
-          '<div class="sale-mid-row"><span class="sale-product">' + esc(s.productName) + '</span><span>•</span><span class="sale-category">' + esc(s.category) + '</span><span>•</span><span style="font-size:11px;color:var(--slate-500)">Asesor: <strong>' + esc(s.advisorName) + '</strong></span></div>' +
-          (s.notes ? '<p class="sale-notes">"' + esc(s.notes) + '"</p>' : '') +
-          '</div></div><div class="sale-right"><div><div class="sale-amount">S/' + s.amount.toLocaleString() + '</div><div class="sale-date">' + esc(dateStr) + '</div></div>' +
-          '<div class="sale-actions">' + saleStatusBadge(s.status) + '<button type="button" class="btn-detail" data-action="sale-detail" data-sale-id="' + s.id + '" title="Ver detalles completos">' + icon('fileText') + '</button></div></div></div>';
+        var dateStr = s.createdAt ? new Date(s.createdAt).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : s.timestamp;
+        var init = initials(s.clientName);
+        var avatarCls = avatarColorClass(s.clientName);
+        var formattedAmount = Number(s.amount || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return '<div class="sale-row" data-sale-id="' + s.id + '">' +
+          '<div class="sale-left">' +
+            '<div class="sale-avatar ' + avatarCls + '" title="' + esc(s.clientName) + '">' + esc(init) + '</div>' +
+            '<div class="sale-info">' +
+              '<div class="sale-top-row">' +
+                '<span class="sale-folio">' + esc(s.folio) + '</span>' +
+                '<span class="sale-client">' + esc(s.clientName) + '</span>' +
+                '<span class="sale-dot-sep">·</span>' +
+                '<span class="sale-phone">' + esc(s.clientPhone) + '</span>' +
+              '</div>' +
+              '<div class="sale-mid-row">' +
+                '<span class="sale-product">' + esc(s.productName) + '</span>' +
+                '<span class="sale-category">' + esc(s.category) + '</span>' +
+                '<span class="sale-advisor">Asesor: <strong>' + esc(s.advisorName) + '</strong></span>' +
+              '</div>' +
+              (s.notes ? '<p class="sale-notes">“' + esc(s.notes) + '”</p>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="sale-right">' +
+            '<div class="sale-financials">' +
+              '<div class="sale-amount"><span class="sale-currency">S/</span> ' + esc(formattedAmount) + '</div>' +
+              '<div class="sale-date">' + esc(dateStr) + '</div>' +
+            '</div>' +
+            '<div class="sale-actions">' +
+              saleStatusBadge(s.status) +
+              '<button type="button" class="btn-detail" data-action="sale-detail" data-sale-id="' + s.id + '" title="Ver detalles completos">' + icon('fileText') + '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
       }).join('');
 
     var header = compact ? '' :
       '<div class="table-card-header"><div class="table-card-header-row"><div>' +
-      '<h2 class="table-card-title">' + icon('dollar') + 'Mis ventas</h2>' +
-      '<p class="table-card-subtitle">Tus ventas registradas, su estado y sus observaciones.</p></div>' +
-      '<button type="button" id="btn-trigger-upload-sale" class="btn btn-emerald">' + icon('plus') + 'Subir Nueva Venta</button></div>' +
+      '<h2 class="table-card-title">Mis ventas</h2>' +
+      '<p class="table-card-subtitle">Registro consolidado de ventas, estado de verificación y observaciones.</p></div>' +
+      '<button type="button" id="btn-trigger-upload-sale" class="btn btn-primary-action">' + icon('plus') + '<span>Nueva venta</span></button></div>' +
       '<div class="filters-grid sales">' +
       '<div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-sales" placeholder="Buscar por folio, cliente, asesor o producto..." value="' + esc(salesFilter.search) + '"></div>' +
       '<div class="field-with-icon">' + icon('filter') + '<select id="select-sale-status">' +
-      ['todos:Todos los Estados de Venta', 'aprobada:Activas', 'en_verificacion:En Verificación', 'auditada:Auditadas', 'rechazada:Caídas']
+      ['todos:Todos los estados', 'aprobada:Activas', 'en_verificacion:En verificación', 'auditada:Auditadas QA', 'rechazada:Caídas']
         .map(function (o) { var p = o.split(':'); return '<option value="' + p[0] + '"' + (salesFilter.status === p[0] ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') +
       '</select></div></div></div>';
 
@@ -402,38 +458,16 @@
   function showToast(title, description, type) {
     var root = document.getElementById('toast-root');
     root.innerHTML = '<div class="toast" role="status"><div class="toast-inner">' +
-      '<div class="toast-icon">' + icon(type === 'call' ? 'phone' : 'dollar') + '</div><div style="flex:1">' +
-      '<div class="toast-top"><span class="toast-badge">' + (type === 'call' ? 'Llamada Registrada' : 'Venta registrada') + '</span>' +
+      '<div class="toast-icon">' + icon(type === 'call' ? 'phone' : 'checkCircle') + '</div><div style="flex:1">' +
+      '<div class="toast-top"><span class="toast-badge">' + (type === 'call' ? 'Gestión guardada' : 'Venta registrada') + '</span>' +
       '<button type="button" class="toast-close" id="btn-toast-close">' + icon('x') + '</button></div>' +
       '<h4 class="toast-title">' + esc(title) + '</h4><p class="toast-desc">' + esc(description) + '</p>' +
-      '<div class="toast-footer"><span>Asesor: <strong>' + esc(USERNAME) + '</strong></span><span>Ahora</span></div></div></div></div>';
+      '<div class="toast-footer"><span>Asesor: <strong>' + esc(USERNAME) + '</strong></span><span>Hace un momento</span></div></div></div></div>';
     document.getElementById('btn-toast-close').addEventListener('click', dismissToast);
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(dismissToast, 5500);
+    toastTimer = setTimeout(dismissToast, 4500);
   }
   function dismissToast() { document.getElementById('toast-root').innerHTML = ''; if (toastTimer) clearTimeout(toastTimer); }
-
-  /* ---------- confetti (lightweight) ---------- */
-  function burstConfetti() {
-    var colors = ['#10B981', '#3B82F6', '#6366F1', '#F59E0B'];
-    var container = document.createElement('div');
-    container.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden;';
-    document.body.appendChild(container);
-    for (var i = 0; i < 40; i++) {
-      var p = document.createElement('span');
-      var size = 6 + Math.random() * 6;
-      p.style.cssText = 'position:absolute;left:' + (45 + Math.random() * 10) + '%;top:70%;width:' + size + 'px;height:' + size + 'px;' +
-        'background:' + colors[i % colors.length] + ';border-radius:' + (Math.random() > .5 ? '50%' : '2px') + ';opacity:.95;';
-      var dx = (Math.random() - 0.5) * 360, dy = -(200 + Math.random() * 220), rot = Math.random() * 720 - 360;
-      p.animate([
-        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
-        { transform: 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)', opacity: 1, offset: 0.7 },
-        { transform: 'translate(' + dx + 'px,' + (dy + 260) + 'px) rotate(' + (rot * 1.4) + 'deg)', opacity: 0 }
-      ], { duration: 1100 + Math.random() * 500, easing: 'cubic-bezier(.25,.46,.45,.94)' });
-      container.appendChild(p);
-    }
-    setTimeout(function () { container.remove(); }, 1700);
-  }
 
   /* ---------- upload sale modal ---------- */
   function openUploadModal(prefill) {
@@ -451,36 +485,36 @@
     var clientPhone = uploadPrefill ? uploadPrefill.phone : '';
     document.getElementById('modal-root').innerHTML =
       '<div class="modal-backdrop" id="upload-modal-backdrop"><div class="modal-card md" role="dialog" aria-modal="true" aria-label="Registrar venta">' +
-      '<div class="modal-head emerald"><div class="modal-head-left"><div class="modal-head-icon">' + icon('dollar') + '</div>' +
-      '<div><h2>Subir Registro de Venta</h2><p>Registra tu venta y envíala a verificación.</p></div></div>' +
+      '<div class="modal-head"><div class="modal-head-left"><div class="modal-head-icon">' + icon('receipt') + '</div>' +
+      '<div><h2>Registrar nueva venta</h2><p>Ingresa los datos del cliente y el plan contratado para su verificación.</p></div></div>' +
       '<button type="button" class="modal-close" id="btn-close-upload">' + icon('x') + '</button></div>' +
       '<form id="form-upload-sale" class="modal-body">' +
       '<div id="upload-form-error"></div>' +
-      '<div class="form-group"><label>Asesor que realizó la venta</label><select disabled>' +
-      '<option>' + esc(ADVISOR.name) + ' (Asesor)</option></select></div>' +
-      '<div class="form-group"><label>Nombres y Apellidos Completos</label><div class="field-with-icon">' + icon('user') + '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '"></div></div>' +
+      '<div class="form-group"><label>Asesor responsable</label><select disabled>' +
+      '<option>' + esc(ADVISOR.name) + ' (Asesor Comercial)</option></select></div>' +
+      '<div class="form-group"><label>Nombres y apellidos del titular</label><div class="field-with-icon">' + icon('user') + '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '"></div></div>' +
       '<div class="form-grid">' +
-      '<div class="form-group"><label>Tipo de Documento</label><div class="field-with-icon">' + icon('fileText') + '<select id="select-doc-type" required>' +
-      '<option value="" disabled selected>Seleccionar</option>' +
+      '<div class="form-group"><label>Tipo de documento</label><div class="field-with-icon">' + icon('fileText') + '<select id="select-doc-type" required>' +
+      '<option value="" disabled selected>Seleccionar documento</option>' +
       DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '">' + d + '</option>'; }).join('') +
       '</select></div></div>' +
-      '<div class="form-group"><label>Número de Documento</label><div class="field-with-icon">' + icon('fileText') + '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric"></div></div>' +
+      '<div class="form-group"><label>Número de documento</label><div class="field-with-icon">' + icon('fileText') + '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric"></div></div>' +
       '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Teléfono</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-client-phone" required placeholder="Número de contacto" value="' + esc(clientPhone) + '"></div></div>' +
-      '<div class="form-group"><label>Teléfono de Referencia</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-reference-phone" placeholder="Número de un familiar o contacto"></div></div>' +
+      '<div class="form-group"><label>Teléfono principal</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-client-phone" required placeholder="Número de contacto titular" value="' + esc(clientPhone) + '"></div></div>' +
+      '<div class="form-group"><label>Teléfono de referencia</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-reference-phone" placeholder="Contacto alternativo"></div></div>' +
       '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Plan</label><div class="field-with-icon">' + icon('package') + '<select id="select-product" required>' +
-      '<option value="" disabled selected>Seleccionar</option>' +
-      PRODUCTS_CATALOG.map(function (p) { return '<option value="' + esc(p.name) + '" data-price="' + p.price + '" data-cat="' + esc(p.category) + '">' + esc(p.name) + ' (S/' + p.price + ')</option>'; }).join('') +
+      '<div class="form-group"><label>Plan contratado</label><div class="field-with-icon">' + icon('package') + '<select id="select-product" required>' +
+      '<option value="" disabled selected>Seleccionar plan</option>' +
+      PRODUCTS_CATALOG.map(function (p) { return '<option value="' + esc(p.name) + '" data-price="' + p.price + '" data-cat="' + esc(p.category) + '">' + esc(p.name) + ' (S/ ' + p.price.toFixed(2) + ')</option>'; }).join('') +
       '</select></div></div>' +
-      '<div class="form-group"><label>Tipo</label><div class="field-with-icon">' + icon('package') + '<select id="select-sale-type" required>' +
-      '<option value="" disabled selected>Seleccionar</option>' +
+      '<div class="form-group"><label>Tipo de operación</label><div class="field-with-icon">' + icon('package') + '<select id="select-sale-type" required>' +
+      '<option value="" disabled selected>Seleccionar tipo</option>' +
       SALE_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
       '</select></div></div>' +
       '</div>' +
-      '<div class="form-group"><label>Observaciones</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44."></textarea></div></div>' +
+      '<div class="form-group"><label>Observaciones / Acuerdos</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44."></textarea></div></div>' +
       '<div class="form-actions"><button type="button" class="btn-outline" id="btn-cancel-upload">Cancelar</button>' +
-      '<button type="submit" class="btn-close-sale">' + icon('check') + 'Confirmar y Subir Venta</button></div>' +
+      '<button type="submit" class="btn btn-primary-action">' + icon('check') + '<span>Confirmar venta</span></button></div>' +
       '</form></div></div>';
 
     document.getElementById('btn-close-upload').addEventListener('click', closeUploadModal);
@@ -518,8 +552,7 @@
         state.leads = state.leads.map(function (l) { return l.id === sale.leadId ? Object.assign({}, l, { status: 'venta_cerrada', notes: uploadPrefill && uploadPrefill.managementNotes !== undefined ? uploadPrefill.managementNotes : l.notes }) : l; });
       }
       persist(); renderAll();
-      try { burstConfetti(); } catch (err) { /* ignore */ }
-      showToast('¡Venta registrada!', name + ' · Pendiente de verificación', 'sale');
+      showToast('Venta registrada', name + ' · Enviada a verificación', 'sale');
       closeUploadModal();
     });
   }
@@ -545,7 +578,6 @@
   function openCallModal(lead) {
     activeCallLead = lead; callNotesVal = lead.notes || ''; callStatusVal = '';
     renderCallModal();
-
   }
   function closeCallModal() {
     activeCallLead = null;
@@ -575,7 +607,7 @@
       return Object.assign({}, l, { status: newStatus, notes: callNotesVal, lastContactAt: new Date().toLocaleString('es-PE'), managementHistory: hist }, extra);
     });
     persist(); renderAll();
-    showToast('Gestión guardada', 'Estado y observaciones actualizados.', 'call');
+    showToast('Gestión guardada', 'Tipificación y observaciones actualizadas.', 'call');
     closeCallModal();
   }
   function convertCallToSale() {
@@ -593,17 +625,18 @@
     var details = [['Teléfono 1', lead.phone], ['Teléfono 2', lead.phone2], ['Usuario WhatsApp', lead.whatsappUser], ['Zona', lead.zone || lead.city], ['Hora asignada', assigned]];
     document.getElementById('modal-root').innerHTML =
       '<div class="modal-backdrop" id="call-modal-backdrop"><div class="modal-card lg" role="dialog" aria-modal="true" aria-label="Gestión de llamada">' +
-      '<div class="call-topbar"><div class="call-topbar-left"><div class="call-avatar">' + icon('phone') + '</div><div><span class="call-tag">Gestión de llamada</span><span class="call-tag-note">Registro manual</span><h3>' + esc(lead.phone) + '</h3></div></div></div>' +
+      '<div class="call-topbar"><div class="call-topbar-left"><div class="call-avatar">' + icon('phone') + '</div><div><span class="call-tag">Gestión comercial</span><span class="call-tag-note">MicroSIP activo</span><h3 class="call-phone-number">' + esc(lead.phone) + '</h3></div></div><button type="button" class="modal-close" id="btn-close-call-head">' + icon('x') + '</button></div>' +
       '<div class="modal-body"><div class="call-info-grid">' + details.map(function (item) { return '<div><span class="label">' + item[0] + '</span><span class="value">' + esc(item[1] || '—') + '</span></div>'; }).join('') + '</div>' +
-      '<div class="form-group"><label for="call-notes">Observaciones</label><textarea id="call-notes" rows="4" placeholder="Escribe el resultado de la llamada y los acuerdos con el contacto...">' + esc(callNotesVal) + '</textarea></div>' +
-      '<div class="form-group"><label id="call-status-label">Tipificación · Estado de la llamada</label><div class="disposition-grid" role="group" aria-labelledby="call-status-label">' +
-      CALL_DISPOSITIONS.map(function (item) { return '<button type="button" class="disposition-btn ' + item[1] + '" data-finish="' + item[0] + '" aria-pressed="false">' + item[2] + '</button>'; }).join('') +
-      '</div><p id="call-status-help" role="status" style="font-size:12px;color:var(--text-muted)">Selecciona un estado para guardar la gestión.</p></div>' +
+      '<div class="form-group"><label for="call-notes">Observaciones de la llamada</label><textarea id="call-notes" rows="3" placeholder="Ingresa los detalles relevantes de la conversación...">' + esc(callNotesVal) + '</textarea></div>' +
+      '<div class="form-group"><label id="call-status-label">Tipificación del contacto</label><div class="disposition-grid" role="group" aria-labelledby="call-status-label">' +
+      CALL_DISPOSITIONS.map(function (item) { return '<button type="button" class="disposition-btn ' + item[1] + '" data-finish="' + item[0] + '" aria-pressed="false"><span class="disp-dot" style="background:' + item[3] + '"></span><span>' + item[2] + '</span></button>'; }).join('') +
+      '</div><p id="call-status-help" role="status" style="font-size:12px;color:var(--text-muted)">Selecciona una tipificación para registrar la gestión.</p></div>' +
       '<div id="call-coverage-fields" class="form-group" hidden><label for="call-coordinates">Coordenadas · Latitud, longitud</label><input id="call-coordinates" type="text" placeholder="Ej. -12.0464, -77.0428" value="' + esc(lead.coordinates || '') + '"></div>' +
       '<div id="call-presale-fields" class="form-group" hidden><label for="call-document-type">Documento de preventa</label><select id="call-document-type"><option>DNI</option><option>RUC</option><option>CE</option></select><label for="call-document">Número de documento</label><input id="call-document" type="text" placeholder="Ingresa DNI, RUC o CE" value="' + esc(lead.documentNumber || '') + '"></div>' +
-      '<div class="call-actions"><button type="button" class="btn-outline" id="btn-cancel-call">Cancelar</button><button type="button" class="btn-outline" id="btn-hangup">' + icon('check') + 'Guardar gestión</button><button type="button" class="btn-close-sale" id="btn-convert-sale">' + icon('check') + 'Registrar venta</button></div></div></div></div>';
+      '<div class="call-actions"><button type="button" class="btn-outline" id="btn-cancel-call">Cancelar</button><button type="button" class="btn-secondary-action" id="btn-hangup">' + icon('check') + '<span>Guardar gestión</span></button><button type="button" class="btn btn-primary-action" id="btn-convert-sale">' + icon('check') + '<span>Registrar venta</span></button></div></div></div></div>';
     document.getElementById('call-document-type').value = lead.documentType || 'DNI';
     document.getElementById('call-notes').addEventListener('input', function (e) { callNotesVal = e.target.value; });
+    document.getElementById('btn-close-call-head').addEventListener('click', closeCallModal);
     document.querySelectorAll('[data-finish]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         callStatusVal = btn.getAttribute('data-finish');
@@ -611,12 +644,12 @@
         document.getElementById('call-coverage-fields').hidden = callStatusVal !== 'sin_cobertura';
         document.getElementById('call-presale-fields').hidden = callStatusVal !== 'preventa';
         document.querySelectorAll('[data-finish]').forEach(function (option) { option.setAttribute('aria-pressed', String(option === btn)); });
-        document.getElementById('call-status-help').textContent = 'Estado seleccionado: ' + btn.textContent;
+        document.getElementById('call-status-help').textContent = 'Tipificación seleccionada: ' + btn.textContent.trim();
       });
     });
     document.getElementById('btn-cancel-call').addEventListener('click', closeCallModal);
     document.getElementById('btn-hangup').addEventListener('click', function () {
-      if (!callStatusVal) { document.getElementById('call-status-help').textContent = 'Selecciona el estado de la llamada antes de guardar.'; return; }
+      if (!callStatusVal) { document.getElementById('call-status-help').textContent = 'Selecciona una tipificación antes de guardar.'; return; }
       finishCall(callStatusVal);
     });
     document.getElementById('btn-convert-sale').addEventListener('click', convertCallToSale);
@@ -626,24 +659,24 @@
   function openSaleDetail(sale) {
     document.getElementById('modal-root').innerHTML =
       '<div class="modal-backdrop" id="detail-modal-backdrop"><div class="modal-card sm">' +
-      '<div class="modal-head dark"><div><span style="font-size:11px;font-family:ui-monospace,monospace;font-weight:700;color:#818cf8">' + esc(sale.folio) + '</span><h3>Detalles de Venta</h3></div>' +
+      '<div class="modal-head dark"><div><span class="sale-detail-folio">' + esc(sale.folio) + '</span><h3 class="sale-detail-title">Detalle de la venta</h3></div>' +
       '<button type="button" class="modal-close" id="btn-close-detail">' + icon('x') + '</button></div>' +
       '<div class="modal-body">' +
-      detailRow('Cliente:', esc(sale.clientName)) +
+      detailRow('Cliente titular:', esc(sale.clientName)) +
       detailRow('Documento:', sale.documentType ? esc(sale.documentType) + ' ' + esc(sale.documentNumber) : '—') +
-      detailRow('Teléfono:', esc(sale.clientPhone)) +
-      detailRow('Teléfono de Referencia:', esc(sale.referencePhone) || '—') +
-      detailRow('Asesor:', esc(sale.advisorName)) +
-      detailRow('Tipo:', esc(sale.saleType) || '—') +
-      detailRow('Plan:', esc(sale.productName)) +
-      detailRow('Monto Facturado:', '<span style="color:var(--emerald-600);font-family:ui-monospace,monospace;font-weight:800">S/' + sale.amount.toLocaleString() + '</span>') +
-      (sale.paymentMethod ? detailRow('Método de Pago:', esc(sale.paymentMethod)) : '') + detailRow('Estado:', saleStatusBadge(sale.status)) +
-      '<div><span style="color:var(--slate-500);font-weight:600;display:block;margin-bottom:4px;">Notas / Observaciones:</span>' +
-      '<p style="background:var(--slate-50);padding:10px;border-radius:12px;border:1px solid var(--slate-200);color:var(--slate-700);margin:0;">' + esc(sale.notes || 'Sin observaciones registradas.') + '</p></div>' +
-      '<div class="form-actions"><button type="button" class="btn-dark" id="btn-accept-detail" style="border-radius:12px;">Aceptar</button></div>' +
+      detailRow('Teléfono principal:', esc(sale.clientPhone)) +
+      detailRow('Teléfono de referencia:', esc(sale.referencePhone) || '—') +
+      detailRow('Asesor comercial:', esc(sale.advisorName)) +
+      detailRow('Tipo de operación:', esc(sale.saleType) || '—') +
+      detailRow('Plan contratado:', esc(sale.productName)) +
+      detailRow('Monto facturado:', '<span class="sale-amount-detail">S/ ' + Number(sale.amount || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>') +
+      (sale.paymentMethod ? detailRow('Método de pago:', esc(sale.paymentMethod)) : '') + detailRow('Estado actual:', saleStatusBadge(sale.status)) +
+      '<div class="sale-notes-box"><span class="notes-label">Observaciones y acuerdos:</span>' +
+      '<p class="notes-text">' + esc(sale.notes || 'Sin observaciones registradas.') + '</p></div>' +
+      '<div class="form-actions"><button type="button" class="btn-outline" id="btn-accept-detail">Cerrar</button></div>' +
       '</div></div></div>';
     function detailRow(label, value) {
-      return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--slate-100);font-size:12px;"><span style="color:var(--slate-500);font-weight:600;">' + label + '</span><span style="font-weight:700;color:var(--slate-800);text-align:right">' + value + '</span></div>';
+      return '<div class="detail-row"><span class="detail-label">' + label + '</span><span class="detail-val">' + value + '</span></div>';
     }
     var close = function () { document.getElementById('modal-root').innerHTML = ''; };
     document.getElementById('btn-close-detail').addEventListener('click', close);
@@ -699,9 +732,52 @@
     }
   });
 
+  var operationsReady = false, operationsQueue = Promise.resolve();
+  function queueOperationsSync() {
+    if (!CFG.operationsSync) return Promise.resolve();
+    var snapshot = JSON.stringify({ leads: state.leads, sales: state.sales });
+    operationsQueue = operationsQueue.catch(function () {}).then(function () {
+      return fetch(CFG.operationsSync, {method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':CFG.csrf},body:snapshot}).then(function (response) {
+        if (!response.ok) throw new Error('No se sincronizó la gestión');
+        var el = document.getElementById('operations-sync-status'); if (el) el.textContent = '';
+      }).catch(function (error) {
+        var el = document.getElementById('operations-sync-status'); if (el) el.textContent = 'Sin sincronizar. Vuelve a intentar al cambiar de área.';
+        throw error;
+      });
+    });
+    // The local copy remains available when the server is temporarily unavailable.
+    operationsQueue.catch(function () {});
+    return operationsQueue;
+  }
+  function loadOperations() {
+    if (!CFG.operationsAdvisor) return Promise.resolve();
+    return fetch(CFG.operationsAdvisor, {headers:{Accept:'application/json'}}).then(function (response) {
+      if (!response.ok) throw new Error('No se pudo cargar Back Office');
+      return response.json();
+    }).then(function (data) {
+      var assigned = new Set(data.leads.map(function (lead) { return lead.id; }));
+      state.leads = state.leads.filter(function (lead) { return !data.knownIds.includes(lead.id) || assigned.has(lead.id); });
+      data.leads.forEach(function (lead) {
+        var existing = state.leads.findIndex(function (l) { return l.id === lead.id; });
+        var merged = Object.assign({}, existing >= 0 ? state.leads[existing] : {}, lead, {assignedAdvisorId:ADVISOR.id,assignedAdvisorName:USERNAME,city:lead.zone});
+        if (existing >= 0) state.leads[existing] = merged; else state.leads.unshift(merged);
+      });
+      data.sales.forEach(function (sale) {
+        var existing = state.sales.findIndex(function (s) { return s.id === sale.id; });
+        if (existing >= 0 && sale.trackingUpdatedAt) state.sales[existing] = Object.assign({}, state.sales[existing], {status:sale.status});
+      });
+      operationsReady = true; renderAll(); persist();
+    }).catch(function () { var el=document.getElementById('operations-sync-status');if(el)el.textContent='No se pudo cargar la base de Back Office. Recarga para reintentar.'; });
+  }
+  document.addEventListener('click', function (event) {
+    var link=event.target.closest('[data-operation-link]'); if(!link)return;
+    event.preventDefault();
+    (operationsReady ? queueOperationsSync() : loadOperations().then(function(){if(!operationsReady)throw new Error('Sin conexión');return queueOperationsSync();})).then(function(){window.location.href=link.href;}).catch(function(){});
+  });
   /* ---------- init ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     initStaticLabels();
+    loadOperations();
     setTab('llamadas');
     renderAll();
     document.getElementById('storage-error').hidden = !storageError;

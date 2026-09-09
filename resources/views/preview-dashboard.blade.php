@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>KRATOS — Asesor</title>
+<title>KRATOS — Portal Asesor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
 </head>
 <body>
@@ -15,26 +15,34 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="topbar-brand">
-      <div class="brand-icon">@include('partials.kratos-logo')</div>
+      <div class="brand-logo-container">@include('partials.kratos-logo')</div>
       <div class="brand-text">
         <div class="brand-title-row">
-          <h1>KRATOS</h1>
+          <h1 class="brand-title">KRATOS</h1>
+          <span class="brand-tag">CRM</span>
         </div>
-        <p class="brand-subtitle">Base de llamadas, métricas y registro de ventas</p>
+        <p class="brand-subtitle">Plataforma de Gestión Comercial y Ventas</p>
       </div>
     </div>
     <div class="topbar-actions">
-      <span class="user-chip" id="icon-user-chip">{{ $username }}</span>
-      <form method="POST" action="{{ route('preview.logout') }}">
+      <div class="system-status">
+        <span class="status-live-dot"></span>
+        <span class="status-live-text">En línea</span>
+      </div>
+      <div class="user-chip-wrap">
+        <span class="user-chip" id="icon-user-chip">{{ $username }}</span>
+      </div>
+      <form method="POST" action="{{ route('preview.logout') }}" class="logout-form">
         @csrf
-        <button type="submit" class="btn btn-ghost" id="btn-logout"></button>
+        <button type="submit" class="btn-logout" id="btn-logout" title="Cerrar sesión"></button>
       </form>
     </div>
   </div>
 </header>
 
 <main class="page">
-  <nav class="tabs" aria-label="Secciones de Asesor">
+  <nav class="operations-navigation" aria-label="Áreas de KRATOS"><strong>Asesor</strong><a data-operation-link href="{{ route('preview.backoffice') }}">Back Office</a><a data-operation-link href="{{ route('preview.seguimiento') }}">Seguimiento</a><span id="operations-sync-status" role="status"></span></nav>
+  <nav class="tabs" aria-label="Secciones del Asesor">
     <button type="button" class="tab-btn active" data-tab="llamadas" id="tab-btn-llamadas">Base de llamadas</button>
     <button type="button" class="tab-btn" data-tab="tablero" id="tab-btn-tablero">Tablero y métricas</button>
     <button type="button" class="tab-btn" data-tab="ventas" id="tab-btn-ventas">Mis ventas</button>
@@ -68,6 +76,8 @@
 <script>
 window.__KRATOS__ = {
   username: @json($username),
+  operationsSync: @json(route('preview.operations.sync')),
+  operationsAdvisor: @json(route('preview.operations.advisor')),
   logoutUrl: @json(route('preview.logout')),
   csrf: @json(csrf_token())
 };
