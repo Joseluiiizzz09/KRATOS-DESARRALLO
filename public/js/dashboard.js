@@ -188,9 +188,9 @@
 
   /* ---------- topbar title map ---------- */
   var TAB_TITLES = {
-    llamadas: ['Base de llamadas', 'Contactos asignados para gestion comercial'],
-    ventas: ['Mis ventas', 'Registro consolidado de ventas y verificacion'],
-    tablero: ['Tablero y metricas', 'Resumen de actividad comercial del asesor']
+    llamadas: ['Base de llamadas', 'Contactos asignados para gestión comercial'],
+    ventas: ['Mis ventas', 'Registro consolidado de ventas y verificación'],
+    tablero: ['Tablero y métricas', 'Resumen de actividad comercial del asesor']
   };
 
   /* ---------- render: header labels ---------- */
@@ -202,6 +202,10 @@
     if (nameEl) nameEl.textContent = USERNAME;
   }
 
+  /* Un contacto cuenta como gestionado cuando ya salió de la bandeja inicial. */
+  function isManaged(lead) { return lead.status !== 'pendiente' && lead.status !== 'nuevo'; }
+  function plural(n, one, many) { return n === 1 ? one : many; }
+
   /* ---------- render: metrics banner + kpis ---------- */
   function renderMetrics() {
     var leads = state.leads, sales = state.sales;
@@ -211,68 +215,120 @@
       '<div class="section-banner-right"><span class="status-live-dot"></span> ' + leads.length + ' contactos asignados en cartera</div>';
 
     var todayStr = today();
+    var managed = leads.filter(isManaged).length;
+    var pending = leads.length - managed;
+    var salesToday = sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === todayStr; }).length;
+    var active = sales.filter(function (s) { return s.status === 'aprobada' || s.status === 'auditada'; }).length;
+    var dropped = sales.filter(function (s) { return s.status === 'rechazada'; }).length;
+    var checking = sales.filter(function (s) { return s.status === 'en_verificacion'; }).length;
+    var coverage = leads.length ? Math.round((managed / leads.length) * 100) : 0;
+
     var cards = [
-      { label: 'Ventas activas', value: sales.filter(function (s) { return s.status === 'aprobada' || s.status === 'auditada'; }).length, detail: 'Confirmadas y validadas', icon: 'check', cls: 'emerald' },
-      { label: 'Ventas caídas', value: sales.filter(function (s) { return s.status === 'rechazada'; }).length, detail: 'Rechazos u objeciones', icon: 'trendDown', cls: 'rose' },
-      { label: 'Ventas del día', value: sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === todayStr; }).length, detail: 'Registradas en la jornada', icon: 'trendUp', cls: 'indigo' },
-      { label: 'Total registradas', value: sales.length, detail: sales.filter(function (s) { return s.status === 'en_verificacion'; }).length + ' pendientes de validación', icon: 'fileText', cls: 'amber' }
+      { label: 'Contactos asignados', value: leads.length, detail: leads.length ? pending + plural(pending, ' pendiente', ' pendientes') + ' de gestión' : 'Back Data aún no asigna registros', icon: 'phone', cls: 'indigo' },
+      { label: 'Gestionados hoy', value: managed, detail: leads.length ? coverage + '% de la cartera' : 'Sin cartera asignada', icon: 'checkCircle', cls: 'emerald' },
+      { label: 'Ventas del día', value: salesToday, detail: 'Registradas en la jornada', icon: 'trendUp', cls: 'amber' },
+      { label: 'Ventas activas', value: active, detail: checking + ' en verificación · ' + dropped + plural(dropped, ' caída', ' caídas'), icon: 'receipt', cls: 'rose' }
     ];
     document.getElementById('kpi-grid').innerHTML = cards.map(function (c) {
       return '<div class="kpi-card"><div class="kpi-head"><span class="kpi-label">' + c.label + '</span>' +
         '<div class="kpi-icon ' + c.cls + '">' + icon(c.icon) + '</div></div>' +
-        '<p class="kpi-value">' + c.value + '</p><p class="kpi-detail">' + c.detail + '</p></div>';
+        '<p class="kpi-value">' + c.value + '</p><p class="kpi-detail">' + esc(c.detail) + '</p></div>';
     }).join('');
 
     document.getElementById('count-llamadas').textContent = leads.length;
     document.getElementById('count-ventas').textContent = sales.length;
     var progressCount = document.getElementById('sidebar-progress-count');
     var progressBar = document.getElementById('sidebar-progress-bar');
-    var managedToday = leads.filter(function (lead) { return lead.status !== 'pendiente' && lead.status !== 'nuevo'; }).length;
+    var managedToday = leads.filter(isManaged).length;
     if (progressCount) progressCount.textContent = managedToday;
     if (progressBar) progressBar.style.width = (leads.length ? Math.max(6, Math.round((managedToday / leads.length) * 100)) : 0) + '%';
   }
 
   /* ---------- render: charts ---------- */
+  /* Par validado para daltonismo sobre superficie clara (ver dataviz). */
+  var SERIES = { calls: { color: '#2f6fb0', label: 'Gestiones' }, sales: { color: '#2f8f57', label: 'Ventas' } };
+  /* Mismos colores que los badges de Estado de la tabla. */
+  var STATUS_COLORS = { pendiente: '#9a6414', contactado: '#1a6598', agendado: '#8a1c2b', venta: '#2c7048', 'no-contesta': '#6b7280' };
+
+  function chartEmpty(title, hint) {
+    return '<div class="chart-empty"><p>' + esc(title) + '</p><small>' + esc(hint) + '</small></div>';
+  }
+
   function renderCharts() {
     var leads = state.leads, sales = state.sales;
-    var statusCounts = { venta_cerrada: 0, contactado: 0, rellamada: 0, no_contesta: 0, rechazado: 0, pendiente: 0 };
-    leads.forEach(function (l) { if (statusCounts[l.status] !== undefined) statusCounts[l.status]++; });
-    var totalLeads = leads.length || 1;
 
-    var hourlyData = [];
+    var days = [];
     for (var i = 0; i < 7; i++) {
       var d = new Date(); d.setDate(d.getDate() - 6 + i);
       var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      var calls = leads.reduce(function (n, l) { return n + (l.managementHistory || []).filter(function (h) { return h.slice(0, 10) === key; }).length; }, 0);
-      var salesCount = sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === key; }).length;
-      hourlyData.push({ label: String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'), calls: calls, sales: salesCount });
+      days.push({
+        label: String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'),
+        calls: leads.reduce(function (n, l) { return n + (l.managementHistory || []).filter(function (h) { return h.slice(0, 10) === key; }).length; }, 0),
+        sales: sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === key; }).length
+      });
     }
-    var maxVal = Math.max(1, Math.max.apply(null, hourlyData.map(function (h) { return h.calls; }).concat(hourlyData.map(function (h) { return h.sales; }))));
+    var totalCalls = days.reduce(function (n, d) { return n + d.calls; }, 0);
+    var totalSales = days.reduce(function (n, d) { return n + d.sales; }, 0);
+    /* Escala redondeada para que la línea superior sea un número legible. */
+    var peak = Math.max.apply(null, days.map(function (d) { return Math.max(d.calls, d.sales); }));
+    var top = peak <= 4 ? 4 : Math.ceil(peak / 2) * 2;
 
-    document.getElementById('chart-bars').innerHTML =
-      '<div class="chart-card-head"><div><h3>' + icon('barChart') + 'Actividad comercial</h3><p>Últimos 7 días · Gestiones registradas y ventas</p></div>' +
-      '<div class="chart-legend"><span><span class="legend-dot" style="background:var(--indigo-500)"></span>Gestiones</span><span><span class="legend-dot" style="background:var(--emerald-500)"></span>Ventas</span></div></div>' +
-      '<div class="activity-summary"><div><span>Gestiones en el período</span><strong>' + hourlyData.reduce(function (n, d) { return n + d.calls; }, 0) + '</strong></div><div><span>Ventas en el período</span><strong>' + hourlyData.reduce(function (n, d) { return n + d.sales; }, 0) + '</strong></div><div><span>Escala del gráfico</span><strong>' + maxVal + '<small> registros</small></strong></div></div>' +
-      '<div class="bar-chart">' + hourlyData.map(function (h) {
-        var ch = Math.round((h.calls / maxVal) * 100), sh = Math.round((h.sales / maxVal) * 100);
-        return '<div class="bar-col"><div class="bar-group">' +
-          '<div class="bar indigo" style="height:' + ch + '%" title="' + h.calls + ' gestiones el ' + h.label + '"></div>' +
-          '<div class="bar emerald" style="height:' + sh + '%" title="' + h.sales + ' ventas el ' + h.label + '"></div>' +
-          '</div><span class="bar-label">' + h.label + '</span></div>';
-      }).join('') + '</div>';
+    var head =
+      '<div class="chart-card-head"><div><h3>' + icon('barChart') + 'Actividad comercial</h3>' +
+      '<p>Últimos 7 días · Gestiones registradas y ventas</p></div>' +
+      '<div class="chart-legend">' +
+      '<span><span class="legend-dot" style="background:' + SERIES.calls.color + '"></span>' + SERIES.calls.label + '</span>' +
+      '<span><span class="legend-dot" style="background:' + SERIES.sales.color + '"></span>' + SERIES.sales.label + '</span>' +
+      '</div></div>';
 
-    function row(label, dotColor, count, cls) {
-      var pct = Math.round((count / totalLeads) * 100);
-      return '<div class="distribution-item' + (count === 0 ? ' empty' : '') + '"><div class="status-row-head"><span class="name">' + (dotColor ? '<span class="dot" style="background:' + dotColor + '"></span>' : '') + label + '</span>' +
-        '<span class="val">' + count + ' (' + pct + '%)</span></div>' +
-        '<div class="status-track"><div class="status-fill" style="width:' + pct + '%;background:' + (dotColor || '#94a3b8') + '"></div></div></div>';
+    var body;
+    if (totalCalls === 0 && totalSales === 0) {
+      body = chartEmpty('Sin actividad en los últimos 7 días', 'Las gestiones y ventas que registres aparecerán aquí.');
+    } else {
+      var busiest = days.reduce(function (best, d) { return (d.calls + d.sales) > (best.calls + best.sales) ? d : best; }, days[0]);
+      var bar = function (kind, value, label) {
+        var serie = SERIES[kind];
+        return '<div class="bar" style="height:' + (value / top * 100) + '%;background:' + serie.color + '" ' +
+          'title="' + value + ' ' + serie.label.toLowerCase() + ' el ' + label + '">' +
+          (value > 0 ? '<b>' + value + '</b>' : '') + '</div>';
+      };
+      body =
+        '<div class="activity-summary">' +
+        '<div><span>Gestiones en el período</span><strong>' + totalCalls + '</strong></div>' +
+        '<div><span>Ventas en el período</span><strong>' + totalSales + '</strong></div>' +
+        '<div><span>Día más activo</span><strong>' + esc(busiest.label) + '<small>' + (busiest.calls + busiest.sales) + ' registros</small></strong></div>' +
+        '</div>' +
+        '<div class="chart-plot">' +
+        '<div class="chart-axis"><span>' + top + '</span><span>' + (top / 2) + '</span><span>0</span></div>' +
+        '<div class="chart-area">' +
+        '<i class="gridline"></i><i class="gridline"></i><i class="gridline base"></i>' +
+        '<div class="bar-chart">' + days.map(function (d) {
+          return '<div class="bar-col"><div class="bar-group">' +
+            bar('calls', d.calls, d.label) + bar('sales', d.sales, d.label) +
+            '</div><span class="bar-label">' + d.label + '</span></div>';
+        }).join('') + '</div></div></div>';
     }
-    document.getElementById('chart-status').innerHTML =
-      '<div class="chart-card-head"><div><h3>' + icon('pieChart') + 'Distribución de contactos</h3><p>Tipificación actual de la base asignada</p></div><span class="base-total">' + leads.length + ' contactos</span></div>' +
-      '<div class="status-bars">' +
-      row('Pendientes de gestión', null, statusCounts.pendiente) +
-      CALL_DISPOSITIONS.map(function (item) { return row(item[2], item[3], leads.filter(function (lead) { return lead.status === item[0]; }).length); }).join('') +
-      '</div>';
+    document.getElementById('chart-bars').innerHTML = head + body;
+
+    /* Distribución por el mismo estado que muestra la columna Estado. */
+    var buckets = ['pendiente', 'contactado', 'agendado', 'venta', 'no-contesta'].map(function (key) {
+      return { key: key, label: displayLeadStatusLabel(key), count: leads.filter(function (l) { return displayLeadStatus(l.status) === key; }).length };
+    });
+    var statusHead =
+      '<div class="chart-card-head"><div><h3>' + icon('pieChart') + 'Distribución de contactos</h3>' +
+      '<p>Estado actual de la base asignada</p></div>' +
+      '<span class="base-total">' + leads.length + ' contacto' + (leads.length === 1 ? '' : 's') + '</span></div>';
+
+    document.getElementById('chart-status').innerHTML = statusHead + (leads.length === 0
+      ? chartEmpty('Sin contactos en la base', 'Back Data asignará registros a tu usuario.')
+      : '<div class="status-bars">' + buckets.map(function (item) {
+          var pct = Math.round(item.count / leads.length * 100);
+          return '<div class="distribution-item' + (item.count === 0 ? ' empty' : '') + '">' +
+            '<div class="status-row-head"><span class="name">' +
+            '<span class="dot" style="background:' + STATUS_COLORS[item.key] + '"></span>' + item.label + '</span>' +
+            '<span class="val">' + item.count + '<small> · ' + pct + '%</small></span></div>' +
+            '<div class="status-track"><div class="status-fill" style="width:' + pct + '%"></div></div></div>';
+        }).join('') + '</div>');
   }
 
   /* ---------- render: call base table ---------- */
@@ -787,7 +843,15 @@
   document.addEventListener('change', function (e) {
     if (e.target.classList.contains('artifact-status')) {
       var statusLead = findLead(e.target.getAttribute('data-lead-id'));
-      if (statusLead) { statusLead.status = storedLeadStatus(e.target.value); persist(); renderAll(); }
+      if (statusLead) {
+        /* La primera vez que sale de pendiente cuenta como gestión en el tablero. */
+        var wasManaged = isManaged(statusLead);
+        statusLead.status = storedLeadStatus(e.target.value);
+        if (!wasManaged && isManaged(statusLead)) {
+          statusLead.managementHistory = (statusLead.managementHistory || []).concat([new Date().toISOString()]);
+        }
+        persist(); renderAll();
+      }
       return;
     }
     if (e.target.id === 'select-lead-status') { leadsFilter.status = e.target.value; renderFullCallBase(); }
