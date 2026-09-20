@@ -7,8 +7,10 @@
 <title>KRATOS — Portal Asesor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard-formal.css') }}?v={{ filemtime(public_path('css/dashboard-formal.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard-backoffice.css') }}?v={{ filemtime(public_path('css/dashboard-backoffice.css')) }}">
 </head>
 <body>
 
@@ -19,10 +21,14 @@
       <div class="brand-text">
         <div class="brand-title-row">
           <h1 class="brand-title">KRATOS</h1>
-          <span class="brand-tag">CRM</span>
         </div>
-        <p class="brand-subtitle">Plataforma de Gestión Comercial y Ventas</p>
+        <p class="brand-subtitle">Sistema de llamadas</p>
       </div>
+      <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Ocultar menú lateral" aria-expanded="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
     <div class="topbar-actions">
       <div class="system-status">
@@ -41,11 +47,11 @@
 </header>
 
 <main class="page">
-  <nav class="operations-navigation" aria-label="Áreas de KRATOS"><strong>Asesor</strong><a data-operation-link href="{{ route('preview.backoffice') }}">Back Office</a><a data-operation-link href="{{ route('preview.seguimiento') }}">Seguimiento</a><span id="operations-sync-status" role="status"></span></nav>
   <nav class="tabs" aria-label="Secciones del Asesor">
     <button type="button" class="tab-btn active" data-tab="llamadas" id="tab-btn-llamadas">Base de llamadas</button>
     <button type="button" class="tab-btn" data-tab="tablero" id="tab-btn-tablero">Tablero y métricas</button>
     <button type="button" class="tab-btn" data-tab="ventas" id="tab-btn-ventas">Mis ventas</button>
+    <div class="advisor-rail-footer"><div class="rail-progress-head"><span>Gestionadas hoy</span><strong id="rail-managed-today">0</strong></div><div class="rail-progress"><span id="rail-progress-bar"></span></div><small>de <span id="rail-assigned-total">0</span> registros asignados</small><form method="POST" action="{{ route('preview.logout') }}" class="logout-form">@csrf<button type="submit" class="btn-logout" title="Cerrar sesión">↪ <span>Cerrar sesión</span></button></form></div>
   </nav>
 
   <p id="storage-error" class="alert-warning" hidden>No se pudieron guardar los cambios en este navegador. Exporta tus ventas antes de salir.</p>

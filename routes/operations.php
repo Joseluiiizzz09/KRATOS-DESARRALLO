@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BackOfficeController;
 use App\Http\Controllers\PreviewOperationsController;
 use App\Http\Middleware\PreviewSession;
 use Illuminate\Http\Request;
@@ -8,7 +9,9 @@ use Illuminate\Support\Facades\Route;
 // Same local-only, session-based preview boundary as the existing Asesor.
 if (app()->environment('local', 'testing')) {
     Route::prefix('preview')->middleware(PreviewSession::class)->group(function () {
-        Route::get('backoffice', fn (Request $request, PreviewOperationsController $controller) => $controller->index($request, 'backoffice'))->name('preview.backoffice');
+        Route::get('backoffice', [BackOfficeController::class, 'index'])->name('preview.backoffice');
+        Route::get('backoffice/data', [BackOfficeController::class, 'data'])->name('preview.backoffice.data');
+        Route::post('backoffice/action', [BackOfficeController::class, 'action'])->name('preview.backoffice.action');
         Route::get('seguimiento', fn (Request $request, PreviewOperationsController $controller) => $controller->index($request, 'seguimiento'))->name('preview.seguimiento');
         Route::post('operations/contact', [PreviewOperationsController::class, 'lead'])->name('preview.operations.lead');
         Route::post('operations/assign', [PreviewOperationsController::class, 'assign'])->name('preview.operations.assign');

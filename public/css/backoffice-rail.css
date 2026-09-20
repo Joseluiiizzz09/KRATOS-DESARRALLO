@@ -1,0 +1,57 @@
+/* Barra lateral fija: conserva el orden y la lectura del Back Data de KRONO. */
+@media (max-width: 720px) {
+  .kratos-bo .kb-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: block;
+    height: 80px;
+    min-width: 100%;
+    padding: 0;
+    background: #fff;
+  }
+
+  .kratos-bo .kb-header > * { display: none !important; }
+
+  .kratos-bo .kb-sidebar,
+  .kratos-bo.kb-collapsed .kb-sidebar {
+    position: fixed !important;
+    top: 80px !important;
+    bottom: 0;
+    width: 232px !important;
+    padding: 15px 14px 22px !important;
+    overflow-y: auto;
+    background: #fff;
+    border-right: 1px solid #e5eaf0;
+  }
+
+  .kratos-bo .kb-main,
+  .kratos-bo.kb-collapsed .kb-main {
+    min-width: 920px;
+    margin-left: 232px !important;
+    padding: 16px 22px;
+  }
+
+  .kratos-bo .kb-sidebar nav { display: block; }
+  .kratos-bo .kb-sidebar nav button,
+  .kratos-bo.kb-collapsed .kb-sidebar nav button {
+    display: flex !important;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 10px 13px;
+  }
+
+  .kratos-bo.kb-collapsed .kb-sidebar nav button span,
+  .kratos-bo.kb-collapsed .kb-sidebar .kb-caption,
+  .kratos-bo.kb-collapsed .kb-sidebar label,
+  .kratos-bo.kb-collapsed .kb-sidebar form,
+  .kratos-bo.kb-collapsed .kb-sidebar hr {
+    display: block !important;
+  }
+
+  .kratos-bo .kb-caption { margin: 13px 10px 8px; }
+  .kratos-bo .kb-sidebar hr { display: block; margin: 16px 0; }
+  .kratos-bo .kb-sidebar label { margin: 10px 8px; }
+  .kratos-bo .kb-sidebar input,
+  .kratos-bo .kb-sidebar select { min-height: 36px; border-radius: 8px; }
+}

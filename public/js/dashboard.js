@@ -4,6 +4,7 @@
   var CFG = window.__KRATOS__ || {};
   var USERNAME = CFG.username || 'Asesor de prueba';
   var STORAGE_KEY = 'kratos:advisor:v1:' + USERNAME;
+  var SIDEBAR_STATE_KEY = 'kratos:sidebar-collapsed:v1:' + USERNAME;
   var ADVISOR = { id: 'current-advisor', name: USERNAME, role: 'Asesor', avatar: '' };
 
   var CAMPAIGNS = ['Todas las Campañas', 'Portabilidad Fibra 600MB', 'Plan Negocio Pyme', 'Upgrade Plan Móvil 5G', 'Paquete Triple Play Pro', 'Seguro Protección Familiar'];
@@ -71,6 +72,7 @@
     card: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
     shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>',
     message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    whatsapp: '<path d="M20 11.8a8 8 0 0 1-11.7 7.1L4 20l1.2-4.1A8 8 0 1 1 20 11.8Z"/><path d="M9.2 7.8c.5 2.9 2.2 4.7 5 5.4l1.3-1.2 1.8 1c-.2 1.1-1 1.8-2.2 1.8-4 0-7.3-3.3-7.3-7.3 0-1.1.7-2 1.8-2.2l1 1.8-1.4 1.1Z"/>',
     alertTriangle: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
   };
   function icon(name, cls) {
@@ -101,7 +103,7 @@
         city: 'Demostración', campaign: l.campaign,
         assignedAdvisorId: ADVISOR.id, assignedAdvisorName: ADVISOR.name,
         status: 'pendiente', lastContactAt: 'Sin gestión registrada',
-        notes: 'Contacto de demostración asignado por Back Office.',
+        notes: 'Contacto de demostración asignado por Back Office.', advisorNote: '',
         priority: l.priority, attempts: 0, contactHistory: []
       };
     });
@@ -125,7 +127,7 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         var data = JSON.parse(raw);
-        if (Array.isArray(data.leads) && Array.isArray(data.sales) &&
+        if (Array.isArray(data.leads) && Array.isArray(data.sales) && data.leads.length > 0 &&
           data.leads.every(function (l) { return typeof l.id === 'string' && typeof l.clientName === 'string'; }) &&
           data.sales.every(function (s) { return typeof s.id === 'string' && typeof s.amount === 'number'; })) {
           return data;
@@ -164,7 +166,13 @@
   }
 
   var storageError = false;
+  function normalizeStoredLeadNotes() {
+    state.leads = state.leads.map(function (lead) {
+      return Object.assign({}, lead, { advisorNote: normalizedAdvisorNote(lead) });
+    });
+  }
   function persist() {
+    normalizeStoredLeadNotes();
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); storageError = false; }
     catch (e) { storageError = true; }
     document.getElementById('storage-error').hidden = !storageError;
@@ -230,8 +238,35 @@
       logoutBtn.innerHTML = icon('logout') + '<span>Cerrar sesión</span>';
     }
     document.getElementById('tab-btn-tablero').innerHTML = icon('dashboard') + '<span>Tablero y métricas</span>';
-    document.getElementById('tab-btn-llamadas').innerHTML = icon('phone') + '<span>Base de llamadas</span><span class="tab-count" id="count-llamadas"></span>';
-    document.getElementById('tab-btn-ventas').innerHTML = icon('receipt') + '<span>Mis ventas</span><span class="tab-count" id="count-ventas"></span>';
+    document.getElementById('tab-btn-llamadas').innerHTML = icon('phone') + '<span>Base de llamadas</span>';
+    document.getElementById('tab-btn-ventas').innerHTML = icon('receipt') + '<span>Mis ventas</span>';
+  }
+  function setSidebarCollapsed(collapsed) {
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    var toggle = document.getElementById('sidebar-toggle');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.setAttribute('aria-label', collapsed ? 'Mostrar menú lateral' : 'Ocultar menú lateral');
+      toggle.title = collapsed ? 'Mostrar menú' : 'Ocultar menú';
+    }
+    try { localStorage.setItem(SIDEBAR_STATE_KEY, collapsed ? '1' : '0'); } catch (err) {}
+  }
+  function initSidebarToggle() {
+    setSidebarCollapsed(false);
+    var toggle = document.getElementById('sidebar-toggle');
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+      });
+    }
+    // When the panel is hidden, its toggle hides with it — clicking the
+    // page title brings the panel back.
+    document.addEventListener('click', function (e) {
+      if (document.body.classList.contains('sidebar-collapsed') &&
+        e.target.closest('.table-card-title, .section-banner-title, .chart-card-head h3')) {
+        setSidebarCollapsed(false);
+      }
+    });
   }
 
   /* ---------- render: metrics banner + kpis ---------- */
@@ -254,9 +289,6 @@
         '<div class="kpi-icon ' + c.cls + '">' + icon(c.icon) + '</div></div>' +
         '<p class="kpi-value">' + c.value + '</p><p class="kpi-detail">' + c.detail + '</p></div>';
     }).join('');
-
-    document.getElementById('count-llamadas').textContent = leads.length;
-    document.getElementById('count-ventas').textContent = sales.length;
   }
 
   /* ---------- render: charts ---------- */
@@ -295,7 +327,7 @@
         '<div class="status-track"><div class="status-fill" style="width:' + pct + '%;background:' + (dotColor || '#94a3b8') + '"></div></div></div>';
     }
     document.getElementById('chart-status').innerHTML =
-      '<div class="chart-card-head"><div><h3>' + icon('pieChart') + 'Distribución de contactos</h3><p>Tipificación actual de la base asignada</p></div><span class="base-total">' + leads.length + ' contactos</span></div>' +
+      '<div class="chart-card-head"><div><h3>' + icon('pieChart') + 'Distribución de contactos</h3><p>Gestión actual de la base asignada</p></div><span class="base-total">' + leads.length + ' contactos</span></div>' +
       '<div class="status-bars">' +
       row('Pendientes de gestión', null, statusCounts.pendiente) +
       CALL_DISPOSITIONS.map(function (item) { return row(item[2], item[3], leads.filter(function (lead) { return lead.status === item[0]; }).length); }).join('') +
@@ -318,49 +350,57 @@
   function callBaseTableHtml(leads, opts) {
     opts = opts || {};
     var compact = !!opts.compact;
+    var statusFilters = [
+      ['todos', 'Todos'], ['pendiente', 'Pendiente'], ['contactado', 'Contactado'],
+      ['agendado', 'Agendado'], ['venta_cerrada', 'Venta'], ['no_contesta', 'No contesta']
+    ];
+    var filterChips = statusFilters.map(function (item) {
+      var count = item[0] === 'todos' ? state.leads.length : state.leads.filter(function (lead) { return lead.status === item[0]; }).length;
+      return '<button type="button" class="call-filter-chip ' + (leadsFilter.status === item[0] ? 'active' : '') + '" data-lead-status="' + item[0] + '"><span></span>' + item[1] + '<b>' + count + '</b></button>';
+    }).join('');
     var rowsHtml = leads.length === 0
-      ? '<tr><td colspan="8" class="table-empty">' + icon('phone') + '<p>No se encontraron contactos en la base con los filtros seleccionados.</p></td></tr>'
+      ? '<tr><td colspan="4" class="table-empty">' + icon('phone') + '<p>No se encontraron contactos en la base con los filtros seleccionados.</p></td></tr>'
       : leads.map(function (l) {
+        var advisorNote = normalizedAdvisorNote(l);
         return '<tr class="' + (l.status === 'en_curso' ? 'in-call' : '') + '" data-lead-id="' + l.id + '">' +
-          '<td><div class="cell-phone">' + esc(l.phone || '—') + '</div></td><td><div class="row-actions">' +
-          '<button type="button" class="btn-call" data-action="call" data-lead-id="' + esc(l.id) + '" title="Gestionar llamada con MicroSIP">' + icon('phone') + '<span>Llamar</span></button>' +
-          '<button type="button" class="btn-icon-sale" data-action="sale" data-lead-id="' + esc(l.id) + '" ' + (l.status === 'venta_cerrada' ? 'disabled' : '') + ' title="Registrar venta directa" aria-label="Registrar venta directa">' + icon('check') + '</button></div></td>' +
-          '<td><span class="cell-subtle-phone">' + esc(l.phone2 || '—') + '</span></td>' +
-          '<td><span class="cell-whatsapp">' + esc(l.whatsappUser || '—') + '</span></td>' +
+          '<td><div class="contact-cell"><strong>' + esc(l.phone || '—') + '</strong><div class="row-actions">' +
+          '<button type="button" class="btn-call" data-action="call" data-lead-id="' + esc(l.id) + '" title="Gestionar llamada con MicroSIP" aria-label="Llamar">' + icon('phone') + '</button>' +
+          '<button type="button" class="btn-icon-sale btn-whatsapp-sale" data-action="whatsapp" data-lead-id="' + esc(l.id) + '" title="Abrir WhatsApp" aria-label="Abrir WhatsApp">' + icon('whatsapp') + '</button></div>' +
+          (l.phone2 ? '<small>Alt. ' + esc(l.phone2) + '</small>' : '') + '</div></td>' +
           '<td><div class="cell-notes" title="' + esc(l.notes || '') + '">' + esc(l.notes || 'Sin observaciones') + '</div></td>' +
           '<td>' + statusBadge(l.status) + '</td>' +
-          '<td><span class="cell-zone">' + esc(l.zone || l.city || '—') + '</span></td>' +
-          '<td><span class="cell-time">' + esc(l.assignedAt ? (isNaN(Date.parse(l.assignedAt)) ? l.assignedAt : new Date(l.assignedAt).toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})) : '—') + '</span></td></tr>';
+          '<td><input type="text" class="input-advisor-note" data-lead-id="' + esc(l.id) + '" placeholder="Agregar observación" value="' + esc(advisorNote) + '"></td></tr>';
       }).join('');
 
-    var filtersHtml = compact ? '' :
-      '<div class="filters-grid">' +
-      '<div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-leads" placeholder="Buscar por teléfono, WhatsApp o zona..." value="' + esc(leadsFilter.search) + '"></div>' +
-      '<div class="field-with-icon">' + icon('filter') + '<select id="select-lead-status">' +
-      ['todos:Todos los estados', 'pendiente:Pendientes'].concat(CALL_DISPOSITIONS.map(function (item) { return item[0] + ':' + item[2]; }), ['contactado:Contactado (anterior)', 'rellamada:Rellamada (anterior)', 'rechazado:Rechazado (anterior)', 'en_curso:En llamada (anterior)'])
-        .map(function (o) { var p = o.split(':'); return '<option value="' + p[0] + '"' + (leadsFilter.status === p[0] ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') +
-      '</select></div>' +
-      '<div class="field-with-icon">' + icon('package') + '<select id="select-lead-campaign" class="plain-select">' +
-      CAMPAIGNS.map(function (c) { return '<option value="' + esc(c) + '"' + (leadsFilter.campaign === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') +
-      '</select></div></div>';
-
+    var today = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
     var header = compact ? '' :
-      '<div class="table-card-header"><div class="table-card-header-row"><div>' +
+      '<div class="table-card-header lead-toolbar"><div class="table-card-header-row lead-toolbar-main"><div>' +
       '<h2 class="table-card-title">Base de llamadas</h2>' +
-      '<p class="table-card-subtitle">Contactos asignados por Back Office para gestión y seguimiento comercial.</p></div>' +
-      '<span class="pill-badge">Asignado por Back Office</span></div>' + filtersHtml + '</div>';
+      '<p class="table-card-subtitle"><strong>' + leads.length + '</strong> registros en pantalla · <strong>' + state.leads.filter(function (lead) { return lead.status === 'pendiente'; }).length + '</strong> pendientes de gestión</p>' +
+      '</div><div class="table-card-header-actions lead-toolbar-actions">' +
+      '<div class="field-with-icon lead-search-field">' + icon('search') + '<input type="text" id="input-search-leads" placeholder="Filtrar número" value="' + esc(leadsFilter.search) + '"></div>' +
+      '<span class="pill-date">' + esc(today) + '</span></div></div></div>';
 
     var footer = compact ? '' :
       '<div class="table-footer"><span>Mostrando ' + leads.length + ' de ' + state.leads.length + ' contactos asignados</span><span class="table-footer-source">Cartera activa</span></div>';
 
-    return '<div class="table-card">' + header +
+    return '<div class="lead-table-layout">' + header + (compact ? '' : '<div class="call-filter-bar">' + filterChips + '</div>') + '<div class="table-card lead-table-card">' +
       '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-      '<th>Teléfono</th><th>Marcación / Gestión</th><th>Teléfono 2</th><th>WhatsApp</th><th>Observaciones</th><th>Estado</th><th>Zona</th><th>Asignado</th>' +
-      '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' + footer + '</div>';
+      '<th>Contacto</th><th>Registro del back</th><th>Estado</th><th>Mi observación</th>' +
+      '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' + footer + '</div></div>';
   }
 
   function renderFullCallBase() {
     document.getElementById('full-call-base').innerHTML = callBaseTableHtml(filteredLeads());
+    var managedToday = state.leads.reduce(function (total, lead) {
+      return total + (lead.managementHistory || []).filter(function (entry) { return String(entry).slice(0, 10) === today(); }).length;
+    }, 0);
+    var managed = document.getElementById('rail-managed-today');
+    var assigned = document.getElementById('rail-assigned-total');
+    var bar = document.getElementById('rail-progress-bar');
+    if (managed) managed.textContent = managedToday;
+    if (assigned) assigned.textContent = state.leads.length;
+    if (bar) bar.style.width = Math.min(100, Math.round((managedToday / Math.max(1, state.leads.length)) * 100)) + '%';
   }
 
   /* ---------- render: sales feed ---------- */
@@ -369,8 +409,8 @@
       if (salesFilter.status !== 'todos' && s.status !== salesFilter.status) return false;
       if (salesFilter.search.trim()) {
         var q = salesFilter.search.toLowerCase();
-        return s.folio.toLowerCase().indexOf(q) > -1 || s.clientName.toLowerCase().indexOf(q) > -1 ||
-          s.advisorName.toLowerCase().indexOf(q) > -1 || s.productName.toLowerCase().indexOf(q) > -1 || s.clientPhone.indexOf(q) > -1;
+        return [s.folio, s.clientName, s.advisorName, s.productName, s.category, s.clientPhone, s.referencePhone, s.documentType, s.documentNumber, s.saleType, s.notes]
+          .some(function (value) { return String(value || '').toLowerCase().indexOf(q) > -1; });
       }
       return true;
     });
@@ -380,56 +420,38 @@
     opts = opts || {};
     var compact = !!opts.compact;
     var rows = sales.length === 0
-      ? '<div class="table-empty">' + icon('receipt') + '<p>No hay registros de ventas que coincidan con los filtros aplicados.</p></div>'
+      ? '<tr><td colspan="9"><div class="table-empty">' + icon('receipt') + '<p>No hay registros de ventas que coincidan con los filtros aplicados.</p></div></td></tr>'
       : sales.map(function (s) {
+        var documentText = s.documentType && s.documentNumber ? s.documentType + ' ' + s.documentNumber : '—';
         var dateStr = s.createdAt ? new Date(s.createdAt).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : s.timestamp;
-        var init = initials(s.clientName);
-        var avatarCls = avatarColorClass(s.clientName);
         var formattedAmount = Number(s.amount || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        return '<div class="sale-row" data-sale-id="' + s.id + '">' +
-          '<div class="sale-left">' +
-            '<div class="sale-avatar ' + avatarCls + '" title="' + esc(s.clientName) + '">' + esc(init) + '</div>' +
-            '<div class="sale-info">' +
-              '<div class="sale-top-row">' +
-                '<span class="sale-folio">' + esc(s.folio) + '</span>' +
-                '<span class="sale-client">' + esc(s.clientName) + '</span>' +
-                '<span class="sale-dot-sep">·</span>' +
-                '<span class="sale-phone">' + esc(s.clientPhone) + '</span>' +
-              '</div>' +
-              '<div class="sale-mid-row">' +
-                '<span class="sale-product">' + esc(s.productName) + '</span>' +
-                '<span class="sale-category">' + esc(s.category) + '</span>' +
-                '<span class="sale-advisor">Asesor: <strong>' + esc(s.advisorName) + '</strong></span>' +
-              '</div>' +
-              (s.notes ? '<p class="sale-notes">“' + esc(s.notes) + '”</p>' : '') +
-            '</div>' +
-          '</div>' +
-          '<div class="sale-right">' +
-            '<div class="sale-financials">' +
-              '<div class="sale-amount"><span class="sale-currency">S/</span> ' + esc(formattedAmount) + '</div>' +
-              '<div class="sale-date">' + esc(dateStr) + '</div>' +
-            '</div>' +
-            '<div class="sale-actions">' +
-              saleStatusBadge(s.status) +
-              '<button type="button" class="btn-detail" data-action="sale-detail" data-sale-id="' + s.id + '" title="Ver detalles completos">' + icon('fileText') + '</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
+        return '<tr class="sale-data-row" data-sale-id="' + esc(s.id) + '">' +
+          '<td><div class="sale-cell-main"><strong title="' + esc(s.clientName || '') + '">' + esc(s.clientName || '—') + '</strong><span>' + esc(s.folio || '—') + '</span></div></td>' +
+          '<td><span class="sale-document" title="' + esc(documentText) + '">' + esc(documentText) + '</span></td>' +
+          '<td><span class="sale-phone" title="' + esc(s.clientPhone || '') + '">' + esc(s.clientPhone || '—') + '</span></td>' +
+          '<td><span class="sale-phone muted" title="' + esc(s.referencePhone || '') + '">' + esc(s.referencePhone || '—') + '</span></td>' +
+          '<td><div class="sale-plan-cell"><strong title="' + esc(s.productName || '') + '">' + esc(s.productName || '—') + '</strong><span>' + esc(s.category || '—') + ' · S/ ' + esc(formattedAmount) + '</span></div></td>' +
+          '<td><span class="sale-type-chip" title="' + esc(s.saleType || '') + '">' + esc(s.saleType || '—') + '</span></td>' +
+          '<td><div class="sale-notes" title="' + esc(s.notes || '') + '">' + esc(s.notes || 'Sin observaciones') + '</div></td>' +
+          '<td><div class="sale-status-cell">' + saleStatusBadge(s.status) + '<span>' + esc(dateStr || '—') + '</span></div></td>' +
+          '<td><button type="button" class="btn-detail" data-action="sale-detail" data-sale-id="' + esc(s.id) + '" title="Ver detalles completos">' + icon('fileText') + '</button></td>' +
+        '</tr>';
       }).join('');
 
     var header = compact ? '' :
       '<div class="table-card-header"><div class="table-card-header-row"><div>' +
       '<h2 class="table-card-title">Mis ventas</h2>' +
-      '<p class="table-card-subtitle">Registro consolidado de ventas, estado de verificación y observaciones.</p></div>' +
-      '<button type="button" id="btn-trigger-upload-sale" class="btn btn-primary-action">' + icon('plus') + '<span>Nueva venta</span></button></div>' +
+      '<p class="table-card-subtitle">Información subida desde Registrar nueva venta.</p></div></div>' +
       '<div class="filters-grid sales">' +
-      '<div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-sales" placeholder="Buscar por folio, cliente, asesor o producto..." value="' + esc(salesFilter.search) + '"></div>' +
+      '<div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-sales" placeholder="Buscar por titular, documento, teléfono, plan u observación..." value="' + esc(salesFilter.search) + '"></div>' +
       '<div class="field-with-icon">' + icon('filter') + '<select id="select-sale-status">' +
       ['todos:Todos los estados', 'aprobada:Activas', 'en_verificacion:En verificación', 'auditada:Auditadas QA', 'rechazada:Caídas']
         .map(function (o) { var p = o.split(':'); return '<option value="' + p[0] + '"' + (salesFilter.status === p[0] ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') +
       '</select></div></div></div>';
 
-    return '<div class="table-card">' + header + '<div class="sales-list">' + rows + '</div></div>';
+    return '<div class="table-card sales-table-card">' + header + '<div class="table-scroll sales-table-scroll"><table class="data-table sales-data-table"><thead><tr>' +
+      '<th>Titular</th><th>Documento</th><th>Teléfono</th><th>Referencia</th><th>Plan contratado</th><th>Tipo op.</th><th>Observaciones</th><th>Estado</th><th>Detalle</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div></div>';
   }
 
   function renderFullSalesFeed() {
@@ -483,6 +505,9 @@
     if (!uploadOpen) return;
     var clientName = uploadPrefill ? uploadPrefill.name : '';
     var clientPhone = uploadPrefill ? uploadPrefill.phone : '';
+    var prefillDocType = uploadPrefill && uploadPrefill.documentType ? uploadPrefill.documentType : '';
+    var prefillDocNumber = uploadPrefill && uploadPrefill.documentNumber ? uploadPrefill.documentNumber : '';
+    var prefillNotes = uploadPrefill && uploadPrefill.managementNotes ? uploadPrefill.managementNotes : '';
     document.getElementById('modal-root').innerHTML =
       '<div class="modal-backdrop" id="upload-modal-backdrop"><div class="modal-card md" role="dialog" aria-modal="true" aria-label="Registrar venta">' +
       '<div class="modal-head"><div class="modal-head-left"><div class="modal-head-icon">' + icon('receipt') + '</div>' +
@@ -495,10 +520,10 @@
       '<div class="form-group"><label>Nombres y apellidos del titular</label><div class="field-with-icon">' + icon('user') + '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '"></div></div>' +
       '<div class="form-grid">' +
       '<div class="form-group"><label>Tipo de documento</label><div class="field-with-icon">' + icon('fileText') + '<select id="select-doc-type" required>' +
-      '<option value="" disabled selected>Seleccionar documento</option>' +
-      DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '">' + d + '</option>'; }).join('') +
+      '<option value="" disabled' + (prefillDocType ? '' : ' selected') + '>Seleccionar documento</option>' +
+      DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '"' + (prefillDocType === d ? ' selected' : '') + '>' + d + '</option>'; }).join('') +
       '</select></div></div>' +
-      '<div class="form-group"><label>Número de documento</label><div class="field-with-icon">' + icon('fileText') + '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric"></div></div>' +
+      '<div class="form-group"><label>Número de documento</label><div class="field-with-icon">' + icon('fileText') + '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric" value="' + esc(prefillDocNumber) + '"></div></div>' +
       '</div><div class="form-grid">' +
       '<div class="form-group"><label>Teléfono principal</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-client-phone" required placeholder="Número de contacto titular" value="' + esc(clientPhone) + '"></div></div>' +
       '<div class="form-group"><label>Teléfono de referencia</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-reference-phone" placeholder="Contacto alternativo"></div></div>' +
@@ -512,7 +537,7 @@
       SALE_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
       '</select></div></div>' +
       '</div>' +
-      '<div class="form-group"><label>Observaciones / Acuerdos</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44."></textarea></div></div>' +
+      '<div class="form-group"><label>Observaciones / Acuerdos</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44.">' + esc(prefillNotes) + '</textarea></div></div>' +
       '<div class="form-actions"><button type="button" class="btn-outline" id="btn-cancel-upload">Cancelar</button>' +
       '<button type="submit" class="btn btn-primary-action">' + icon('check') + '<span>Confirmar venta</span></button></div>' +
       '</form></div></div>';
@@ -532,6 +557,7 @@
         document.getElementById('upload-form-error').innerHTML = '<div class="modal-form-error">Completa nombre, documento, teléfono, plan y tipo antes de continuar.</div>';
         return;
       }
+      var saleNotes = appendManagementNote(clearAutomaticManagementNotes(document.getElementById('input-notes').value.trim()), docType, docNumber);
       var sale = {
         id: uid(), folio: 'KRT-' + new Date().getFullYear() + '-' + uid().slice(3, 11).toUpperCase(),
         advisorId: ADVISOR.id, advisorName: ADVISOR.name, advisorAvatar: '',
@@ -542,14 +568,14 @@
         saleType: saleType,
         productName: prodOpt.value, category: prodOpt.getAttribute('data-cat'), amount: Number(prodOpt.getAttribute('data-price')),
         paymentMethod: '',
-        status: 'en_verificacion', notes: document.getElementById('input-notes').value.trim(),
+        status: 'en_verificacion', notes: saleNotes,
         leadId: uploadPrefill ? uploadPrefill.leadId : undefined,
         createdAt: new Date().toISOString(), timestamp: new Date().toISOString()
       };
       if (sale.leadId && state.sales.some(function (s) { return s.leadId === sale.leadId; })) { closeUploadModal(); return; }
       state.sales.unshift(sale);
       if (sale.leadId) {
-        state.leads = state.leads.map(function (l) { return l.id === sale.leadId ? Object.assign({}, l, { status: 'venta_cerrada', notes: uploadPrefill && uploadPrefill.managementNotes !== undefined ? uploadPrefill.managementNotes : l.notes }) : l; });
+        state.leads = state.leads.map(function (l) { return l.id === sale.leadId ? Object.assign({}, l, { status: 'venta_cerrada', notes: saleNotes, advisorNote: appendManagementNote(clearAutomaticManagementNotes(l.advisorNote), docType, docNumber), documentType: docType, documentNumber: docNumber, coordinates: '' }) : l; });
       }
       persist(); renderAll();
       showToast('Venta registrada', name + ' · Enviada a verificación', 'sale');
@@ -559,6 +585,71 @@
 
   /* ---------- active call modal ---------- */
   var callNotesVal = '', callStatusVal = '';
+  function appendManagementNote(notes, label, value) {
+    var cleanValue = String(value || '').trim();
+    if (!cleanValue) return notes;
+    var line = label + ': ' + cleanValue;
+    var current = String(notes || '').trim();
+    return current.indexOf(line) >= 0 ? current : (current ? current + '\n' + line : line);
+  }
+  function appendPlainManagementNote(notes, value) {
+    var cleanValue = String(value || '').trim();
+    if (!cleanValue) return notes;
+    var current = String(notes || '').trim();
+    return current.indexOf(cleanValue) >= 0 ? current : (current ? current + '\n' + cleanValue : cleanValue);
+  }
+  function clearAutomaticManagementNotes(notes) {
+    return String(notes || '')
+      .split(/\n+/)
+      .map(function (line) { return line.trim(); })
+      .filter(function (line) { return line && !/^(DNI|RUC|CE|Coordenadas):/i.test(line); })
+      .join('\n');
+  }
+  function normalizedAdvisorNote(lead) {
+    var note = String(lead && lead.advisorNote ? lead.advisorNote : '').trim();
+    if (!note) return '';
+    var coordinatesMatch = note.match(/-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?/);
+    var documentMatch = note.match(/\b(?:DNI|RUC|CE):\s*[A-Za-z0-9-]+/i);
+    if (lead.status === 'sin_cobertura') {
+      return coordinatesMatch ? coordinatesMatch[0] : clearAutomaticManagementNotes(note);
+    }
+    if (lead.status === 'preventa' || lead.status === 'venta_cerrada') {
+      return documentMatch ? documentMatch[0].replace(/^([a-z]+)/i, function (m) { return m.toUpperCase(); }) : clearAutomaticManagementNotes(note);
+    }
+    return clearAutomaticManagementNotes(note);
+  }
+  function getCallExtraFields(newStatus) {
+    var extra = {};
+    var notes = clearAutomaticManagementNotes(callNotesVal);
+    var advisorNote = clearAutomaticManagementNotes(activeCallLead ? activeCallLead.advisorNote : '');
+    if (newStatus === 'sin_cobertura') {
+      var coordinates = document.getElementById('call-coordinates');
+      var parts = coordinates.value.trim().split(',').map(function (v) { return v.trim(); });
+      if (parts.length !== 2 || parts.some(function (v) { return !v || !isFinite(Number(v)); }) || Math.abs(Number(parts[0])) > 90 || Math.abs(Number(parts[1])) > 180) {
+        coordinates.setCustomValidity('Ingresa latitud y longitud válidas separadas por coma.'); coordinates.reportValidity(); return null;
+      }
+      coordinates.setCustomValidity('');
+      var coverageCoordinates = coordinates.value.trim();
+      extra.coordinates = '';
+      extra.documentType = '';
+      extra.documentNumber = '';
+      notes = appendManagementNote(notes, 'Coordenadas', coverageCoordinates);
+      advisorNote = appendPlainManagementNote(advisorNote, coverageCoordinates);
+    }
+    if (newStatus === 'preventa') {
+      var doc = document.getElementById('call-document');
+      if (!doc.value.trim()) { doc.setCustomValidity('Ingresa el número de documento.'); doc.reportValidity(); return null; }
+      doc.setCustomValidity('');
+      extra.documentType = document.getElementById('call-document-type').value;
+      extra.documentNumber = doc.value.trim();
+      extra.coordinates = '';
+      notes = appendManagementNote(notes, extra.documentType, extra.documentNumber);
+      advisorNote = appendManagementNote(advisorNote, extra.documentType, extra.documentNumber);
+    }
+    extra.notes = notes;
+    extra.advisorNote = advisorNote;
+    return extra;
+  }
   function dialWithMicroSip(lead) {
     var number = String(lead.phone || '').replace(/[\s().-]/g, '');
     if (!/^\+?[1-9]\d{2,14}$/.test(number)) {
@@ -575,6 +666,28 @@
     if (note) note.textContent = 'Marcación solicitada: ' + number;
     window.location.href = 'callto:' + encodeURIComponent(number);
   }
+  function openWhatsAppChat(lead) {
+    var number = String(lead.whatsappUser || lead.phone || '').replace(/[^\d+]/g, '');
+    if (number.indexOf('+') === 0) number = number.slice(1);
+    if (!/^[1-9]\d{7,14}$/.test(number) || /^0+$/.test(number)) {
+      var entered = window.prompt('Ingresa el número de WhatsApp con código de país. Ejemplo: 51987654321');
+      if (entered === null) return;
+      number = entered.replace(/[^\d+]/g, '');
+      if (number.indexOf('+') === 0) number = number.slice(1);
+      if (!/^[1-9]\d{7,14}$/.test(number) || /^0+$/.test(number)) {
+        showToast('WhatsApp no válido', 'Ingresa un número con código de país, sin espacios.', 'call');
+        return;
+      }
+    }
+    var message = 'Hola, te saluda KRATOS.';
+    var desktopUrl = 'whatsapp://send?phone=' + encodeURIComponent(number) + '&text=' + encodeURIComponent(message);
+    var webUrl = 'https://wa.me/' + encodeURIComponent(number) + '?text=' + encodeURIComponent(message);
+    showToast('Abriendo WhatsApp', 'Se abrirá el chat del contacto seleccionado.', 'call');
+    window.location.href = desktopUrl;
+    window.setTimeout(function () {
+      window.open(webUrl, '_blank', 'noopener');
+    }, 900);
+  }
   function openCallModal(lead) {
     activeCallLead = lead; callNotesVal = lead.notes || ''; callStatusVal = '';
     renderCallModal();
@@ -585,38 +698,27 @@
   }
 
   function finishCall(newStatus) {
-    if (newStatus === 'venta_cerrada') return;
-    var extra = {};
-    if (newStatus === 'sin_cobertura') {
-      var coordinates = document.getElementById('call-coordinates');
-      var parts = coordinates.value.trim().split(',').map(function (v) { return v.trim(); });
-      if (parts.length !== 2 || parts.some(function (v) { return !v || !isFinite(Number(v)); }) || Math.abs(Number(parts[0])) > 90 || Math.abs(Number(parts[1])) > 180) {
-        coordinates.setCustomValidity('Ingresa latitud y longitud válidas separadas por coma.'); coordinates.reportValidity(); return;
-      }
-      coordinates.setCustomValidity(''); extra.coordinates = coordinates.value.trim();
-    }
-    if (newStatus === 'preventa') {
-      var doc = document.getElementById('call-document');
-      if (!doc.value.trim()) { doc.setCustomValidity('Ingresa el número de documento.'); doc.reportValidity(); return; }
-      doc.setCustomValidity(''); extra.documentType = document.getElementById('call-document-type').value; extra.documentNumber = doc.value.trim();
-    }
+    var extra = getCallExtraFields(newStatus);
+    if (!extra) return;
     var lead = activeCallLead;
     state.leads = state.leads.map(function (l) {
       if (l.id !== lead.id) return l;
       var hist = (l.managementHistory || []).concat([new Date().toISOString()]);
-      return Object.assign({}, l, { status: newStatus, notes: callNotesVal, lastContactAt: new Date().toLocaleString('es-PE'), managementHistory: hist }, extra);
+      return Object.assign({}, l, { status: newStatus, notes: extra.notes, advisorNote: extra.advisorNote, lastContactAt: new Date().toLocaleString('es-PE'), managementHistory: hist }, extra);
     });
     persist(); renderAll();
-    showToast('Gestión guardada', 'Tipificación y observaciones actualizadas.', 'call');
+    showToast('Gestión guardada', 'Estado y observaciones actualizadas.', 'call');
     closeCallModal();
   }
   function convertCallToSale() {
     var lead = activeCallLead;
     if (!lead) return;
     if (state.sales.some(function (s) { return s.leadId === lead.id; })) { showToast('Venta ya registrada', 'Consulta el registro en Mis ventas.', 'sale'); return; }
-    var draftNotes = callNotesVal;
+    var extra = callStatusVal ? getCallExtraFields(callStatusVal) : { notes: callNotesVal };
+    if (!extra) return;
+    var draftNotes = extra.notes;
     closeCallModal();
-    openUploadModal({ name: lead.clientName, phone: lead.phone, leadId: lead.id, managementNotes: draftNotes });
+    openUploadModal({ name: lead.clientName, phone: lead.phone, leadId: lead.id, managementNotes: draftNotes, documentType: extra.documentType || lead.documentType, documentNumber: extra.documentNumber || lead.documentNumber });
   }
   function renderCallModal() {
     var lead = activeCallLead;
@@ -628,11 +730,11 @@
       '<div class="call-topbar"><div class="call-topbar-left"><div class="call-avatar">' + icon('phone') + '</div><div><span class="call-tag">Gestión comercial</span><span class="call-tag-note">MicroSIP activo</span><h3 class="call-phone-number">' + esc(lead.phone) + '</h3></div></div><button type="button" class="modal-close" id="btn-close-call-head">' + icon('x') + '</button></div>' +
       '<div class="modal-body"><div class="call-info-grid">' + details.map(function (item) { return '<div><span class="label">' + item[0] + '</span><span class="value">' + esc(item[1] || '—') + '</span></div>'; }).join('') + '</div>' +
       '<div class="form-group"><label for="call-notes">Observaciones de la llamada</label><textarea id="call-notes" rows="3" placeholder="Ingresa los detalles relevantes de la conversación...">' + esc(callNotesVal) + '</textarea></div>' +
-      '<div class="form-group"><label id="call-status-label">Tipificación del contacto</label><div class="disposition-grid" role="group" aria-labelledby="call-status-label">' +
+      '<div class="form-group"><label id="call-status-label">Estado de la gestión</label><div class="disposition-grid" role="group" aria-labelledby="call-status-label">' +
       CALL_DISPOSITIONS.map(function (item) { return '<button type="button" class="disposition-btn ' + item[1] + '" data-finish="' + item[0] + '" aria-pressed="false"><span class="disp-dot" style="background:' + item[3] + '"></span><span>' + item[2] + '</span></button>'; }).join('') +
-      '</div><p id="call-status-help" role="status" style="font-size:12px;color:var(--text-muted)">Selecciona una tipificación para registrar la gestión.</p></div>' +
-      '<div id="call-coverage-fields" class="form-group" hidden><label for="call-coordinates">Coordenadas · Latitud, longitud</label><input id="call-coordinates" type="text" placeholder="Ej. -12.0464, -77.0428" value="' + esc(lead.coordinates || '') + '"></div>' +
-      '<div id="call-presale-fields" class="form-group" hidden><label for="call-document-type">Documento de preventa</label><select id="call-document-type"><option>DNI</option><option>RUC</option><option>CE</option></select><label for="call-document">Número de documento</label><input id="call-document" type="text" placeholder="Ingresa DNI, RUC o CE" value="' + esc(lead.documentNumber || '') + '"></div>' +
+      '</div><p id="call-status-help" role="status" style="font-size:12px;color:var(--text-muted)">Selecciona un estado para registrar la gestión.</p></div>' +
+      '<div id="call-coverage-fields" class="form-group call-extra-card" hidden><label for="call-coordinates">Coordenadas</label><div class="field-with-icon">' + icon('mapPin') + '<input id="call-coordinates" type="text" placeholder="Ej. -12.0464, -77.0428" value="' + esc(lead.coordinates || '') + '"></div><p class="field-hint">Se agregará automáticamente a observaciones.</p></div>' +
+      '<div id="call-presale-fields" class="form-group call-extra-card" hidden><div class="form-grid compact"><div><label for="call-document-type">Tipo de documento</label><div class="field-with-icon">' + icon('fileText') + '<select id="call-document-type"><option>DNI</option><option>RUC</option><option>CE</option></select></div></div><div><label for="call-document">Número de documento</label><div class="field-with-icon">' + icon('fileText') + '<input id="call-document" type="text" placeholder="Ingresa el número" value="' + esc(lead.documentNumber || '') + '"></div></div></div><p class="field-hint">Se agregará automáticamente a observaciones y al registro de venta.</p></div>' +
       '<div class="call-actions"><button type="button" class="btn-outline" id="btn-cancel-call">Cancelar</button><button type="button" class="btn-secondary-action" id="btn-hangup">' + icon('check') + '<span>Guardar gestión</span></button><button type="button" class="btn btn-primary-action" id="btn-convert-sale">' + icon('check') + '<span>Registrar venta</span></button></div></div></div></div>';
     document.getElementById('call-document-type').value = lead.documentType || 'DNI';
     document.getElementById('call-notes').addEventListener('input', function (e) { callNotesVal = e.target.value; });
@@ -640,16 +742,18 @@
     document.querySelectorAll('[data-finish]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         callStatusVal = btn.getAttribute('data-finish');
-        document.getElementById('btn-hangup').hidden = callStatusVal === 'venta_cerrada';
+        var saveButton = document.getElementById('btn-hangup');
+        saveButton.hidden = callStatusVal === 'venta_cerrada';
+        saveButton.style.display = callStatusVal === 'venta_cerrada' ? 'none' : '';
         document.getElementById('call-coverage-fields').hidden = callStatusVal !== 'sin_cobertura';
         document.getElementById('call-presale-fields').hidden = callStatusVal !== 'preventa';
         document.querySelectorAll('[data-finish]').forEach(function (option) { option.setAttribute('aria-pressed', String(option === btn)); });
-        document.getElementById('call-status-help').textContent = 'Tipificación seleccionada: ' + btn.textContent.trim();
+        document.getElementById('call-status-help').textContent = 'Estado seleccionado: ' + btn.textContent.trim();
       });
     });
     document.getElementById('btn-cancel-call').addEventListener('click', closeCallModal);
     document.getElementById('btn-hangup').addEventListener('click', function () {
-      if (!callStatusVal) { document.getElementById('call-status-help').textContent = 'Selecciona una tipificación antes de guardar.'; return; }
+      if (!callStatusVal) { document.getElementById('call-status-help').textContent = 'Selecciona un estado antes de guardar.'; return; }
       finishCall(callStatusVal);
     });
     document.getElementById('btn-convert-sale').addEventListener('click', convertCallToSale);
@@ -703,16 +807,24 @@
     var tabBtn = t.closest('.tab-btn');
     if (tabBtn) { setTab(tabBtn.getAttribute('data-tab')); return; }
 
+    var statusFilter = t.closest('[data-lead-status]');
+    if (statusFilter) { leadsFilter.status = statusFilter.getAttribute('data-lead-status'); renderFullCallBase(); return; }
+
     var callBtn = t.closest('[data-action="call"]');
     if (callBtn) { var lead = findLead(callBtn.getAttribute('data-lead-id')); if (lead) dialWithMicroSip(lead); return; }
 
     var saleBtn = t.closest('[data-action="sale"]');
     if (saleBtn && !saleBtn.disabled) { var l2 = findLead(saleBtn.getAttribute('data-lead-id')); if (l2) tryOpenSaleFor(l2); return; }
 
+    var whatsAppBtn = t.closest('[data-action="whatsapp"]');
+    if (whatsAppBtn) { var l3 = findLead(whatsAppBtn.getAttribute('data-lead-id')); if (l3) openWhatsAppChat(l3); return; }
+
     var detailBtn = t.closest('[data-action="sale-detail"]');
     if (detailBtn) { var s = findSale(detailBtn.getAttribute('data-sale-id')); if (s) openSaleDetail(s); return; }
 
-    if (t.closest('#btn-trigger-upload-sale')) { openUploadModal(null); return; }
+    var typifyBtn = t.closest('[data-action="typify"]');
+    if (typifyBtn) { var l4 = findLead(typifyBtn.getAttribute('data-lead-id')); if (l4) openCallModal(l4); return; }
+
   });
 
   document.addEventListener('input', function (e) {
@@ -720,9 +832,12 @@
     if (e.target.id === 'input-search-sales') { salesFilter.search = e.target.value; renderFullSalesFeed(); }
   });
   document.addEventListener('change', function (e) {
-    if (e.target.id === 'select-lead-status') { leadsFilter.status = e.target.value; renderFullCallBase(); }
-    if (e.target.id === 'select-lead-campaign') { leadsFilter.campaign = e.target.value; renderFullCallBase(); }
     if (e.target.id === 'select-sale-status') { salesFilter.status = e.target.value; renderFullSalesFeed(); }
+    if (e.target.classList.contains('input-advisor-note')) {
+      var noteLeadId = e.target.getAttribute('data-lead-id');
+      state.leads = state.leads.map(function (l) { return l.id === noteLeadId ? Object.assign({}, l, { advisorNote: e.target.value }) : l; });
+      persist();
+    }
   });
 
   document.addEventListener('keydown', function (e) {
@@ -777,6 +892,7 @@
   /* ---------- init ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     initStaticLabels();
+    initSidebarToggle();
     loadOperations();
     setTab('llamadas');
     renderAll();

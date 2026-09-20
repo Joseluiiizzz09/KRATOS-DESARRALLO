@@ -1,0 +1,59 @@
+/* Proporciones del Back Data alineadas a la referencia visual de KRONO. */
+.kratos-bo .kb-header {
+  height: 72px;
+  padding: 0 18px;
+  gap: 11px;
+}
+
+.kratos-bo .kb-brand {
+  grid-template-columns: 47px auto;
+  column-gap: 12px;
+  min-width: 220px;
+  font-size: 32px;
+}
+
+.kratos-bo .kb-brand::before { width: 46px; height: 46px; }
+.kratos-bo .kb-brand small { font-size: 9px; margin-top: 5px; }
+.kratos-bo #collapse { width: 27px; height: 27px; }
+.kratos-bo .kb-counter { padding: 5px 12px; }
+.kratos-bo .kb-counter strong { font-size: 18px; }
+.kratos-bo .kb-counter small { font-size: 7px; }
+
+.kratos-bo .kb-sidebar {
+  top: 72px;
+  width: 180px;
+  padding: 11px 12px 16px;
+}
+
+.kratos-bo .kb-main { margin-left: 180px; padding: 13px 16px 20px; }
+.kratos-bo .kb-caption { margin: 9px 8px 5px; font-size: 8px; }
+.kratos-bo .kb-sidebar nav button { min-height: 32px; margin: 1px 0; padding: 6px 10px; font-size: 11px; }
+.kratos-bo .kb-sidebar nav button .kb-nav-icon { width: 14px; height: 14px; }
+.kratos-bo .kb-sidebar hr { margin: 11px 0; }
+
+.kratos-bo .kb-sidebar label { margin: 5px 8px; font-size: 8px; }
+.kratos-bo .kb-sidebar input,
+.kratos-bo .kb-sidebar select,
+.kratos-bo .kb-sidebar textarea {
+  height: 29px;
+  min-height: 29px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 10px;
+}
+.kratos-bo .kb-sidebar label > input,
+.kratos-bo .kb-sidebar label > select,
+.kratos-bo .kb-sidebar label > textarea { margin-top: 3px; }
+.kratos-bo .kb-form-actions { gap: 6px; margin-top: 7px; }
+.kratos-bo .kb-form-actions #contact-reset,
+.kratos-bo .kb-form-actions .kb-primary {
+  min-height: 29px;
+  height: 29px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 9px;
+  box-shadow: 0 2px 5px rgba(205, 41, 49, .18);
+}
+
+.kratos-bo.kb-collapsed .kb-sidebar { width: 52px; }
+.kratos-bo.kb-collapsed .kb-main { margin-left: 52px; }

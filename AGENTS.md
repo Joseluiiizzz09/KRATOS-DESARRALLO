@@ -82,8 +82,9 @@ Before relying on a package's API, confirm its installed version:
 
 # Test Enforcement
 
-- Test every code change by adding or updating a test.
-- Run the affected tests and ensure they pass.
+- Add or update tests for behavior and logic changes when a test provides meaningful regression coverage.
+- Pure copy, styling, and layout-only changes do not require new or updated tests.
+- When test coverage applies, run the affected tests and ensure they pass.
 - Test the changed behavior and its important failure modes, but do not add tests beyond them.
 - Read the `testing-best-practices` skill before writing tests.
 
@@ -139,3 +140,15 @@ Before relying on a package's API, confirm its installed version:
 - Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 
 </laravel-boost-guidelines>
+
+## Frontend Workflow (project convention)
+
+This project's day-to-day work is primarily frontend (Blade views, `public/css/*.css`, `public/js/*.js`).
+
+- **`frontend-design`** — installed via Laravel Boost (`php artisan boost:add-skill anthropics/skills --skill frontend-design`), guidance lives at `.ai/skills/frontend-design/SKILL.md`. Read and follow it for any new UI, visual redesign, or layout work — it pushes for a distinctive, intentional look instead of templated defaults. Use `web-design-guidelines` and `emil-design-eng` alongside it for review/polish, and `design` when sketching a new mockup from scratch.
+- **New frontend features** — implement directly; there is no dedicated "feature-dev" skill in this environment.
+- **TypeScript tooling** — not applicable; this project's frontend is plain JS (no TypeScript, no build step). `typescript-lsp` does not exist as an installable skill.
+- **Cleanup after a significant change** — run the `simplify` skill (reuse/simplification/efficiency pass). (`code-simplifier` is not a real skill name; `simplify` is the equivalent.)
+- **Review after a significant change** — run the `code-review` skill.
+- Run `php artisan boost:list-skills` to see all skills currently registered for this project (Boost-provided + local).
+
