@@ -82,8 +82,6 @@
   }
 
   /* ---------- seed & storage ---------- */
-  /* Contactos de demostración de versiones anteriores: ya no se muestran. */
-  function isDemoLeadId(id) { return /^lead-\d+$/.test(id); }
 
   function seed() {
     var sales = INITIAL_SALES_RAW.map(function (s, i) {
@@ -110,7 +108,6 @@
         if (Array.isArray(data.leads) && Array.isArray(data.sales) &&
           data.leads.every(function (l) { return typeof l.id === 'string' && typeof l.clientName === 'string'; }) &&
           data.sales.every(function (s) { return typeof s.id === 'string' && typeof s.amount === 'number'; })) {
-          data.leads = data.leads.filter(function (l) { return !isDemoLeadId(l.id); });
           return data;
         }
       }
@@ -976,7 +973,6 @@
       return response.json();
     }).then(function (data) {
       var before = JSON.stringify([state.leads, state.sales]);
-      data.leads = data.leads.filter(function (lead) { return !isDemoLeadId(lead.id); });
       var assigned = new Set(data.leads.map(function (lead) { return lead.id; }));
       state.leads = state.leads.filter(function (lead) { return !data.knownIds.includes(lead.id) || assigned.has(lead.id); });
       data.leads.forEach(function (lead) {
