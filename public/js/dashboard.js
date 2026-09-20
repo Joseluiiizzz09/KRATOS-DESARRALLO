@@ -547,43 +547,112 @@
     if (!uploadOpen) return;
     var clientName = uploadPrefill ? uploadPrefill.name : '';
     var clientPhone = uploadPrefill ? uploadPrefill.phone : '';
+    var req = '<em class="req" aria-hidden="true">*</em>';
+
+    function field(label, required, control) {
+      return '<div class="form-group"><label>' + label + (required ? req : '') + '</label>' + control + '</div>';
+    }
+    function withIcon(name, control) {
+      return '<div class="field-with-icon">' + icon(name) + control + '</div>';
+    }
+
     document.getElementById('modal-root').innerHTML =
-      '<div class="modal-backdrop" id="upload-modal-backdrop"><div class="modal-card md" role="dialog" aria-modal="true" aria-label="Registrar venta">' +
+      '<div class="modal-backdrop" id="upload-modal-backdrop">' +
+      '<div class="modal-card lg sale-modal" role="dialog" aria-modal="true" aria-labelledby="sale-modal-title">' +
+
       '<div class="modal-head"><div class="modal-head-left"><div class="modal-head-icon">' + icon('receipt') + '</div>' +
-      '<div><h2>Registrar nueva venta</h2><p>Ingresa los datos del cliente y el plan contratado para su verificación.</p></div></div>' +
-      '<button type="button" class="modal-close" id="btn-close-upload">' + icon('x') + '</button></div>' +
-      '<form id="form-upload-sale" class="modal-body">' +
-      '<div id="upload-form-error"></div>' +
-      '<div class="form-group"><label>Asesor responsable</label><select disabled>' +
-      '<option>' + esc(ADVISOR.name) + ' (Asesor Comercial)</option></select></div>' +
-      '<div class="form-group"><label>Nombres y apellidos del titular</label><div class="field-with-icon">' + icon('user') + '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '"></div></div>' +
-      '<div class="form-grid">' +
-      '<div class="form-group"><label>Tipo de documento</label><div class="field-with-icon">' + icon('fileText') + '<select id="select-doc-type" required>' +
-      '<option value="" disabled selected>Seleccionar documento</option>' +
-      DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '">' + d + '</option>'; }).join('') +
-      '</select></div></div>' +
-      '<div class="form-group"><label>Número de documento</label><div class="field-with-icon">' + icon('fileText') + '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric"></div></div>' +
-      '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Teléfono principal</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-client-phone" required placeholder="Número de contacto titular" value="' + esc(clientPhone) + '"></div></div>' +
-      '<div class="form-group"><label>Teléfono de referencia</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-reference-phone" placeholder="Contacto alternativo"></div></div>' +
-      '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Plan contratado</label><div class="field-with-icon">' + icon('package') + '<select id="select-product" required>' +
-      '<option value="" disabled selected>Seleccionar plan</option>' +
-      PRODUCTS_CATALOG.map(function (p) { return '<option value="' + esc(p.name) + '" data-price="' + p.price + '" data-cat="' + esc(p.category) + '">' + esc(p.name) + ' (S/ ' + p.price.toFixed(2) + ')</option>'; }).join('') +
-      '</select></div></div>' +
-      '<div class="form-group"><label>Tipo de operación</label><div class="field-with-icon">' + icon('package') + '<select id="select-sale-type" required>' +
-      '<option value="" disabled selected>Seleccionar tipo</option>' +
-      SALE_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
-      '</select></div></div>' +
+      '<div><h2 id="sale-modal-title">Registrar nueva venta</h2>' +
+      '<p>Los datos se envían al área de verificación antes de activarse.</p></div></div>' +
+      '<div class="modal-head-right"><span class="doc-tag">Borrador</span>' +
+      '<button type="button" class="modal-close" id="btn-close-upload" aria-label="Cerrar">' + icon('x') + '</button></div></div>' +
+
+      /* novalidate: el error se marca en el campo y en el resumen, no con el globo del navegador. */
+      '<form id="form-upload-sale" class="sale-form" novalidate>' +
+      '<div class="modal-body">' +
+      '<div id="upload-form-error" role="alert"></div>' +
+
+      '<div class="sale-meta">' +
+      '<div><span>Asesor responsable</span><strong>' + esc(ADVISOR.name) + '</strong></div>' +
+      '<div><span>Fecha de registro</span><strong>' + new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) + '</strong></div>' +
+      '<div><span>Estado inicial</span><strong>En verificación</strong></div>' +
       '</div>' +
-      '<div class="form-group"><label>Observaciones / Acuerdos</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44."></textarea></div></div>' +
-      '<div class="form-actions"><button type="button" class="btn-outline" id="btn-cancel-upload">Cancelar</button>' +
-      '<button type="submit" class="btn btn-primary-action">' + icon('check') + '<span>Confirmar venta</span></button></div>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>1</b>Datos del titular</h3>' +
+      field('Nombres y apellidos', true, withIcon('user', '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '" autocomplete="off">')) +
+      '<div class="form-grid">' +
+      field('Tipo de documento', true, withIcon('fileText', '<select id="select-doc-type" required>' +
+        '<option value="" disabled selected>Seleccionar</option>' +
+        DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '">' + d + '</option>'; }).join('') + '</select>')) +
+      field('Número de documento', true, withIcon('fileText', '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric" autocomplete="off">')) +
+      '</div></section>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>2</b>Contacto</h3>' +
+      '<div class="form-grid">' +
+      field('Teléfono principal', true, withIcon('phone', '<input type="tel" id="input-client-phone" required placeholder="Número del titular" value="' + esc(clientPhone) + '" autocomplete="off">')) +
+      field('Teléfono de referencia', false, withIcon('phone', '<input type="tel" id="input-reference-phone" placeholder="Contacto alternativo" autocomplete="off">')) +
+      '</div></section>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>3</b>Plan contratado</h3>' +
+      '<div class="form-grid">' +
+      field('Plan', true, withIcon('package', '<select id="select-product" required>' +
+        '<option value="" disabled selected>Seleccionar plan</option>' +
+        PRODUCTS_CATALOG.map(function (item) {
+          return '<option value="' + esc(item.name) + '" data-price="' + item.price + '" data-cat="' + esc(item.category) + '">' + esc(item.name) + '</option>';
+        }).join('') + '</select>')) +
+      field('Tipo de operación', true, withIcon('package', '<select id="select-sale-type" required>' +
+        '<option value="" disabled selected>Seleccionar tipo</option>' +
+        SALE_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') + '</select>')) +
+      '</div>' +
+      '<div class="sale-total" id="sale-total" hidden>' +
+      '<div class="sale-total-plan"><span>Plan seleccionado</span><strong id="sale-total-name">—</strong>' +
+      '<small id="sale-total-cat"></small></div>' +
+      '<div class="sale-total-amount"><span>Cargo mensual</span><strong id="sale-total-price">S/ 0.00</strong></div>' +
+      '</div></section>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>4</b>Respaldo de la venta</h3>' +
+      field('Observaciones y acuerdos', false,
+        '<textarea id="input-notes" rows="3" placeholder="Ej. Grabación de aceptación guardada en carpeta #44."></textarea>') +
+      '</section>' +
+      '</div>' +
+
+      '<div class="modal-foot">' +
+      '<p class="modal-foot-note">' + req + ' Campos obligatorios</p>' +
+      '<div class="modal-foot-actions">' +
+      '<button type="button" class="btn-outline" id="btn-cancel-upload">Cancelar</button>' +
+      '<button type="submit" class="btn btn-primary-action">' + icon('check') + '<span>Confirmar venta</span></button>' +
+      '</div></div>' +
       '</form></div></div>';
 
     document.getElementById('btn-close-upload').addEventListener('click', closeUploadModal);
     document.getElementById('btn-cancel-upload').addEventListener('click', closeUploadModal);
-    document.getElementById('upload-modal-backdrop').addEventListener('click', function (e) { if (e.target.id === 'upload-modal-backdrop') closeUploadModal(); });
+    document.getElementById('upload-modal-backdrop').addEventListener('click', function (e) {
+      if (e.target.id === 'upload-modal-backdrop') closeUploadModal();
+    });
+
+    /* El monto es el dato comercial de la venta: se muestra al elegir el plan. */
+    var productSelect = document.getElementById('select-product');
+    productSelect.addEventListener('change', function () {
+      var option = productSelect.selectedOptions[0];
+      var box = document.getElementById('sale-total');
+      if (!option || !option.value) { box.hidden = true; return; }
+      document.getElementById('sale-total-name').textContent = option.value;
+      document.getElementById('sale-total-cat').textContent = option.getAttribute('data-cat');
+      document.getElementById('sale-total-price').textContent = 'S/ ' + Number(option.getAttribute('data-price')).toFixed(2);
+      box.hidden = false;
+    });
+
+    /* La marca de error se limpia en cuanto el asesor corrige el campo. */
+    document.getElementById('form-upload-sale').addEventListener('input', function (e) {
+      e.target.classList.remove('is-invalid');
+    });
+    document.getElementById('form-upload-sale').addEventListener('change', function (e) {
+      e.target.classList.remove('is-invalid');
+    });
+
     document.getElementById('form-upload-sale').addEventListener('submit', function (e) {
       e.preventDefault();
       var name = document.getElementById('input-client-name').value.trim();
@@ -591,11 +660,28 @@
       var docNumber = document.getElementById('input-doc-number').value.trim();
       var phone = document.getElementById('input-client-phone').value.trim();
       var saleType = document.getElementById('select-sale-type').value;
-      var prodOpt = document.getElementById('select-product').selectedOptions[0];
-      if (!name || !docType || !docNumber || !phone || !saleType || !prodOpt.value) {
-        document.getElementById('upload-form-error').innerHTML = '<div class="modal-form-error">Completa nombre, documento, teléfono, plan y tipo antes de continuar.</div>';
+      var productOption = productSelect.selectedOptions[0];
+
+      var missing = [
+        ['input-client-name', name],
+        ['select-doc-type', docType],
+        ['input-doc-number', docNumber],
+        ['input-client-phone', phone],
+        ['select-product', productOption && productOption.value],
+        ['select-sale-type', saleType]
+      ].filter(function (pair) { return !pair[1]; });
+
+      document.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+      if (missing.length) {
+        missing.forEach(function (pair) { document.getElementById(pair[0]).classList.add('is-invalid'); });
+        document.getElementById('upload-form-error').innerHTML =
+          '<div class="modal-form-error">' + icon('alertTriangle') + '<span>Faltan ' + missing.length +
+          (missing.length === 1 ? ' campo obligatorio' : ' campos obligatorios') + '. Se marcaron en rojo.</span></div>';
+        document.getElementById(missing[0][0]).focus();
         return;
       }
+      document.getElementById('upload-form-error').innerHTML = '';
+
       var sale = {
         id: uid(), folio: 'KRT-' + new Date().getFullYear() + '-' + uid().slice(3, 11).toUpperCase(),
         advisorId: ADVISOR.id, advisorName: ADVISOR.name, advisorAvatar: '',
@@ -604,7 +690,7 @@
         documentNumber: docNumber,
         referencePhone: document.getElementById('input-reference-phone').value.trim(),
         saleType: saleType,
-        productName: prodOpt.value, category: prodOpt.getAttribute('data-cat'), amount: Number(prodOpt.getAttribute('data-price')),
+        productName: productOption.value, category: productOption.getAttribute('data-cat'), amount: Number(productOption.getAttribute('data-price')),
         paymentMethod: '',
         status: 'en_verificacion', notes: document.getElementById('input-notes').value.trim(),
         leadId: uploadPrefill ? uploadPrefill.leadId : undefined,

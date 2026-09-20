@@ -459,6 +459,97 @@ td.table-empty { height: auto; }
 .status-badge.slate .status-dot { background: var(--ink-3); }
 
 /* =================================================================
+   MODAL DE VENTA
+   ================================================================= */
+.sale-modal { display: flex; flex-direction: column; max-width: 720px; max-height: 88vh; margin: 0; }
+.sale-modal .modal-head { flex: 0 0 auto; padding: 18px 24px; }
+.modal-head-right { display: flex; align-items: center; gap: 12px; }
+.doc-tag {
+  padding: 4px 10px; border: 1px solid var(--line-2); border-radius: 999px;
+  background: var(--surface-2); color: var(--ink-2);
+  font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+}
+
+.sale-form { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+/* Flujo normal: como flex, los bloques del formulario se encogían al desbordar. */
+.sale-modal .modal-body { display: block; flex: 1 1 auto; max-height: none; padding: 20px 24px 24px; overflow-y: auto; }
+
+/* Datos que el asesor no edita: se muestran como contexto, no como campos. */
+.sale-meta {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  margin-bottom: 22px; overflow: hidden;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--line);
+}
+.sale-meta > div { padding: 10px 14px; background: var(--surface-2); }
+.sale-meta span { display: block; color: var(--ink-3); font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+.sale-meta strong { display: block; margin-top: 3px; color: var(--ink); font-size: 13px; font-weight: 600; }
+
+.form-section { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--line); }
+.form-section:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
+.form-section-title {
+  display: flex; align-items: center; gap: 9px; margin: 0 0 14px;
+  color: var(--ink); font-size: 13px; font-weight: 600;
+}
+.form-section-title b {
+  display: grid; place-items: center; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--vino-soft); color: var(--vino);
+  font-size: 11px; font-weight: 700;
+}
+.form-section .form-group + .form-grid, .form-section .form-grid + .form-grid { margin-top: 14px; }
+.form-group label .req { margin-left: 3px; color: var(--vino); font-style: normal; }
+
+/* Resumen del plan: el monto es el dato que se verifica. */
+.sale-total {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 14px; padding: 14px 16px;
+  border: 1px solid var(--line); border-left: 3px solid var(--vino); border-radius: 9px;
+  background: var(--surface-2);
+}
+.sale-total[hidden] { display: none; }
+.sale-total span { display: block; color: var(--ink-3); font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+.sale-total-plan { min-width: 0; }
+.sale-total-plan strong { display: block; margin-top: 3px; color: var(--ink); font-size: 14px; font-weight: 600; }
+.sale-total-plan small { display: block; margin-top: 2px; color: var(--ink-3); font-size: 11.5px; }
+.sale-total-amount { flex: 0 0 auto; text-align: right; }
+.sale-total-amount strong { display: block; margin-top: 3px; color: var(--vino); font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Pie fijo: las acciones no se pierden al desplazar el formulario. */
+.modal-foot {
+  display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 24px; border-top: 1px solid var(--line); background: var(--surface-2);
+}
+.modal-foot-note { margin: 0; color: var(--ink-3); font-size: 12px; }
+.modal-foot-note .req { color: var(--vino); font-style: normal; }
+.modal-foot-actions { display: flex; align-items: center; gap: 10px; }
+
+.modal-form-error {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 18px;
+  padding: 11px 14px; border: 1px solid rgba(168, 50, 62, .25); border-radius: 8px;
+  background: var(--rose-soft); color: var(--rose); font-size: 12.5px;
+}
+.modal-form-error .i { flex-shrink: 0; width: 16px; height: 16px; }
+
+.form-group input.is-invalid, .form-group select.is-invalid, .form-group textarea.is-invalid {
+  border-color: var(--rose); background: #fffafa;
+}
+.form-group input.is-invalid:focus, .form-group select.is-invalid:focus, .form-group textarea.is-invalid:focus {
+  box-shadow: 0 0 0 3px var(--rose-soft);
+}
+
+.modal-head-icon { flex-shrink: 0; }
+
+@media (max-width: 640px) {
+  .sale-modal { max-height: 94vh; }
+  .sale-modal .doc-tag { display: none; }
+  .sale-meta { grid-template-columns: 1fr; }
+  .modal-foot { flex-direction: column-reverse; align-items: stretch; }
+  .modal-foot-actions { justify-content: flex-end; }
+  .modal-foot-note { text-align: center; }
+  .sale-total { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .sale-total-amount { text-align: left; }
+}
+
+/* =================================================================
    MODALES · TOAST
    ================================================================= */
 .modal-backdrop { background: rgba(27, 34, 43, .45); }
