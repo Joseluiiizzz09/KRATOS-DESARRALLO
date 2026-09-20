@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="KRATOS CRM / ERP — Plataforma empresarial de control, gestión y operación.">
+  <title>Acceso corporativo | KRATOS CRM & ERP</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Main Enterprise Stylesheet -->
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+  <div class="enterprise-viewport">
+
+    <!-- ====================================================================
+         LEFT PANEL: INSTITUTIONAL & CORPORATE PRESENCE
+         ==================================================================== -->
+    <aside class="brand-section" aria-label="Información institucional de KRATOS">
+      <div class="brand-grid-pattern" aria-hidden="true"></div>
+
+      <!-- Top Header Brand Identifier -->
+      <header class="brand-header">
+        <div class="brand-emblem" aria-hidden="true">
+          <!-- Geometric Architectural Monogram -->
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v16" stroke="#ffffff"/>
+            <path d="M4 12h5l6-8" stroke="var(--color-kratos-red)"/>
+            <path d="M9 12l7 8" stroke="var(--color-kratos-red)"/>
+            <circle cx="17.5" cy="4" r="1.5" fill="var(--color-kratos-red)"/>
+          </svg>
+        </div>
+        <div class="brand-title-group">
+          <span class="brand-wordmark">KRATOS</span>
+          <span class="brand-system-badge">CRM / ERP</span>
+        </div>
+      </header>
+
+      <!-- Central Corporate Identity Statement -->
+      <div class="brand-body">
+        <div class="brand-tag-lead">Plataforma Empresarial</div>
+        <h1 class="brand-statement">
+          Control, gestión y operación.
+        </h1>
+        <p class="brand-description">
+          Sistema integral diseñado para la administración de procesos comerciales, supervisión de operaciones y gobernanza de información corporativa.
+        </p>
+
+        <!-- Structured Operational Modules -->
+        <div class="enterprise-capabilities">
+          <div class="capability-item">
+            <span class="capability-value">
+              <span class="capability-indicator"></span>
+              Clientes
+            </span>
+            <span class="capability-desc">Gestión y control de cartera</span>
+          </div>
+          <div class="capability-item">
+            <span class="capability-value">
+              <span class="capability-indicator"></span>
+              Ventas
+            </span>
+            <span class="capability-desc">Trazabilidad y facturación</span>
+          </div>
+          <div class="capability-item">
+            <span class="capability-value">
+              <span class="capability-indicator"></span>
+              Operaciones
+            </span>
+            <span class="capability-desc">Supervisión y control interno</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Institutional Footer -->
+      <footer class="brand-footer">
+        <span class="brand-meta">KRATOS Enterprise Platform &copy; 2026</span>
+        <div class="system-status">
+          <span class="status-dot"></span>
+          <span>Sistema en línea</span>
+        </div>
+      </footer>
+    </aside>
+
+    <!-- ====================================================================
+         RIGHT PANEL: AUTHENTICATION INTERFACE
+         ==================================================================== -->
+    <main class="auth-section" role="main">
+      <div class="auth-container">
+
+        <!-- Access Heading -->
+        <div class="auth-header">
+          <h2 class="auth-title">Acceso a KRATOS</h2>
+          <p class="auth-subtitle">Ingresa tus credenciales para continuar.</p>
+        </div>
+
+        <!-- Login Form -->
+        <form class="auth-form" onsubmit="event.preventDefault(); window.location.href='preview-dashboard.html';">
+
+          <!-- Field: Usuario / Email -->
+          <div class="field-block">
+            <label class="field-label" for="username">Usuario</label>
+            <div class="field-control">
+              <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="field-input"
+                placeholder="Ingresa tu usuario"
+                autocomplete="username"
+                maxlength="100"
+                autofocus
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Field: Contraseña -->
+          <div class="field-block">
+            <label class="field-label" for="password">Contraseña</label>
+            <div class="field-control">
+              <span class="field-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="field-input"
+                placeholder="Ingresa tu contraseña"
+                autocomplete="current-password"
+                required
+              >
+              <button
+                type="button"
+                class="btn-toggle-password"
+                id="toggle-password"
+                aria-label="Mostrar u ocultar contraseña"
+                tabindex="0"
+              >
+                <svg id="eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Session Maintenance & Recovery -->
+          <div class="auth-utilities-row">
+            <label class="checkbox-container">
+              <input type="checkbox" id="remember" name="remember" checked>
+              <span class="checkbox-custom">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </span>
+              <span class="checkbox-label">Mantener sesión</span>
+            </label>
+
+            <a href="#" class="auth-link">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <!-- Primary Submit Button -->
+          <button type="submit" class="btn-submit-action" id="btn-submit">
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span class="btn-text">Iniciar sesión</span>
+            <svg class="btn-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Compliance & Security Footnote -->
+        <div class="auth-compliance">
+          <svg class="compliance-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Acceso seguro a entorno corporativo</span>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="js/login.js"></script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,9 +20,9 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-// Frontend preview: available only in the local development environment.
-if (app()->environment('local')) {
-    Route::post('/preview/login', function (\Illuminate\Http\Request $request) {
+// Frontend preview: available only in local and testing environments.
+if (app()->environment('local', 'testing')) {
+    Route::post('/preview/login', function (Request $request) {
         $data = $request->validate([
             'username' => ['required', 'string', 'max:100'],
             'password' => ['required', 'string'],
@@ -33,7 +34,7 @@ if (app()->environment('local')) {
         return redirect()->route('preview.dashboard');
     })->name('preview.login');
 
-    Route::get('/preview/dashboard', function (\Illuminate\Http\Request $request) {
+    Route::get('/preview/dashboard', function (Request $request) {
         if (! $request->session()->has('preview_username')) {
             return redirect()->route('login');
         }
@@ -41,10 +42,11 @@ if (app()->environment('local')) {
         return view('preview-dashboard', ['username' => $request->session()->get('preview_username')]);
     })->name('preview.dashboard');
 
-    Route::post('/preview/logout', function (\Illuminate\Http\Request $request) {
+    Route::post('/preview/logout', function (Request $request) {
         $request->session()->forget('preview_username');
         $request->session()->regenerate();
 
         return redirect()->route('login');
     })->name('preview.logout');
 }
+require __DIR__.'/operations.php';

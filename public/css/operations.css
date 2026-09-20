@@ -1,0 +1,315 @@
+/* Operations (Back Office / Seguimiento) — built on top of dashboard.css's
+   design tokens (--surface-*, --border-*, --text-*, --brand-*). This file only
+   adds the pieces that page doesn't already define. */
+
+/* =========================================================
+   PAGE HEADING
+   ========================================================= */
+.page-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--accent-soft);
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 6px 0 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--card-dark-text);
+}
+
+.page-lead {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 46rem;
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+.alert-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(46,211,143,0.08);
+  border: 1px solid rgba(46,211,143,0.15);
+  color: var(--emerald);
+}
+
+.alert-success svg.i {
+  width: 15px;
+  height: 15px;
+  color: var(--emerald);
+}
+
+/* =========================================================
+   TABLE CARD EXTRAS
+   ========================================================= */
+.filters-grid {
+  align-items: center;
+}
+
+.filters-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.btn-compact {
+  padding: 6px 11px;
+  font-size: 11px;
+}
+
+.cell-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--card-dark-text);
+}
+
+.cell-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.cell-campaign {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cell-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cell-with-icon svg.i {
+  width: 12px;
+  height: 12px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.table-scroll-tall {
+  max-height: 64vh;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hover) transparent;
+}
+
+.table-scroll-tall thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.pagination-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================================
+   BULK ASSIGN BAR
+   ========================================================= */
+.bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--card-dark-bg);
+  border-bottom: 1px solid var(--border-card);
+}
+
+.bulk-field {
+  flex: 1;
+  min-width: 220px;
+  max-width: 340px;
+}
+
+.bulk-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* =========================================================
+   IMPORT PANEL
+   ========================================================= */
+.import-panel {
+  background: var(--card-dark-bg);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 4px 20px;
+}
+
+.import-panel summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  list-style: none;
+}
+
+.import-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.import-panel summary svg.i {
+  color: var(--text-dim);
+}
+
+.import-body {
+  padding: 4px 0 18px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.import-body p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 14px 0 12px;
+}
+
+.import-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.import-form input[type="file"] {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* =========================================================
+   DIALOGS (native <dialog>, same visual language as .modal-card)
+   ========================================================= */
+dialog.modal-dialog {
+  width: min(660px, calc(100% - 32px));
+  max-height: 88vh;
+  overflow: hidden;
+  padding: 0;
+  margin: auto;
+  border: 1px solid var(--card-dark-border);
+  border-radius: var(--radius-lg);
+  background: var(--card-dark-bg);
+  color: var(--card-dark-text);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+}
+
+dialog.modal-dialog form {
+  display: flex;
+  flex-direction: column;
+  max-height: 88vh;
+}
+
+dialog.modal-dialog::backdrop {
+  background: rgba(11,11,13,0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+dialog.modal-dialog .modal-body {
+  overflow-y: auto;
+}
+
+.modal-footer-close {
+  padding: 0 24px 20px;
+  border-top: none;
+}
+
+/* =========================================================
+   TIMELINE
+   ========================================================= */
+.timeline {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0 0 0 18px;
+  border-left: 1px solid var(--border-card);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.timeline li {
+  padding: 0 0 16px;
+  position: relative;
+}
+
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -22px;
+  top: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.timeline small {
+  display: block;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+
+.timeline p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.timeline-empty::before {
+  display: none;
+}
+
+.timeline-empty p {
+  color: var(--text-dim);
+}
+
+.observation-form {
+  padding-top: 16px;
+  border-top: 1px solid var(--border-card);
+}
+
+.observation-form .form-actions {
+  padding-top: 12px;
+  border-top: none;
+}

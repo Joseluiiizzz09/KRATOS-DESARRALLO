@@ -1,3 +1,939 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* =================================================================
+   KRATOS CRM · Bicolor Visual Identity
+   Sidebar Negro / Header Blanco / Área Clara
+   Referencia: Login KRATOS original
+   ================================================================= */
+
+:root {
+  /* ===== PALETTE COLORES KRATOS BICOLOR ===== */
+  --kratos-black: #111214;
+  --kratos-black-soft: #181A1F;
+  --kratos-white: #FFFFFF;
+  --kratos-bg-light: #F5F6F8;
+  --kratos-border: #E3E6EA;
+  --kratos-text: #111827;
+  --kratos-text-secondary: #667085;
+
+  --kratos-red: #D92D32;
+  --kratos-red-hover: #BB2429;
+
+  /* ===== SUPERFICIES ===== */
+  --sidebar-bg: var(--kratos-black);
+  --header-bg: var(--kratos-white);
+  --content-bg: var(--kratos-bg-light);
+  --card-bg: var(--kratos-white);
+  --card-highlighted-bg: var(--kratos-black-soft);
+  --border-default: var(--kratos-border);
+  --border-hover: #D0D4D8;
+
+  /* ===== TEXTO ===== */
+  --text-primary: var(--kratos-text);
+  --text-secondary: var(--kratos-text-secondary);
+  --text-inverse: var(--kratos-white);
+
+  /* ===== ESTADOS ===== */
+  --success: #12A36D;
+  --warning: #E68A00;
+  --info: #3973F6;
+}
+
+/* =================================================================
+   BASE TYPOGRAPHY Y RESET
+   ================================================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--kratos-bg-light);
+  color: var(--kratos-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tipografía jerarquía */
+.h1 { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.h2 { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.h3 { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.body { font-size: 14px; font-weight: 400; line-height: 1.6; }
+.small { font-size: 12px; }
+
+/* =================================================================
+   SIDEBAR OSCURO (240px)
+   ================================================================= */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--sidebar-bg);
+  color: var(--kratos-text-secondary);
+  position: fixed;
+  left: 0; top: 0;
+  z-index: 100;
+  padding: 20px 14px;
+  overflow-y: auto;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Parte superior del sidebar - logo y subtítulo */
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--kratos-border);
+}
+
+.sidebar-logo {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--kratos-white);
+  margin-bottom: 2px;
+  display: block;
+}
+
+.sidebar-subtitle {
+  font-size: 10px;
+  color: var(--kratos-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-top: 2px;
+  display: block;
+}
+
+/* Categorías de menú */
+.sidebar-section {
+  font-size: 10px;
+  color: var(--kratos-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--kratos-border);
+}
+
+/* Elementos de menú */
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav > li {
+  margin-bottom: 6px;
+}
+
+.sidebar-nav > li > a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--kratos-text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.sidebar-nav > li > a:hover {
+  background: var(--kratos-black-soft);
+  color: var(--kratos-white);
+}
+
+.sidebar-nav > li > a.active {
+  background: var(--kratos-black-soft);
+  color: var(--kratos-white);
+  border-left: 3px solid var(--kratos-red);
+}
+
+/* El indicador rojo activo - barra vertical izquierda */
+.sidebar-nav > li > a.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--kratos-red);
+  border-radius: 2px;
+}
+
+/* Badges numéricos en sidebar */
+.sidebar-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: var(--kratos-black-soft);
+  color: var(--kratos-white);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* Perfil en parte inferior del sidebar */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 10px;
+  background: var(--kratos-black-soft);
+  border-top: 1px solid var(--kratos-border);
+}
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sidebar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--kratos-white);
+  color: var(--kratos-black);
+  font-weight: 700;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-profile-info {
+  flex: 1;
+}
+
+.sidebar-profile-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--kratos-white);
+}
+
+.sidebar-profile-role {
+  font-size: 8px;
+  color: var(--kratos-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-logout {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--kratos-text-secondary);
+  border: 1px solid var(--kratos-border);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sidebar-logout:hover {
+  background: var(--kratos-black-soft);
+  color: var(--kratos-white);
+}
+
+/* =================================================================
+   HEADER SUPERIOR BLANCO (88px)
+   ================================================================= */
+.topbar {
+  height: 88px;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--kratos-border);
+  position: fixed;
+  top: 0; left: 240px; right: 0;
+  z-index: 90;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-logo {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--kratos-text);
+}
+
+.topbar-logo span {
+  color: var(--kratos-red);
+  font-weight: 800;
+}
+
+.topbar-subtitle {
+  font-size: 12px;
+  color: var(--kratos-text-secondary);
+  margin-top: 2px;
+  display: block;
+}
+
+.topbar-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.topbar-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--kratos-text);
+  margin: 0 0 2px 0;
+}
+
+.topbar-sub-detail {
+  font-size: 11px;
+  color: var(--kratos-text-secondary);
+}
+
+/* Derecha del header */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-action {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--kratos-border);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--kratos-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topbar-action:hover {
+  border-color: var(--kratos-red);
+  color: var(--kratos-red);
+}
+
+.topbar-action.secondary {
+  background: var(--kratos-white);
+  color: var(--kratos-text);
+}
+
+.topbar-action.secondary:hover {
+  background: var(--kratos-bg-light);
+}
+
+/* Badge en línea */
+.badge-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  background: var(--success);
+  color: white;
+  font-size: 8px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* =================================================================
+   CONTENIDO PRINCIPAL
+   ================================================================= */
+.main-content {
+  margin-left: 240px;
+  margin-top: 88px;
+  width: calc(100% - 240px);
+  padding: 24px 30px;
+  max-width: 1500px;
+  background: var(--kratos-bg-light);
+  min-height: calc(100vh - 88px);
+}
+
+/* Contenedores con ancho máximo */
+.container-max {
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+/* Tarjetas */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: border-color 0.15s ease;
+}
+
+.card-highlighted {
+  background: var(--card-highlighted-bg);
+  border: 1px solid var(--kratos-border);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+}
+
+/* Espaciado consistente */
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.gap-5 { gap: 20px; }
+.gap-6 { gap: 24px; }
+
+/* =================================================================
+   BASE DE LLAMADAS
+   ================================================================= */
+.section-header {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--kratos-border);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--kratos-text);
+  margin: 0 0 6px 0;
+}
+
+.section-subtitle {
+  font-size: 11px;
+  color: var(--kratos-text-secondary);
+  margin: 0;
+}
+
+/* Bloque oscuro de filtros - solo donde corresponda */
+.call-block-dark {
+  background: var(--kratos-black-soft);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.call-block-dark .section-title {
+  color: var(--kratos-white);
+}
+
+.call-block-dark .section-subtitle {
+  color: var(--kratos-text-muted-dark);
+}
+
+/* Buscador en base de llamadas */
+.call-search {
+  background: var(--kratos-white);
+  border: 1px solid var(--kratos-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--kratos-text);
+  font-size: 12px;
+  width: 280px;
+  transition: all 0.15s ease;
+  margin-right: 8px;
+}
+
+.call-search:focus {
+  border-color: var(--kratos-red);
+  outline: none;
+}
+
+/* Filtros */
+.filters-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.filters-row .select {
+  padding: 6px 10px;
+  background: var(--kratos-white);
+  border: 1px solid var(--kratos-border);
+  color: var(--kratos-text);
+  font-size: 12px;
+  border-radius: 6px;
+  min-width: 130px;
+}
+
+.filters-row .select:focus {
+  outline: none;
+  border-color: var(--kratos-red);
+}
+
+/* =================================================================
+   TABLA BASE DE LLAMADAS (BLANCA)
+   ================================================================= */
+.table-call {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
+}
+
+.table-call thead th {
+  background: var(--kratos-white);
+  border-bottom: 1px solid var(--kratos-border);
+  border-right: 1px solid var(--kratos-border);
+  padding: 10px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--kratos-text-secondary);
+  letter-spacing: 0.08em;
+}
+
+.table-call thead th:first-child {
+  border-radius: 6px 0 0 0;
+}
+
+.table-call thead th:last-child {
+  border-radius: 0 6px 0 0;
+}
+
+.table-call tbody td {
+  padding: 12px;
+  border-bottom: 1px solid var(--kratos-border);
+  border-right: 1px solid var(--kratos-border);
+  transition: background 0.15s ease;
+}
+
+.table-call tbody tr:hover td {
+  background: var(--kratos-bg-light);
+}
+
+.table-call tbody td:first-child {
+  border-radius: 6px 0 0 0;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 12px;
+  color: var(--kratos-text);
+}
+
+.table-call tbody td:last-child {
+  border-radius: 0 6px 0 0;
+  text-align: right;
+  color: var(--kratos-red);
+}
+
+/* Información telefónica */
+.phone-number {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 12px;
+  color: var(--kratos-text);
+}
+
+.phone-sub {
+  font-size: 10px;
+  color: var(--kratos-text-secondary);
+  margin-top: 2px;
+}
+
+/* =================================================================
+   ACCIONES DE LLAMADA
+   ================================================================= */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--kratos-white);
+  color: var(--kratos-red);
+  border: 1px solid var(--kratos-red-soft);
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action-btn:hover {
+  background: var(--kratos-red-soft);
+}
+
+.action-btn.secondary {
+  background: var(--kratos-white);
+  color: var(--kratos-text);
+  border-color: var(--kratos-border);
+}
+
+.action-btn.secondary:hover {
+  background: var(--kratos-bg-light);
+}
+
+/* WhatsApp */
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--success);
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+/* =================================================================
+   ESTADOS / BADGES
+   ================================================================= */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge--new {
+  background: var(--success);
+  color: white;
+}
+
+.badge--interested {
+  background: var(--kratos-white);
+  color: var(--info);
+  border: 1px solid var(--info);
+}
+
+.badge--callback {
+  background: var(--kratos-white);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.badge--contacted {
+  background: var(--kratos-white);
+  color: var(--kratos-red);
+  border: 1px solid var(--kratos-red);
+}
+
+.badge--missed {
+  background: var(--kratos-white);
+  color: var(--kratos-text-secondary);
+  border: 1px solid var(--kratos-border);
+}
+
+.badge--critical {
+  background: var(--kratos-red-soft);
+  color: var(--kratos-red);
+  border: 1px solid var(--kratos-red);
+}
+
+/* =================================================================
+   MIS VENTAS
+   ================================================================= */
+.sales-section {
+  margin-bottom: 24px;
+}
+
+.sales-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.sales-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kratos-text);
+}
+
+.sales-section-desc {
+  font-size: 11px;
+  color: var(--kratos-text-secondary);
+}
+
+.kpi-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.kpi-card:hover {
+  border-color: var(--kratos-red);
+}
+
+.kpi-number {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--kratos-text);
+  margin: 4px 0;
+}
+
+.kpi-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--kratos-text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.kpi-card.kpi--odd {
+  background: var(--kratos-white);
+}
+
+.kpi-card.kpi--even {
+  background: var(--kratos-bg-light);
+}
+
+/* Tabla de ventas */
+.table-sales {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-sales thead th {
+  background: var(--kratos-white);
+  border-bottom: 1px solid var(--kratos-border);
+  border-right: 1px solid var(--kratos-border);
+  padding: 10px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--kratos-text-secondary);
+  letter-spacing: 0.08em;
+}
+
+.table-sales tbody td {
+  padding: 12px;
+  border-bottom: 1px solid var(--kratos-border);
+  border-right: 1px solid var(--kratos-border);
+}
+
+.table-sales tbody tr:hover td {
+  background: var(--kratos-bg-light);
+}
+
+.table-sales .commission-positive {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.table-sales .commission-negative {
+  color: var(--kratos-red);
+  font-weight: 600;
+}
+
+/* =================================================================
+   TABLERO Y MÉTRICAS
+   ================================================================= */
+.dashboard-premium {
+  background: var(--kratos-bg-light);
+  border-radius: 10px;
+  padding: 18px;
+  margin: 16px 0;
+}
+
+.dashboard-premium .section-title {
+  color: var(--kratos-text);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.dashboard-premium .section-subtitle {
+  color: var(--kratos-text-secondary);
+  font-size: 11px;
+}
+
+.dashboard-premium .kpi-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  background: var(--kratos-black-soft);
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--kratos-text-muted-dark);
+}
+
+/* =================================================================
+   DISTRIBUCIÓN DE CONTACTOS
+   ================================================================= */
+.distribution-card {
+  background: var(--card-highlighted-bg);
+  border: 1px solid var(--kratos-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.distribution-card .section-title {
+  color: var(--kratos-text);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.distribution-states {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.distribution-state {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 11px;
+}
+
+.distribution-state .name {
+  color: var(--kratos-text);
+}
+
+.distribution-state .percentage {
+  color: var(--kratos-text-secondary);
+  font-size: 10px;
+}
+
+/* Barras de progreso sutiles */
+.progress-bar {
+  height: 5px;
+  background: var(--kratos-black-soft);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress--new { background: var(--success); }
+.progress--interested { background: var(--kratos-red); }
+.progress--contacted { background: var(--kratos-text-secondary); }
+
+/* =================================================================
+   BARRA DE ACCIONES MIS VENTAS
+   ================================================================= */
+.sales-actions {
+  background: var(--card-bg);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sales-actions .search {
+  width: 250px;
+  padding: 6px 10px;
+  background: var(--kratos-white);
+  border: 1px solid var(--kratos-border);
+  border-radius: 6px;
+  color: var(--kratos-text);
+  font-size: 12px;
+}
+
+.sales-actions .btn-primary {
+  background: var(--kratos-red);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sales-actions .btn-primary:hover {
+  background: var(--kratos-red-hover);
+}
+
+/* =================================================================
+   RESPONSIVE
+   ================================================================= */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .topbar {
+    left: 200px;
+  }
+  
+  .main-content {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+    padding: 20px 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-240px);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .topbar {
+    left: 0;
+    width: calc(100% - 240px);
+  }
+  
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px 20px;
+  }
+  
+  .table-call, .table-sales {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .kpi-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .sales-actions .search {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .sales-actions .btn-primary {
+    width: 100%;
+    padding: 8px;
+    font-size: 11px;
+  }
+}

@@ -28,7 +28,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required_without:email', 'string'],
+            'email' => ['required_without:username', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,11 +43,13 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $field = $this->filled('username') ? 'username' : 'email';
+
+        if (! Auth::attempt([$field => $this->input($field), 'password' => $this->input('password')], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                $field => trans('auth.failed'),
             ]);
         }
 
@@ -68,8 +71,10 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
+        $field = $this->filled('username') ? 'username' : 'email';
+
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            $field => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -81,6 +86,8 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        $id = $this->filled('username') ? $this->string('username') : $this->string('email');
+
+        return Str::transliterate(Str::lower($id).'|'.$this->ip());
     }
 }

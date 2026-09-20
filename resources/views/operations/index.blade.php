@@ -4,15 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>KRATOS · Dashboard</title>
+    <title>KRATOS · {{ $back ? 'Back Office' : 'Seguimiento' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/operations.css') }}?v={{ filemtime(public_path('css/operations.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
 </head>
 <body>
 
-<!-- Header superior BLANCO -->
+<!-- Header superior -->
 <header class="topbar">
   <div class="topbar-inner">
     <div class="topbar-brand">
@@ -32,7 +33,7 @@
   </div>
 </header>
 
-<main class="main-content">
+<main class="page">
   <nav class="tabs area-switch" aria-label="Áreas de KRATOS">
     <a class="tab-btn" data-operation-link href="{{ route('preview.dashboard') }}">Asesor</a>
     <a class="tab-btn {{ $back ? 'active' : '' }}" @if($back) aria-current="page" @endif href="{{ route('preview.backoffice') }}">Back Office</a>
@@ -70,26 +71,20 @@
     <!-- Sección: Base de llamadas -->
     <div class="col-12 mb-30">
 
-      <!-- Header gris claro -->
-      <div class="page-header">
+      <!-- Bloque superior oscuro -->
+      <div class="call-block-dark">
         <h3 class="section-title">Base de llamadas</h3>
         <p class="section-subtitle">Contactos asignados por Back Office para gestión y seguimiento comercial.</p>
       </div>
 
-      <!-- Bloque oscuro de filtros -->
-      <div class="call-block-dark">
-        <h3 class="section-title">Base de llamadas</h3>
-        <p class="section-subtitle">Contactos asignados por Back Office para gestión y seguimiento comercial.</p>
-
-        <!-- Filtros -->
-        <div class="filters-row">
-          <input type="text" class="call-search" placeholder="🔍 Buscar por teléfono, WhatsApp o zona...">
-          <select class="select">
-            <option>Todos los estados</option>
-            <option>Pendiente</option>
-            <option>En ejecución</option>
-          </select>
-        </div>
+      <!-- Filtros -->
+      <div class="filters-row">
+        <input type="text" class="call-search" placeholder="🔍 Buscar por teléfono, WhatsApp o zona...">
+        <select class="select">
+          <option>Todos los estados</option>
+          <option>Pendiente</option>
+          <option>En ejecución</option>
+        </select>
       </div>
 
     </div>
@@ -114,7 +109,7 @@
       </div>
     </div>
 
-    <!-- Tabla Base de Llamadas - COMPLETAMENTE BLANCA -->
+    <!-- Tabla Base de Llamadas -->
     <div class="card">
       <div class="table-call">
         <thead>
@@ -170,13 +165,12 @@
 
     <!-- Sección: Mis Ventas -->
     <div class="sales-section mb-30">
-
       <div class="sales-header">
         <h3 class="sales-section-title">Mis ventas</h3>
         <p class="sales-section-desc">Histórico y comisiones de altas, portabilidades y contratos</p>
       </div>
 
-      <!-- KPIs -->
+      <!-- KPIs de ventas -->
       <div class="kpi-cards">
         <div class="kpi-card kpi--odd">
           <div class="kpi-number">12</div>
@@ -233,15 +227,14 @@
           </tbody>
         </table>
       </div>
+    </div>
 
-      <!-- Barra de acciones -->
-      <div class="sales-actions">
-        <div class="search">
-          <input type="text" placeholder="Buscar por cliente, folio o producto...">
-        </div>
-        <button class="btn-primary">+ Registrar Nueva Venta</button>
+    <!-- Barra de acciones en Mis Ventas -->
+    <div class="sales-actions">
+      <div class="search">
+        <input type="text" placeholder="Buscar por cliente, folio o producto...">
       </div>
-
+      <button class="btn-primary">+ Registrar Nueva Venta</button>
     </div>
 
     <!-- Sección: Tablero y Métricas -->
@@ -285,8 +278,9 @@
         </div>
       </div>
       
+      <!-- Barras de progreso -->
       <div class="progress-bar">
-        <div class="progress-fill progress--new" style="width: 30%"></div>
+        <div class="progress progress--new" style="width: 30%"></div>
       </div>
     </div>
 
