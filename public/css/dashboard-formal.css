@@ -208,24 +208,10 @@ body.sidebar-collapsed .page {
   padding: 30px 18px 34px;
 }
 
-body.sidebar-collapsed .page > .tabs:not(.area-switch) {
+body.sidebar-collapsed .page>.tabs:not(.area-switch) {
   opacity: 0;
   pointer-events: none;
   transform: translateX(-140px);
-}
-
-body.sidebar-collapsed .table-card-title,
-body.sidebar-collapsed .section-banner-title,
-body.sidebar-collapsed .chart-card-head h3 {
-  cursor: pointer;
-}
-
-body.sidebar-collapsed .table-card-title:hover,
-body.sidebar-collapsed .section-banner-title:hover,
-body.sidebar-collapsed .chart-card-head h3:hover {
-  text-decoration: underline;
-  text-decoration-color: #d92d32;
-  text-underline-offset: 3px;
 }
 
 .tabs {
@@ -248,7 +234,7 @@ body.sidebar-collapsed .chart-card-head h3:hover {
   gap: 4px;
 }
 
-.page > .tabs:not(.area-switch) {
+.page>.tabs:not(.area-switch) {
   position: fixed;
   top: 108px;
   left: 24px;
@@ -265,7 +251,7 @@ body.sidebar-collapsed .chart-card-head h3:hover {
   transition: opacity 200ms ease, transform 220ms ease;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn {
+.page>.tabs:not(.area-switch) .tab-btn {
   appearance: none;
   position: relative;
   width: 100%;
@@ -284,7 +270,7 @@ body.sidebar-collapsed .chart-card-head h3:hover {
   transition: color 0.16s ease, background-color 0.16s ease;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn::before {
+.page>.tabs:not(.area-switch) .tab-btn::before {
   content: "";
   position: absolute;
   left: 5px;
@@ -297,56 +283,56 @@ body.sidebar-collapsed .chart-card-head h3:hover {
   transition: background 0.16s ease, opacity 0.16s ease;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn::after {
+.page>.tabs:not(.area-switch) .tab-btn::after {
   display: none;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn svg.i {
+.page>.tabs:not(.area-switch) .tab-btn svg.i {
   display: none;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn:hover {
+.page>.tabs:not(.area-switch) .tab-btn:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.05) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn:hover::before {
+.page>.tabs:not(.area-switch) .tab-btn:hover::before {
   background: #9199a6;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn.active {
+.page>.tabs:not(.area-switch) .tab-btn.active {
   color: #ffffff;
   background: rgba(217, 45, 50, 0.14) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn.active::before {
+.page>.tabs:not(.area-switch) .tab-btn.active::before {
   background: #d92d32;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn.active::after {
+.page>.tabs:not(.area-switch) .tab-btn.active::after {
   display: none;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn:focus,
-.page > .tabs:not(.area-switch) .tab-btn:focus-visible {
+.page>.tabs:not(.area-switch) .tab-btn:focus,
+.page>.tabs:not(.area-switch) .tab-btn:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn:focus-visible {
+.page>.tabs:not(.area-switch) .tab-btn:focus-visible {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.06) !important;
 }
 
-.page > .tabs:not(.area-switch) .tab-btn:focus-visible::before {
+.page>.tabs:not(.area-switch) .tab-btn:focus-visible::before {
   background: #fb7185;
 }
 
-.page > .tabs:not(.area-switch) .tab-count {
+.page>.tabs:not(.area-switch) .tab-count {
   margin-left: auto;
   min-width: 24px;
   text-align: center;
@@ -400,7 +386,7 @@ body.sidebar-collapsed .chart-card-head h3:hover {
   background: #f4f4f5;
 }
 
-.tabs.area-switch .tab-btn + .tab-btn::before {
+.tabs.area-switch .tab-btn+.tab-btn::before {
   content: "/";
   margin-right: 10px;
   color: #d0d5dd;
@@ -449,7 +435,7 @@ body.sidebar-collapsed .chart-card-head h3:hover {
   width: 100%;
 }
 
-.lead-table-layout > .lead-toolbar {
+.lead-table-layout>.lead-toolbar {
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -1068,7 +1054,7 @@ table.data-table tbody tr:hover,
   max-width: 100%;
 }
 
-.sale-status-cell > span {
+.sale-status-cell>span {
   color: #8a97ab;
   font-size: 11px;
 }
@@ -1173,7 +1159,7 @@ table.data-table tbody tr:hover,
     padding: 18px;
   }
 
-  .page > .tabs:not(.area-switch) {
+  .page>.tabs:not(.area-switch) {
     position: static;
     width: 100%;
     padding: 8px 18px 18px;
@@ -1188,7 +1174,7 @@ table.data-table tbody tr:hover,
     box-shadow: none;
   }
 
-  .page > .tabs:not(.area-switch) .tab-btn {
+  .page>.tabs:not(.area-switch) .tab-btn {
     width: 100%;
     min-height: 40px;
     color: #8f99aa;
@@ -1201,25 +1187,25 @@ table.data-table tbody tr:hover,
     transform: none;
   }
 
-  .page > .tabs:not(.area-switch) .tab-btn::before {
+  .page>.tabs:not(.area-switch) .tab-btn::before {
     display: block;
   }
 
-  .page > .tabs:not(.area-switch) .tab-btn::after {
+  .page>.tabs:not(.area-switch) .tab-btn::after {
     display: block;
   }
 
-  .page > .tabs:not(.area-switch) .tab-btn svg.i {
+  .page>.tabs:not(.area-switch) .tab-btn svg.i {
     display: none;
   }
 
-  .page > .tabs:not(.area-switch) .tab-btn:hover {
+  .page>.tabs:not(.area-switch) .tab-btn:hover {
     color: #ffffff;
     background: transparent !important;
     transform: translateX(3px);
   }
 
-  .page > .tabs:not(.area-switch) .tab-btn.active {
+  .page>.tabs:not(.area-switch) .tab-btn.active {
     color: #ffffff;
     background: transparent !important;
     border-color: transparent !important;
@@ -1232,6 +1218,7 @@ table.data-table tbody tr:hover,
 }
 
 @media (max-width: 640px) {
+
   .topbar-inner,
   .topbar-actions,
   .table-card-header-row,
@@ -1272,4 +1259,3 @@ table.data-table tbody tr:hover,
   }
 
 }
-

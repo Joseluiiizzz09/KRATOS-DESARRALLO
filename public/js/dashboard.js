@@ -223,14 +223,34 @@
         setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
       });
     }
-    // When the panel is hidden, its toggle hides with it — clicking the
-    // page title brings the panel back.
-    document.addEventListener('click', function (e) {
-      if (document.body.classList.contains('sidebar-collapsed') &&
-        e.target.closest('.table-card-title, .section-banner-title, .chart-card-head h3')) {
-        setSidebarCollapsed(false);
-      }
-    });
+  }
+
+  var THEME_KEY = 'kratos:theme';
+  function initThemeToggle() {
+    var toggle = document.getElementById('theme-toggle');
+    var savedTheme = 'light';
+    try {
+      savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    } catch (e) {}
+
+    function applyTheme(theme) {
+      var isDark = theme === 'dark';
+      document.body.classList.toggle('theme-dark', isDark);
+      document.documentElement.classList.toggle('theme-dark', isDark);
+      document.documentElement.setAttribute('data-theme', theme);
+      if (toggle) toggle.checked = isDark;
+      try {
+        localStorage.setItem(THEME_KEY, theme);
+      } catch (e) {}
+    }
+
+    applyTheme(savedTheme);
+
+    if (toggle) {
+      toggle.addEventListener('change', function () {
+        applyTheme(toggle.checked ? 'dark' : 'light');
+      });
+    }
   }
 
   /* Un contacto cuenta como gestionado cuando ya salió de la bandeja inicial. */
@@ -1135,6 +1155,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     initStaticLabels();
     initSidebarToggle();
+    initThemeToggle();
     loadOperations();
     setTab('llamadas');
     renderAll();

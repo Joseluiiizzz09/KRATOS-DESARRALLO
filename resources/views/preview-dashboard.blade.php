@@ -10,12 +10,25 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/portal-asesor-base.css') }}?v={{ filemtime(public_path('css/portal-asesor-base.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/portal-asesor.css') }}?v={{ filemtime(public_path('css/portal-asesor.css')) }}">
+<script>
+(function() {
+  try {
+    var t = localStorage.getItem('kratos:theme');
+    if (t === 'dark') {
+      document.documentElement.classList.add('theme-dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <div class="sidebar-logo" aria-hidden="true">K</div>
+    <div class="sidebar-logo" aria-hidden="true">
+      @include('partials.kratos-logo')
+    </div>
     <div class="sidebar-brand">
       <div class="sidebar-brand-row">
         <h1 class="sidebar-brand-name">KRATOS</h1>
@@ -111,6 +124,13 @@
 
 <div id="modal-root"></div>
 <div id="toast-root"></div>
+
+<div class="theme-switch-floating" id="theme-switch-container" title="Alternar tema claro / oscuro">
+  <label class="switch" for="theme-toggle" aria-label="Alternar tema claro / oscuro">
+    <input type="checkbox" id="theme-toggle">
+    <span class="slider"></span>
+  </label>
+</div>
 
 <!-- Hidden elements for backward compatibility with dashboard.js -->
 <button type="button" class="tab-btn active" data-tab="llamadas" id="tab-btn-llamadas" hidden></button>
