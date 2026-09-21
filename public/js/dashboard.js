@@ -25,17 +25,6 @@
   var DOCUMENT_TYPES = ['DNI', 'RUC', 'CE'];
   var SALE_TYPES = ['Alta', 'Portabilidad', 'Renovación'];
 
-  var INITIAL_LEADS_RAW = [
-    { id: 'lead-101', clientName: 'Mariana Silva Morales', city: 'CDMX', campaign: 'Portabilidad Fibra 600MB', priority: 'alta' },
-    { id: 'lead-102', clientName: 'Roberto Garza Treviño', city: 'Monterrey', campaign: 'Plan Negocio Pyme', priority: 'alta' },
-    { id: 'lead-103', clientName: 'Andrea Beltrán Castro', city: 'Guadalajara', campaign: 'Upgrade Plan Móvil 5G', priority: 'media' },
-    { id: 'lead-104', clientName: 'Fernando Páez Luna', city: 'Puebla', campaign: 'Portabilidad Fibra 600MB', priority: 'baja' },
-    { id: 'lead-105', clientName: 'Sofía Domínguez Solís', city: 'Cancún', campaign: 'Paquete Triple Play Pro', priority: 'alta' },
-    { id: 'lead-106', clientName: 'Jorge Alberto Rivas', city: 'Querétaro', campaign: 'Portabilidad Fibra 600MB', priority: 'alta' },
-    { id: 'lead-107', clientName: 'Camila Herrera Vega', city: 'Tijuana', campaign: 'Upgrade Plan Móvil 5G', priority: 'baja' },
-    { id: 'lead-108', clientName: 'Ignacio Valenzuela Prieto', city: 'Toluca', campaign: 'Plan Negocio Pyme', priority: 'media' }
-  ];
-
   var INITIAL_SALES_RAW = [
     { id: 'sale-301', productName: 'Plan Negocio Fibra 1GB + 3 Líneas', category: 'Empresarial', amount: 540, paymentMethod: 'Tarjeta Domiciliada', status: 'aprobada', clientName: 'Roberto Garza Treviño', notes: 'Instalación programada para el martes.', dayOffset: 0 },
     { id: 'sale-302', productName: 'Paquete Gamer 800MB + IP Fija', category: 'Residencial Premium', amount: 390, paymentMethod: 'Transferencia SPEI', status: 'en_verificacion', clientName: 'Patricia Morales Soto', notes: 'Comprobante de domicilio cargado en el portal.', dayOffset: 0 },
@@ -72,7 +61,7 @@
     card: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
     shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>',
     message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-    whatsapp: '<path d="M20 11.8a8 8 0 0 1-11.7 7.1L4 20l1.2-4.1A8 8 0 1 1 20 11.8Z"/><path d="M9.2 7.8c.5 2.9 2.2 4.7 5 5.4l1.3-1.2 1.8 1c-.2 1.1-1 1.8-2.2 1.8-4 0-7.3-3.3-7.3-7.3 0-1.1.7-2 1.8-2.2l1 1.8-1.4 1.1Z"/>',
+    whatsapp: '<path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.7-5.2A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.7 8.6c.2-.5.6-.5.9-.4.2.5.6 1.3.6 1.5 0 .3-.4.7-.6 1 .6 1.1 1.4 1.9 2.6 2.5.3-.3.6-.8.9-.8.3 0 1.2.5 1.5.7.1.3-.1 1-.6 1.3-.7.4-1.7.3-3-.4a7.6 7.6 0 0 1-3-3c-.4-1-.3-1.7.7-2.4z"/>',
     alertTriangle: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
   };
   function icon(name, cls) {
@@ -94,19 +83,10 @@
   }
 
   /* ---------- seed & storage ---------- */
+  /* Contactos de demostración de versiones anteriores: ya no se muestran. */
+  function isDemoLeadId(id) { return /^lead-(test-)?\d+$/.test(id); }
+
   function seed() {
-    var leads = INITIAL_LEADS_RAW.map(function (l, i) {
-      return {
-        id: l.id, clientName: l.clientName,
-        phone: '000 000 ' + String(i + 1).padStart(3, '0'),
-        phone2: '', whatsappUser: '', zone: 'Demostración', assignedAt: new Date().toISOString(),
-        city: 'Demostración', campaign: l.campaign,
-        assignedAdvisorId: ADVISOR.id, assignedAdvisorName: ADVISOR.name,
-        status: 'pendiente', lastContactAt: 'Sin gestión registrada',
-        notes: 'Contacto de demostración asignado por Back Office.', advisorNote: '',
-        priority: l.priority, attempts: 0, contactHistory: []
-      };
-    });
     var sales = INITIAL_SALES_RAW.map(function (s, i) {
       var d = new Date(); d.setDate(d.getDate() - Math.floor(i / 2));
       return {
@@ -119,7 +99,8 @@
         createdAt: d.toISOString(), timestamp: d.toISOString()
       };
     });
-    return { leads: leads, sales: sales };
+    /* Los contactos llegan desde Back Data; sin asignaciones la base queda vacía. */
+    return { leads: [], sales: sales };
   }
 
   function load() {
@@ -127,9 +108,10 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         var data = JSON.parse(raw);
-        if (Array.isArray(data.leads) && Array.isArray(data.sales) && data.leads.length > 0 &&
+        if (Array.isArray(data.leads) && Array.isArray(data.sales) &&
           data.leads.every(function (l) { return typeof l.id === 'string' && typeof l.clientName === 'string'; }) &&
           data.sales.every(function (s) { return typeof s.id === 'string' && typeof s.amount === 'number'; })) {
+          data.leads = data.leads.filter(function (l) { return !isDemoLeadId(l.id); });
           return data;
         }
       }
@@ -153,17 +135,6 @@
     ["servicio_activo","disposition-servicio_activo","Servicio Activo","#64748b"]
   ];
   var state = load();
-  // Contacto solicitado para probar la marcación desde la base existente.
-  if (!state.leads.some(function (lead) { return String(lead.phone || '').replace(/\D/g, '') === '930929211'; })) {
-    state.leads.unshift({
-      id: 'lead-test-930929211', clientName: 'Contacto de prueba', phone: '930929211',
-      phone2: '', whatsappUser: '', zone: '', city: '', campaign: '',
-      assignedAt: new Date().toISOString(), assignedAdvisorId: ADVISOR.id,
-      assignedAdvisorName: ADVISOR.name, status: 'pendiente',
-      lastContactAt: 'Sin gestión registrada', notes: 'Prueba de marcación con MicroSIP.',
-      priority: 'normal', managementHistory: []
-    });
-  }
 
   var storageError = false;
   function normalizeStoredLeadNotes() {
@@ -188,6 +159,12 @@
   var uploadOpen = false;
 
   /* ---------- helpers ---------- */
+  /* Día local (AAAA-MM-DD) de una fecha ISO: tras las 19:00 en Lima la fecha UTC ya es la del día siguiente. */
+  function localDay(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
   function today() {
     var d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -196,21 +173,6 @@
     return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   }
 
-  function statusBadge(status) {
-    var map = {
-      venta_cerrada: ['emerald', 'Venta Cerrada'],
-      en_curso: ['blue', 'En Llamada'],
-      contactado: ['indigo', 'Contactado'],
-      rellamada: ['amber', 'Rellamada'],
-      no_contesta: ['yellow', 'No Contesta'],
-      rechazado: ['rose', 'No Interesado']
-    };
-    CALL_DISPOSITIONS.forEach(function (item) { map[item[0]] = [item[1], item[2]]; });
-    var trackingLabels = {instalado:'Instalado',caida:'Caída',rechazo_campo:'Rechazo en campo',tecnico_casa:'Técnicos en casa',levantar_sot:'Levantar SOT',tecnicos_camino:'Técnicos en camino',instalado_no_validado:'Instalado no validado',reasignacion:'Reasignación',derivado_planta_externa:'Derivado a planta externa',rechazo:'Rechazo',rechazo_mesa:'Rechazo en mesa'};
-    if (trackingLabels[status]) map[status] = [status === 'instalado' ? 'emerald' : 'slate', trackingLabels[status]];
-    var m = map[status] || ['slate', 'Pendiente'];
-    return '<span class="status-badge ' + m[0] + '"><span class="status-dot"></span><span class="status-text">' + m[1] + '</span></span>';
-  }
   function saleStatusBadge(status) {
     var map = {
       aprobada: ['emerald', 'Activa'],
@@ -227,20 +189,22 @@
     return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   }
 
+  /* ---------- topbar title map ---------- */
+  var TAB_TITLES = {
+    llamadas: ['Base de llamadas', 'Contactos asignados para gestión comercial'],
+    ventas: ['Mis ventas', 'Registro consolidado de ventas y verificación'],
+    tablero: ['Tablero y métricas', 'Resumen de actividad comercial del asesor']
+  };
+
   /* ---------- render: header labels ---------- */
   function initStaticLabels() {
-    var userEl = document.getElementById('icon-user-chip');
-    if (userEl) {
-      userEl.innerHTML = '<span class="user-chip-avatar">' + esc(initials(USERNAME)) + '</span><span class="user-chip-info"><strong class="user-chip-name">' + esc(USERNAME) + '</strong><span class="user-chip-sub">Asesor Comercial</span></span>';
-    }
-    var logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-      logoutBtn.innerHTML = icon('logout') + '<span>Cerrar sesión</span>';
-    }
-    document.getElementById('tab-btn-tablero').innerHTML = icon('dashboard') + '<span>Tablero y métricas</span>';
-    document.getElementById('tab-btn-llamadas').innerHTML = icon('phone') + '<span>Base de llamadas</span>';
-    document.getElementById('tab-btn-ventas').innerHTML = icon('receipt') + '<span>Mis ventas</span>';
+    /* Sidebar user avatar */
+    var avatarEl = document.getElementById('sidebar-avatar');
+    if (avatarEl) avatarEl.textContent = initials(USERNAME);
+    var nameEl = document.getElementById('sidebar-user-name');
+    if (nameEl) nameEl.textContent = USERNAME;
   }
+
   function setSidebarCollapsed(collapsed) {
     document.body.classList.toggle('sidebar-collapsed', collapsed);
     var toggle = document.getElementById('sidebar-toggle');
@@ -269,6 +233,10 @@
     });
   }
 
+  /* Un contacto cuenta como gestionado cuando ya salió de la bandeja inicial. */
+  function isManaged(lead) { return lead.status !== 'pendiente' && lead.status !== 'nuevo'; }
+  function plural(n, one, many) { return n === 1 ? one : many; }
+
   /* ---------- render: metrics banner + kpis ---------- */
   function renderMetrics() {
     var leads = state.leads, sales = state.sales;
@@ -278,129 +246,202 @@
       '<div class="section-banner-right"><span class="status-live-dot"></span> ' + leads.length + ' contactos asignados en cartera</div>';
 
     var todayStr = today();
+    var managed = leads.filter(isManaged).length;
+    var pending = leads.length - managed;
+    var salesToday = sales.filter(function (s) { return s.createdAt && localDay(s.createdAt) === todayStr; }).length;
+    var active = sales.filter(function (s) { return s.status === 'aprobada' || s.status === 'auditada'; }).length;
+    var dropped = sales.filter(function (s) { return s.status === 'rechazada'; }).length;
+    var checking = sales.filter(function (s) { return s.status === 'en_verificacion'; }).length;
+    var coverage = leads.length ? Math.round((managed / leads.length) * 100) : 0;
+
     var cards = [
-      { label: 'Ventas activas', value: sales.filter(function (s) { return s.status === 'aprobada' || s.status === 'auditada'; }).length, detail: 'Confirmadas y validadas', icon: 'check', cls: 'emerald' },
-      { label: 'Ventas caídas', value: sales.filter(function (s) { return s.status === 'rechazada'; }).length, detail: 'Rechazos u objeciones', icon: 'trendDown', cls: 'rose' },
-      { label: 'Ventas del día', value: sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === todayStr; }).length, detail: 'Registradas en la jornada', icon: 'trendUp', cls: 'indigo' },
-      { label: 'Total registradas', value: sales.length, detail: sales.filter(function (s) { return s.status === 'en_verificacion'; }).length + ' pendientes de validación', icon: 'fileText', cls: 'amber' }
+      { label: 'Contactos asignados', value: leads.length, detail: leads.length ? pending + plural(pending, ' pendiente', ' pendientes') + ' de gestión' : 'Back Data aún no asigna registros', icon: 'phone', cls: 'indigo' },
+      { label: 'Gestionados hoy', value: managed, detail: leads.length ? coverage + '% de la cartera' : 'Sin cartera asignada', icon: 'checkCircle', cls: 'emerald' },
+      { label: 'Ventas del día', value: salesToday, detail: 'Registradas en la jornada', icon: 'trendUp', cls: 'amber' },
+      { label: 'Ventas activas', value: active, detail: checking + ' en verificación · ' + dropped + plural(dropped, ' caída', ' caídas'), icon: 'receipt', cls: 'rose' }
     ];
     document.getElementById('kpi-grid').innerHTML = cards.map(function (c) {
       return '<div class="kpi-card"><div class="kpi-head"><span class="kpi-label">' + c.label + '</span>' +
         '<div class="kpi-icon ' + c.cls + '">' + icon(c.icon) + '</div></div>' +
-        '<p class="kpi-value">' + c.value + '</p><p class="kpi-detail">' + c.detail + '</p></div>';
+        '<p class="kpi-value">' + c.value + '</p><p class="kpi-detail">' + esc(c.detail) + '</p></div>';
     }).join('');
+
+    document.getElementById('count-llamadas').textContent = leads.length;
+    document.getElementById('count-ventas').textContent = sales.length;
+    var progressCount = document.getElementById('sidebar-progress-count');
+    var progressBar = document.getElementById('sidebar-progress-bar');
+    var managedToday = leads.filter(isManaged).length;
+    if (progressCount) progressCount.textContent = managedToday;
+    if (progressBar) progressBar.style.width = (leads.length ? Math.max(6, Math.round((managedToday / leads.length) * 100)) : 0) + '%';
   }
 
   /* ---------- render: charts ---------- */
+  /* Par validado para daltonismo sobre superficie clara (ver dataviz). */
+  var SERIES = { calls: { color: '#2f6fb0', label: 'Gestiones' }, sales: { color: '#2f8f57', label: 'Ventas' } };
+
+  function chartEmpty(title, hint) {
+    return '<div class="chart-empty"><p>' + esc(title) + '</p><small>' + esc(hint) + '</small></div>';
+  }
+
   function renderCharts() {
     var leads = state.leads, sales = state.sales;
-    var statusCounts = { venta_cerrada: 0, contactado: 0, rellamada: 0, no_contesta: 0, rechazado: 0, pendiente: 0 };
-    leads.forEach(function (l) { if (statusCounts[l.status] !== undefined) statusCounts[l.status]++; });
-    var totalLeads = leads.length || 1;
 
-    var hourlyData = [];
+    var days = [];
     for (var i = 0; i < 7; i++) {
       var d = new Date(); d.setDate(d.getDate() - 6 + i);
       var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      var calls = leads.reduce(function (n, l) { return n + (l.managementHistory || []).filter(function (h) { return h.slice(0, 10) === key; }).length; }, 0);
-      var salesCount = sales.filter(function (s) { return s.createdAt && s.createdAt.slice(0, 10) === key; }).length;
-      hourlyData.push({ label: String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'), calls: calls, sales: salesCount });
+      days.push({
+        label: String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'),
+        calls: leads.reduce(function (n, l) { return n + (l.managementHistory || []).filter(function (h) { return localDay(h) === key; }).length; }, 0),
+        sales: sales.filter(function (s) { return s.createdAt && localDay(s.createdAt) === key; }).length
+      });
     }
-    var maxVal = Math.max(1, Math.max.apply(null, hourlyData.map(function (h) { return h.calls; }).concat(hourlyData.map(function (h) { return h.sales; }))));
+    var totalCalls = days.reduce(function (n, d) { return n + d.calls; }, 0);
+    var totalSales = days.reduce(function (n, d) { return n + d.sales; }, 0);
+    /* Escala redondeada para que la línea superior sea un número legible. */
+    var peak = Math.max.apply(null, days.map(function (d) { return Math.max(d.calls, d.sales); }));
+    var top = peak <= 4 ? 4 : Math.ceil(peak / 2) * 2;
 
-    document.getElementById('chart-bars').innerHTML =
-      '<div class="chart-card-head"><div><h3>' + icon('barChart') + 'Actividad comercial</h3><p>Últimos 7 días · Gestiones registradas y ventas</p></div>' +
-      '<div class="chart-legend"><span><span class="legend-dot" style="background:var(--indigo-500)"></span>Gestiones</span><span><span class="legend-dot" style="background:var(--emerald-500)"></span>Ventas</span></div></div>' +
-      '<div class="activity-summary"><div><span>Gestiones en el período</span><strong>' + hourlyData.reduce(function (n, d) { return n + d.calls; }, 0) + '</strong></div><div><span>Ventas en el período</span><strong>' + hourlyData.reduce(function (n, d) { return n + d.sales; }, 0) + '</strong></div><div><span>Escala del gráfico</span><strong>' + maxVal + '<small> registros</small></strong></div></div>' +
-      '<div class="bar-chart">' + hourlyData.map(function (h) {
-        var ch = Math.round((h.calls / maxVal) * 100), sh = Math.round((h.sales / maxVal) * 100);
-        return '<div class="bar-col"><div class="bar-group">' +
-          '<div class="bar indigo" style="height:' + ch + '%" title="' + h.calls + ' gestiones el ' + h.label + '"></div>' +
-          '<div class="bar emerald" style="height:' + sh + '%" title="' + h.sales + ' ventas el ' + h.label + '"></div>' +
-          '</div><span class="bar-label">' + h.label + '</span></div>';
-      }).join('') + '</div>';
+    var head =
+      '<div class="chart-card-head"><div><h3>' + icon('barChart') + 'Actividad comercial</h3>' +
+      '<p>Últimos 7 días · Gestiones registradas y ventas</p></div>' +
+      '<div class="chart-legend">' +
+      '<span><span class="legend-dot" style="background:' + SERIES.calls.color + '"></span>' + SERIES.calls.label + '</span>' +
+      '<span><span class="legend-dot" style="background:' + SERIES.sales.color + '"></span>' + SERIES.sales.label + '</span>' +
+      '</div></div>';
 
-    function row(label, dotColor, count, cls) {
-      var pct = Math.round((count / totalLeads) * 100);
-      return '<div class="distribution-item' + (count === 0 ? ' empty' : '') + '"><div class="status-row-head"><span class="name">' + (dotColor ? '<span class="dot" style="background:' + dotColor + '"></span>' : '') + label + '</span>' +
-        '<span class="val">' + count + ' (' + pct + '%)</span></div>' +
-        '<div class="status-track"><div class="status-fill" style="width:' + pct + '%;background:' + (dotColor || '#94a3b8') + '"></div></div></div>';
+    var body;
+    if (totalCalls === 0 && totalSales === 0) {
+      body = chartEmpty('Sin actividad en los últimos 7 días', 'Las gestiones y ventas que registres aparecerán aquí.');
+    } else {
+      var busiest = days.reduce(function (best, d) { return (d.calls + d.sales) > (best.calls + best.sales) ? d : best; }, days[0]);
+      var bar = function (kind, value, label) {
+        var serie = SERIES[kind];
+        return '<div class="bar" style="height:' + (value / top * 100) + '%;background:' + serie.color + '" ' +
+          'title="' + value + ' ' + serie.label.toLowerCase() + ' el ' + label + '">' +
+          (value > 0 ? '<b>' + value + '</b>' : '') + '</div>';
+      };
+      body =
+        '<div class="activity-summary">' +
+        '<div><span>Gestiones en el período</span><strong>' + totalCalls + '</strong></div>' +
+        '<div><span>Ventas en el período</span><strong>' + totalSales + '</strong></div>' +
+        '<div><span>Día más activo</span><strong>' + esc(busiest.label) + '<small>' + (busiest.calls + busiest.sales) + ' registros</small></strong></div>' +
+        '</div>' +
+        '<div class="chart-plot">' +
+        '<div class="chart-axis"><span>' + top + '</span><span>' + (top / 2) + '</span><span>0</span></div>' +
+        '<div class="chart-area">' +
+        '<i class="gridline"></i><i class="gridline"></i><i class="gridline base"></i>' +
+        '<div class="bar-chart">' + days.map(function (d) {
+          return '<div class="bar-col"><div class="bar-group">' +
+            bar('calls', d.calls, d.label) + bar('sales', d.sales, d.label) +
+            '</div><span class="bar-label">' + d.label + '</span></div>';
+        }).join('') + '</div></div></div>';
     }
-    document.getElementById('chart-status').innerHTML =
-      '<div class="chart-card-head"><div><h3>' + icon('pieChart') + 'Distribución de contactos</h3><p>Gestión actual de la base asignada</p></div><span class="base-total">' + leads.length + ' contactos</span></div>' +
-      '<div class="status-bars">' +
-      row('Pendientes de gestión', null, statusCounts.pendiente) +
-      CALL_DISPOSITIONS.map(function (item) { return row(item[2], item[3], leads.filter(function (lead) { return lead.status === item[0]; }).length); }).join('') +
-      '</div>';
+    document.getElementById('chart-bars').innerHTML = head + body;
+
+    /* Una fila por tipificación presente, con el tono que usa el selector de la tabla. */
+    var buckets = [{ key: 'pendiente', label: 'Pendiente' }].concat(CALL_DISPOSITIONS.map(function (item) {
+      return { key: item[0], label: item[2] };
+    })).map(function (b) {
+      b.count = leads.filter(function (l) { return (l.status || 'pendiente') === b.key; }).length;
+      b.color = TONE_COLORS[statusTone(b.key)];
+      return b;
+    }).filter(function (b) { return b.count > 0 || b.key === 'pendiente'; });
+    var statusHead =
+      '<div class="chart-card-head"><div><h3>' + icon('pieChart') + 'Distribución de contactos</h3>' +
+      '<p>Estado actual de la base asignada</p></div>' +
+      '<span class="base-total">' + leads.length + ' contacto' + (leads.length === 1 ? '' : 's') + '</span></div>';
+
+    document.getElementById('chart-status').innerHTML = statusHead + (leads.length === 0
+      ? chartEmpty('Sin contactos en la base', 'Back Data asignará registros a tu usuario.')
+      : '<div class="status-bars">' + buckets.map(function (item) {
+          var pct = Math.round(item.count / leads.length * 100);
+          return '<div class="distribution-item' + (item.count === 0 ? ' empty' : '') + '">' +
+            '<div class="status-row-head"><span class="name">' +
+            '<span class="dot" style="background:' + item.color + '"></span>' + item.label + '</span>' +
+            '<span class="val">' + item.count + '<small> · ' + pct + '%</small></span></div>' +
+            '<div class="status-track"><div class="status-fill" style="width:' + pct + '%;background:' + item.color + '"></div></div></div>';
+        }).join('') + '</div>');
   }
 
   /* ---------- render: call base table ---------- */
+  /* Cada tipificación se agrupa en un tono para el color del selector y de la barra. */
+  var STATUS_TONES = {
+    pendiente: 'pendiente', venta_cerrada: 'venta', agendado: 'agendado',
+    no_contesta: 'no-contesta', buzon_de_voz: 'no-contesta', corta_llamada: 'no-contesta',
+    sin_cobertura: 'negativo', no_califica: 'negativo', no_desea: 'negativo'
+  };
+  var TONE_COLORS = { pendiente: '#9a6414', contactado: '#1a6598', agendado: '#8a1c2b', venta: '#2c7048', 'no-contesta': '#6b7280', negativo: '#a8323e' };
+  function statusTone(status) { return STATUS_TONES[status] || 'contactado'; }
+  function statusLabel(status) {
+    if (!status || status === 'pendiente') return 'Pendiente';
+    var found = CALL_DISPOSITIONS.filter(function (item) { return item[0] === status; })[0];
+    return found ? found[2] : String(status);
+  }
+  /* Estas tipificaciones piden un dato adicional: se registran desde la ventana de gestión. */
+  var STATUSES_WITH_FORM = ['preventa', 'sin_cobertura', 'venta_cerrada'];
+
   function filteredLeads() {
     return state.leads.filter(function (l) {
       if (leadsFilter.status !== 'todos' && l.status !== leadsFilter.status) return false;
       if (leadsFilter.campaign !== 'Todas las Campañas' && l.campaign !== leadsFilter.campaign) return false;
       if (leadsFilter.search.trim()) {
         var q = leadsFilter.search.toLowerCase();
-        return [l.clientName, l.phone, l.phone2, l.whatsappUser, l.zone, l.city, l.notes].some(function (value) { return String(value || '').toLowerCase().indexOf(q) > -1; });
+        return [l.clientName, l.phone, l.phone2, l.whatsappUser, l.zone, l.city, l.notes, l.assignedBy].some(function (value) { return String(value || '').toLowerCase().indexOf(q) > -1; });
       }
       return true;
     });
   }
 
+  function statusOptions(current) {
+    var value = current || 'pendiente';
+    var known = value === 'pendiente' || CALL_DISPOSITIONS.some(function (item) { return item[0] === value; });
+    var list = [['pendiente', 'Pendiente']].concat(CALL_DISPOSITIONS.map(function (item) { return [item[0], item[2]]; }));
+    if (!known) list.push([value, statusLabel(value)]);
+    return list.map(function (item) {
+      return '<option value="' + esc(item[0]) + '"' + (value === item[0] ? ' selected' : '') + '>' + esc(item[1]) + '</option>';
+    }).join('');
+  }
+
   function callBaseTableHtml(leads, opts) {
     opts = opts || {};
     var compact = !!opts.compact;
-    var statusFilters = [
-      ['todos', 'Todos'], ['pendiente', 'Pendiente'], ['contactado', 'Contactado'],
-      ['agendado', 'Agendado'], ['venta_cerrada', 'Venta'], ['no_contesta', 'No contesta']
-    ];
-    var filterChips = statusFilters.map(function (item) {
-      var count = item[0] === 'todos' ? state.leads.length : state.leads.filter(function (lead) { return lead.status === item[0]; }).length;
-      return '<button type="button" class="call-filter-chip ' + (leadsFilter.status === item[0] ? 'active' : '') + '" data-lead-status="' + item[0] + '"><span></span>' + item[1] + '<b>' + count + '</b></button>';
-    }).join('');
+    var waitingForAssignment = state.leads.length === 0;
     var rowsHtml = leads.length === 0
-      ? '<tr><td colspan="4" class="table-empty">' + icon('phone') + '<p>No se encontraron contactos en la base con los filtros seleccionados.</p></td></tr>'
+      ? (waitingForAssignment
+        ? '<tr><td colspan="9" class="table-waiting"><p>Esperando asignación de Back Data…</p><small>Back Data asignará registros a tu usuario.</small></td></tr>'
+        : '<tr><td colspan="9" class="table-empty">' + icon('phone') + '<p>No se encontraron contactos en la base con los filtros seleccionados.</p></td></tr>')
       : leads.map(function (l) {
-        var advisorNote = normalizedAdvisorNote(l);
+        var assignedTime = l.assignedAt ? (isNaN(Date.parse(l.assignedAt)) ? l.assignedAt : new Date(l.assignedAt).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })) : '—';
         return '<tr class="' + (l.status === 'en_curso' ? 'in-call' : '') + '" data-lead-id="' + l.id + '">' +
-          '<td><div class="contact-cell"><strong>' + esc(l.phone || '—') + '</strong><div class="row-actions">' +
-          '<button type="button" class="btn-call" data-action="call" data-lead-id="' + esc(l.id) + '" title="Gestionar llamada con MicroSIP" aria-label="Llamar">' + icon('phone') + '</button>' +
-          '<button type="button" class="btn-icon-sale btn-whatsapp-sale" data-action="whatsapp" data-lead-id="' + esc(l.id) + '" title="Abrir WhatsApp" aria-label="Abrir WhatsApp">' + icon('whatsapp') + '</button></div>' +
-          (l.phone2 ? '<small>Alt. ' + esc(l.phone2) + '</small>' : '') + '</div></td>' +
-          '<td><div class="cell-notes" title="' + esc(l.notes || '') + '">' + esc(l.notes || 'Sin observaciones') + '</div></td>' +
-          '<td>' + statusBadge(l.status) + '</td>' +
-          '<td><input type="text" class="input-advisor-note" data-lead-id="' + esc(l.id) + '" placeholder="Agregar observación" value="' + esc(advisorNote) + '"></td></tr>';
+          '<td><div class="contact-cell"><button type="button" class="contact-action btn-call" data-action="call" data-lead-id="' + esc(l.id) + '" title="Llamar">' + icon('phone') + '</button><strong>' + esc(l.phone || '—') + '</strong></div></td>' +
+          '<td class="cell-plain">' + esc(l.phone2 && l.phone2 !== '—' ? l.phone2 : '—') + '</td>' +
+          '<td><div class="contact-cell"><button type="button" class="contact-action btn-icon-sale btn-whatsapp-sale" data-action="whatsapp" data-lead-id="' + esc(l.id) + '" title="WhatsApp">' + icon('whatsapp') + '</button><span class="cell-plain">' + esc(l.whatsappUser || '—') + '</span></div></td>' +
+          '<td><div class="cell-notes" title="' + esc(l.backNotes || l.notes || '') + '">' + esc(l.backNotes || l.notes || 'Sin observaciones') + '</div></td>' +
+          '<td><select class="artifact-status status-' + statusTone(l.status) + '" data-lead-id="' + esc(l.id) + '" aria-label="Estado de ' + esc(l.phone || l.clientName || 'contacto') + '">' +
+            statusOptions(l.status) +
+          '</select></td>' +
+          '<td><input type="text" class="input-advisor-note" data-lead-id="' + esc(l.id) + '" placeholder="Escribe una observación" value="' + esc(normalizedAdvisorNote(l)) + '"></td>' +
+          '<td class="lead-location">' + esc(l.zone || l.city || '—') + '</td>' +
+          '<td class="lead-location">' + esc(l.coordinates || l.address || '—') + '</td>' +
+          '<td class="cell-plain">' + esc(assignedTime) + '</td>' +
+        '</tr>';
       }).join('');
 
-    var today = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
     var header = compact ? '' :
-      '<div class="table-card-header lead-toolbar"><div class="table-card-header-row lead-toolbar-main"><div>' +
+      '<div class="artifact-head"><div class="artifact-head-row"><div>' +
       '<h2 class="table-card-title">Base de llamadas</h2>' +
-      '<p class="table-card-subtitle"><strong>' + leads.length + '</strong> registros en pantalla · <strong>' + state.leads.filter(function (lead) { return lead.status === 'pendiente'; }).length + '</strong> pendientes de gestión</p>' +
-      '</div><div class="table-card-header-actions lead-toolbar-actions">' +
-      '<div class="field-with-icon lead-search-field">' + icon('search') + '<input type="text" id="input-search-leads" placeholder="Filtrar número" value="' + esc(leadsFilter.search) + '"></div>' +
-      '<span class="pill-date">' + esc(today) + '</span></div></div></div>';
+      '</div>' +
+      '<div class="artifact-tools"><div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-leads" placeholder="Filtrar número" value="' + esc(leadsFilter.search) + '"></div><span class="lead-reference-date">' + new Date().toLocaleDateString('es-PE', { day:'2-digit', month:'short', year:'numeric' }) + '</span></div></div></div>';
 
-    var footer = compact ? '' :
-      '<div class="table-footer"><span>Mostrando ' + leads.length + ' de ' + state.leads.length + ' contactos asignados</span><span class="table-footer-source">Cartera activa</span></div>';
-
-    return '<div class="lead-table-layout">' + header + (compact ? '' : '<div class="call-filter-bar">' + filterChips + '</div>') + '<div class="table-card lead-table-card">' +
+    return header + '<div class="table-card' + (waitingForAssignment ? ' table-card--waiting' : '') + '">' +
       '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-      '<th>Contacto</th><th>Registro del back</th><th>Estado</th><th>Mi observación</th>' +
-      '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' + footer + '</div></div>';
+      '<th>Teléfono</th><th>Teléfono 2</th><th>Usuario WhatsApp</th><th>Obs. Back</th><th>Estado</th><th>Observación Asesor</th><th>Zona</th><th>Dirección / Coord.</th><th>Hora asig.</th>' +
+      '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div><div class="artifact-sheet-foot">Mostrando ' + leads.length + ' de ' + state.leads.length + ' contactos asignados</div></div>';
   }
 
   function renderFullCallBase() {
     document.getElementById('full-call-base').innerHTML = callBaseTableHtml(filteredLeads());
-    var managedToday = state.leads.reduce(function (total, lead) {
-      return total + (lead.managementHistory || []).filter(function (entry) { return String(entry).slice(0, 10) === today(); }).length;
-    }, 0);
-    var managed = document.getElementById('rail-managed-today');
-    var assigned = document.getElementById('rail-assigned-total');
-    var bar = document.getElementById('rail-progress-bar');
-    if (managed) managed.textContent = managedToday;
-    if (assigned) assigned.textContent = state.leads.length;
-    if (bar) bar.style.width = Math.min(100, Math.round((managedToday / Math.max(1, state.leads.length)) * 100)) + '%';
   }
 
   /* ---------- render: sales feed ---------- */
@@ -409,8 +450,8 @@
       if (salesFilter.status !== 'todos' && s.status !== salesFilter.status) return false;
       if (salesFilter.search.trim()) {
         var q = salesFilter.search.toLowerCase();
-        return [s.folio, s.clientName, s.advisorName, s.productName, s.category, s.clientPhone, s.referencePhone, s.documentType, s.documentNumber, s.saleType, s.notes]
-          .some(function (value) { return String(value || '').toLowerCase().indexOf(q) > -1; });
+        return s.folio.toLowerCase().indexOf(q) > -1 || s.clientName.toLowerCase().indexOf(q) > -1 ||
+          s.advisorName.toLowerCase().indexOf(q) > -1 || s.productName.toLowerCase().indexOf(q) > -1 || s.clientPhone.indexOf(q) > -1;
       }
       return true;
     });
@@ -420,38 +461,56 @@
     opts = opts || {};
     var compact = !!opts.compact;
     var rows = sales.length === 0
-      ? '<tr><td colspan="9"><div class="table-empty">' + icon('receipt') + '<p>No hay registros de ventas que coincidan con los filtros aplicados.</p></div></td></tr>'
+      ? '<div class="table-empty">' + icon('receipt') + '<p>No hay registros de ventas que coincidan con los filtros aplicados.</p></div>'
       : sales.map(function (s) {
-        var documentText = s.documentType && s.documentNumber ? s.documentType + ' ' + s.documentNumber : '—';
         var dateStr = s.createdAt ? new Date(s.createdAt).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }) : s.timestamp;
+        var init = initials(s.clientName);
+        var avatarCls = avatarColorClass(s.clientName);
         var formattedAmount = Number(s.amount || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        return '<tr class="sale-data-row" data-sale-id="' + esc(s.id) + '">' +
-          '<td><div class="sale-cell-main"><strong title="' + esc(s.clientName || '') + '">' + esc(s.clientName || '—') + '</strong><span>' + esc(s.folio || '—') + '</span></div></td>' +
-          '<td><span class="sale-document" title="' + esc(documentText) + '">' + esc(documentText) + '</span></td>' +
-          '<td><span class="sale-phone" title="' + esc(s.clientPhone || '') + '">' + esc(s.clientPhone || '—') + '</span></td>' +
-          '<td><span class="sale-phone muted" title="' + esc(s.referencePhone || '') + '">' + esc(s.referencePhone || '—') + '</span></td>' +
-          '<td><div class="sale-plan-cell"><strong title="' + esc(s.productName || '') + '">' + esc(s.productName || '—') + '</strong><span>' + esc(s.category || '—') + ' · S/ ' + esc(formattedAmount) + '</span></div></td>' +
-          '<td><span class="sale-type-chip" title="' + esc(s.saleType || '') + '">' + esc(s.saleType || '—') + '</span></td>' +
-          '<td><div class="sale-notes" title="' + esc(s.notes || '') + '">' + esc(s.notes || 'Sin observaciones') + '</div></td>' +
-          '<td><div class="sale-status-cell">' + saleStatusBadge(s.status) + '<span>' + esc(dateStr || '—') + '</span></div></td>' +
-          '<td><button type="button" class="btn-detail" data-action="sale-detail" data-sale-id="' + esc(s.id) + '" title="Ver detalles completos">' + icon('fileText') + '</button></td>' +
-        '</tr>';
+        return '<div class="sale-row" data-sale-id="' + s.id + '">' +
+          '<div class="sale-left">' +
+            '<div class="sale-avatar ' + avatarCls + '" title="' + esc(s.clientName) + '">' + esc(init) + '</div>' +
+            '<div class="sale-info">' +
+              '<div class="sale-top-row">' +
+                '<span class="sale-folio">' + esc(s.folio) + '</span>' +
+                '<span class="sale-client">' + esc(s.clientName) + '</span>' +
+                '<span class="sale-dot-sep">·</span>' +
+                '<span class="sale-phone">' + esc(s.clientPhone) + '</span>' +
+              '</div>' +
+              '<div class="sale-mid-row">' +
+                '<span class="sale-product">' + esc(s.productName) + '</span>' +
+                '<span class="sale-category">' + esc(s.category) + '</span>' +
+                '<span class="sale-advisor">Asesor: <strong>' + esc(s.advisorName) + '</strong></span>' +
+              '</div>' +
+              (s.notes ? '<p class="sale-notes">“' + esc(s.notes) + '”</p>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="sale-right">' +
+            '<div class="sale-financials">' +
+              '<div class="sale-amount"><span class="sale-currency">S/</span> ' + esc(formattedAmount) + '</div>' +
+              '<div class="sale-date">' + esc(dateStr) + '</div>' +
+            '</div>' +
+            '<div class="sale-actions">' +
+              saleStatusBadge(s.status) +
+              '<button type="button" class="btn-detail" data-action="sale-detail" data-sale-id="' + s.id + '" title="Ver detalles completos">' + icon('fileText') + '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
       }).join('');
 
     var header = compact ? '' :
       '<div class="table-card-header"><div class="table-card-header-row"><div>' +
       '<h2 class="table-card-title">Mis ventas</h2>' +
-      '<p class="table-card-subtitle">Información subida desde Registrar nueva venta.</p></div></div>' +
+      '<p class="table-card-subtitle">Registro consolidado de ventas, estado de verificación y observaciones.</p></div>' +
+      '<button type="button" id="btn-trigger-upload-sale" class="btn btn-primary-action">' + icon('plus') + '<span>Nueva venta</span></button></div>' +
       '<div class="filters-grid sales">' +
-      '<div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-sales" placeholder="Buscar por titular, documento, teléfono, plan u observación..." value="' + esc(salesFilter.search) + '"></div>' +
+      '<div class="field-with-icon">' + icon('search') + '<input type="text" id="input-search-sales" placeholder="Buscar por folio, cliente, asesor o producto..." value="' + esc(salesFilter.search) + '"></div>' +
       '<div class="field-with-icon">' + icon('filter') + '<select id="select-sale-status">' +
       ['todos:Todos los estados', 'aprobada:Activas', 'en_verificacion:En verificación', 'auditada:Auditadas QA', 'rechazada:Caídas']
         .map(function (o) { var p = o.split(':'); return '<option value="' + p[0] + '"' + (salesFilter.status === p[0] ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') +
       '</select></div></div></div>';
 
-    return '<div class="table-card sales-table-card">' + header + '<div class="table-scroll sales-table-scroll"><table class="data-table sales-data-table"><thead><tr>' +
-      '<th>Titular</th><th>Documento</th><th>Teléfono</th><th>Referencia</th><th>Plan contratado</th><th>Tipo op.</th><th>Observaciones</th><th>Estado</th><th>Detalle</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+    return '<div class="table-card">' + header + '<div class="sales-list">' + rows + '</div></div>';
   }
 
   function renderFullSalesFeed() {
@@ -471,8 +530,25 @@
     activeTab = tab;
     ['tablero', 'llamadas', 'ventas'].forEach(function (t) {
       document.getElementById('panel-' + t).hidden = t !== tab;
-      document.getElementById('tab-btn-' + t).classList.toggle('active', t === tab);
+      var tabBtn = document.getElementById('tab-btn-' + t);
+      if (tabBtn) tabBtn.classList.toggle('active', t === tab);
+      /* Sidebar nav items */
+      var navItem = document.getElementById('nav-' + t);
+      if (navItem) navItem.classList.toggle('active', t === tab);
     });
+    /* Update topbar title */
+    var info = TAB_TITLES[tab];
+    if (info) {
+      var titleEl = document.getElementById('topbar-title');
+      var subEl = document.getElementById('topbar-subtitle');
+      if (titleEl) titleEl.textContent = info[0];
+      if (subEl) subEl.textContent = info[1];
+    }
+    /* Close sidebar on mobile */
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('visible');
   }
 
   /* ---------- toast ---------- */
@@ -508,43 +584,112 @@
     var prefillDocType = uploadPrefill && uploadPrefill.documentType ? uploadPrefill.documentType : '';
     var prefillDocNumber = uploadPrefill && uploadPrefill.documentNumber ? uploadPrefill.documentNumber : '';
     var prefillNotes = uploadPrefill && uploadPrefill.managementNotes ? uploadPrefill.managementNotes : '';
+    var req = '<em class="req" aria-hidden="true">*</em>';
+
+    function field(label, required, control) {
+      return '<div class="form-group"><label>' + label + (required ? req : '') + '</label>' + control + '</div>';
+    }
+    function withIcon(name, control) {
+      return '<div class="field-with-icon">' + icon(name) + control + '</div>';
+    }
+
     document.getElementById('modal-root').innerHTML =
-      '<div class="modal-backdrop" id="upload-modal-backdrop"><div class="modal-card md" role="dialog" aria-modal="true" aria-label="Registrar venta">' +
+      '<div class="modal-backdrop" id="upload-modal-backdrop">' +
+      '<div class="modal-card lg sale-modal" role="dialog" aria-modal="true" aria-labelledby="sale-modal-title">' +
+
       '<div class="modal-head"><div class="modal-head-left"><div class="modal-head-icon">' + icon('receipt') + '</div>' +
-      '<div><h2>Registrar nueva venta</h2><p>Ingresa los datos del cliente y el plan contratado para su verificación.</p></div></div>' +
-      '<button type="button" class="modal-close" id="btn-close-upload">' + icon('x') + '</button></div>' +
-      '<form id="form-upload-sale" class="modal-body">' +
-      '<div id="upload-form-error"></div>' +
-      '<div class="form-group"><label>Asesor responsable</label><select disabled>' +
-      '<option>' + esc(ADVISOR.name) + ' (Asesor Comercial)</option></select></div>' +
-      '<div class="form-group"><label>Nombres y apellidos del titular</label><div class="field-with-icon">' + icon('user') + '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '"></div></div>' +
-      '<div class="form-grid">' +
-      '<div class="form-group"><label>Tipo de documento</label><div class="field-with-icon">' + icon('fileText') + '<select id="select-doc-type" required>' +
-      '<option value="" disabled' + (prefillDocType ? '' : ' selected') + '>Seleccionar documento</option>' +
-      DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '"' + (prefillDocType === d ? ' selected' : '') + '>' + d + '</option>'; }).join('') +
-      '</select></div></div>' +
-      '<div class="form-group"><label>Número de documento</label><div class="field-with-icon">' + icon('fileText') + '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric" value="' + esc(prefillDocNumber) + '"></div></div>' +
-      '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Teléfono principal</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-client-phone" required placeholder="Número de contacto titular" value="' + esc(clientPhone) + '"></div></div>' +
-      '<div class="form-group"><label>Teléfono de referencia</label><div class="field-with-icon">' + icon('phone') + '<input type="tel" id="input-reference-phone" placeholder="Contacto alternativo"></div></div>' +
-      '</div><div class="form-grid">' +
-      '<div class="form-group"><label>Plan contratado</label><div class="field-with-icon">' + icon('package') + '<select id="select-product" required>' +
-      '<option value="" disabled selected>Seleccionar plan</option>' +
-      PRODUCTS_CATALOG.map(function (p) { return '<option value="' + esc(p.name) + '" data-price="' + p.price + '" data-cat="' + esc(p.category) + '">' + esc(p.name) + ' (S/ ' + p.price.toFixed(2) + ')</option>'; }).join('') +
-      '</select></div></div>' +
-      '<div class="form-group"><label>Tipo de operación</label><div class="field-with-icon">' + icon('package') + '<select id="select-sale-type" required>' +
-      '<option value="" disabled selected>Seleccionar tipo</option>' +
-      SALE_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') +
-      '</select></div></div>' +
+      '<div><h2 id="sale-modal-title">Registrar nueva venta</h2>' +
+      '<p>Los datos se envían al área de verificación antes de activarse.</p></div></div>' +
+      '<div class="modal-head-right"><span class="doc-tag">Borrador</span>' +
+      '<button type="button" class="modal-close" id="btn-close-upload" aria-label="Cerrar">' + icon('x') + '</button></div></div>' +
+
+      /* novalidate: el error se marca en el campo y en el resumen, no con el globo del navegador. */
+      '<form id="form-upload-sale" class="sale-form" novalidate>' +
+      '<div class="modal-body">' +
+      '<div id="upload-form-error" role="alert"></div>' +
+
+      '<div class="sale-meta">' +
+      '<div><span>Asesor responsable</span><strong>' + esc(ADVISOR.name) + '</strong></div>' +
+      '<div><span>Fecha de registro</span><strong>' + new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) + '</strong></div>' +
+      '<div><span>Estado inicial</span><strong>En verificación</strong></div>' +
       '</div>' +
-      '<div class="form-group"><label>Observaciones / Acuerdos</label><div class="field-with-icon">' + icon('fileText') + '<textarea id="input-notes" rows="2" placeholder="Ej. Grabación de aceptación guardada en carpeta #44.">' + esc(prefillNotes) + '</textarea></div></div>' +
-      '<div class="form-actions"><button type="button" class="btn-outline" id="btn-cancel-upload">Cancelar</button>' +
-      '<button type="submit" class="btn btn-primary-action">' + icon('check') + '<span>Confirmar venta</span></button></div>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>1</b>Datos del titular</h3>' +
+      field('Nombres y apellidos', true, withIcon('user', '<input type="text" id="input-client-name" required placeholder="Ej. Laura González Peña" value="' + esc(clientName) + '" autocomplete="off">')) +
+      '<div class="form-grid">' +
+      field('Tipo de documento', true, withIcon('fileText', '<select id="select-doc-type" required>' +
+        '<option value="" disabled' + (prefillDocType ? '' : ' selected') + '>Seleccionar</option>' +
+        DOCUMENT_TYPES.map(function (d) { return '<option value="' + d + '"' + (prefillDocType === d ? ' selected' : '') + '>' + d + '</option>'; }).join('') + '</select>')) +
+      field('Número de documento', true, withIcon('fileText', '<input type="text" id="input-doc-number" required placeholder="Ej. 45219876" inputmode="numeric" autocomplete="off" value="' + esc(prefillDocNumber) + '">')) +
+      '</div></section>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>2</b>Contacto</h3>' +
+      '<div class="form-grid">' +
+      field('Teléfono principal', true, withIcon('phone', '<input type="tel" id="input-client-phone" required placeholder="Número del titular" value="' + esc(clientPhone) + '" autocomplete="off">')) +
+      field('Teléfono de referencia', false, withIcon('phone', '<input type="tel" id="input-reference-phone" placeholder="Contacto alternativo" autocomplete="off">')) +
+      '</div></section>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>3</b>Plan contratado</h3>' +
+      '<div class="form-grid">' +
+      field('Plan', true, withIcon('package', '<select id="select-product" required>' +
+        '<option value="" disabled selected>Seleccionar plan</option>' +
+        PRODUCTS_CATALOG.map(function (item) {
+          return '<option value="' + esc(item.name) + '" data-price="' + item.price + '" data-cat="' + esc(item.category) + '">' + esc(item.name) + '</option>';
+        }).join('') + '</select>')) +
+      field('Tipo de operación', true, withIcon('package', '<select id="select-sale-type" required>' +
+        '<option value="" disabled selected>Seleccionar tipo</option>' +
+        SALE_TYPES.map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('') + '</select>')) +
+      '</div>' +
+      '<div class="sale-total" id="sale-total" hidden>' +
+      '<div class="sale-total-plan"><span>Plan seleccionado</span><strong id="sale-total-name">—</strong>' +
+      '<small id="sale-total-cat"></small></div>' +
+      '<div class="sale-total-amount"><span>Cargo mensual</span><strong id="sale-total-price">S/ 0.00</strong></div>' +
+      '</div></section>' +
+
+      '<section class="form-section">' +
+      '<h3 class="form-section-title"><b>4</b>Respaldo de la venta</h3>' +
+      field('Observaciones y acuerdos', false,
+        '<textarea id="input-notes" rows="3" placeholder="Ej. Grabación de aceptación guardada en carpeta #44.">' + esc(prefillNotes) + '</textarea>') +
+      '</section>' +
+      '</div>' +
+
+      '<div class="modal-foot">' +
+      '<p class="modal-foot-note">' + req + ' Campos obligatorios</p>' +
+      '<div class="modal-foot-actions">' +
+      '<button type="button" class="btn-outline" id="btn-cancel-upload">Cancelar</button>' +
+      '<button type="submit" class="btn btn-primary-action">' + icon('check') + '<span>Confirmar venta</span></button>' +
+      '</div></div>' +
       '</form></div></div>';
 
     document.getElementById('btn-close-upload').addEventListener('click', closeUploadModal);
     document.getElementById('btn-cancel-upload').addEventListener('click', closeUploadModal);
-    document.getElementById('upload-modal-backdrop').addEventListener('click', function (e) { if (e.target.id === 'upload-modal-backdrop') closeUploadModal(); });
+    document.getElementById('upload-modal-backdrop').addEventListener('click', function (e) {
+      if (e.target.id === 'upload-modal-backdrop') closeUploadModal();
+    });
+
+    /* El monto es el dato comercial de la venta: se muestra al elegir el plan. */
+    var productSelect = document.getElementById('select-product');
+    productSelect.addEventListener('change', function () {
+      var option = productSelect.selectedOptions[0];
+      var box = document.getElementById('sale-total');
+      if (!option || !option.value) { box.hidden = true; return; }
+      document.getElementById('sale-total-name').textContent = option.value;
+      document.getElementById('sale-total-cat').textContent = option.getAttribute('data-cat');
+      document.getElementById('sale-total-price').textContent = 'S/ ' + Number(option.getAttribute('data-price')).toFixed(2);
+      box.hidden = false;
+    });
+
+    /* La marca de error se limpia en cuanto el asesor corrige el campo. */
+    document.getElementById('form-upload-sale').addEventListener('input', function (e) {
+      e.target.classList.remove('is-invalid');
+    });
+    document.getElementById('form-upload-sale').addEventListener('change', function (e) {
+      e.target.classList.remove('is-invalid');
+    });
+
     document.getElementById('form-upload-sale').addEventListener('submit', function (e) {
       e.preventDefault();
       var name = document.getElementById('input-client-name').value.trim();
@@ -552,11 +697,28 @@
       var docNumber = document.getElementById('input-doc-number').value.trim();
       var phone = document.getElementById('input-client-phone').value.trim();
       var saleType = document.getElementById('select-sale-type').value;
-      var prodOpt = document.getElementById('select-product').selectedOptions[0];
-      if (!name || !docType || !docNumber || !phone || !saleType || !prodOpt.value) {
-        document.getElementById('upload-form-error').innerHTML = '<div class="modal-form-error">Completa nombre, documento, teléfono, plan y tipo antes de continuar.</div>';
+      var productOption = productSelect.selectedOptions[0];
+
+      var missing = [
+        ['input-client-name', name],
+        ['select-doc-type', docType],
+        ['input-doc-number', docNumber],
+        ['input-client-phone', phone],
+        ['select-product', productOption && productOption.value],
+        ['select-sale-type', saleType]
+      ].filter(function (pair) { return !pair[1]; });
+
+      document.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
+      if (missing.length) {
+        missing.forEach(function (pair) { document.getElementById(pair[0]).classList.add('is-invalid'); });
+        document.getElementById('upload-form-error').innerHTML =
+          '<div class="modal-form-error">' + icon('alertTriangle') + '<span>Faltan ' + missing.length +
+          (missing.length === 1 ? ' campo obligatorio' : ' campos obligatorios') + '. Se marcaron en rojo.</span></div>';
+        document.getElementById(missing[0][0]).focus();
         return;
       }
+      document.getElementById('upload-form-error').innerHTML = '';
+
       var saleNotes = appendManagementNote(clearAutomaticManagementNotes(document.getElementById('input-notes').value.trim()), docType, docNumber);
       var sale = {
         id: uid(), folio: 'KRT-' + new Date().getFullYear() + '-' + uid().slice(3, 11).toUpperCase(),
@@ -566,7 +728,7 @@
         documentNumber: docNumber,
         referencePhone: document.getElementById('input-reference-phone').value.trim(),
         saleType: saleType,
-        productName: prodOpt.value, category: prodOpt.getAttribute('data-cat'), amount: Number(prodOpt.getAttribute('data-price')),
+        productName: productOption.value, category: productOption.getAttribute('data-cat'), amount: Number(productOption.getAttribute('data-price')),
         paymentMethod: '',
         status: 'en_verificacion', notes: saleNotes,
         leadId: uploadPrefill ? uploadPrefill.leadId : undefined,
@@ -688,6 +850,12 @@
       window.open(webUrl, '_blank', 'noopener');
     }, 900);
   }
+  /* Desde el selector de la tabla: abre la gestión con esa tipificación marcada. */
+  function openCallModalWithStatus(lead, status) {
+    openCallModal(lead);
+    var button = document.querySelector('[data-finish="' + status + '"]');
+    if (button) button.click();
+  }
   function openCallModal(lead) {
     activeCallLead = lead; callNotesVal = lead.notes || ''; callStatusVal = '';
     renderCallModal();
@@ -804,40 +972,102 @@
     var gotoBtn = t.closest('[data-goto]');
     if (gotoBtn) { setTab(gotoBtn.getAttribute('data-goto')); return; }
 
+    /* Sidebar nav items */
+    var navItem = t.closest('.nav-item[data-tab]');
+    if (navItem) { setTab(navItem.getAttribute('data-tab')); return; }
+
     var tabBtn = t.closest('.tab-btn');
     if (tabBtn) { setTab(tabBtn.getAttribute('data-tab')); return; }
 
     var statusFilter = t.closest('[data-lead-status]');
     if (statusFilter) { leadsFilter.status = statusFilter.getAttribute('data-lead-status'); renderFullCallBase(); return; }
 
+    if (t.closest('#btn-sync-top')) {
+      var syncBtn = document.getElementById('btn-sync-top');
+      if (syncBtn) syncBtn.classList.add('rotating');
+      setTimeout(function () {
+        if (syncBtn) syncBtn.classList.remove('rotating');
+        showToast('Sincronización Completa', 'Contactos y asignaciones actualizados con Back Office.', 'call');
+      }, 600);
+      return;
+    }
+
+    /* Mobile menu toggle */
+    if (t.closest('#btn-menu')) {
+      var sidebar = document.getElementById('sidebar');
+      var overlay = document.getElementById('sidebar-overlay');
+      if (sidebar) sidebar.classList.toggle('open');
+      if (overlay) overlay.classList.toggle('visible');
+      return;
+    }
+    if (t.closest('#sidebar-overlay')) {
+      var sb = document.getElementById('sidebar');
+      var ov = document.getElementById('sidebar-overlay');
+      if (sb) sb.classList.remove('open');
+      if (ov) ov.classList.remove('visible');
+      return;
+    }
+
     var callBtn = t.closest('[data-action="call"]');
     if (callBtn) { var lead = findLead(callBtn.getAttribute('data-lead-id')); if (lead) dialWithMicroSip(lead); return; }
+
+    var whatsappBtn = t.closest('[data-action="whatsapp"]');
+    if (whatsappBtn) { var waLead = findLead(whatsappBtn.getAttribute('data-lead-id')); if (waLead) openWhatsAppChat(waLead); return; }
+
+    var typifyBtn = t.closest('[data-action="typify"]');
+    if (typifyBtn) { var typifyLead = findLead(typifyBtn.getAttribute('data-lead-id')); if (typifyLead) openCallModal(typifyLead); return; }
 
     var saleBtn = t.closest('[data-action="sale"]');
     if (saleBtn && !saleBtn.disabled) { var l2 = findLead(saleBtn.getAttribute('data-lead-id')); if (l2) tryOpenSaleFor(l2); return; }
 
-    var whatsAppBtn = t.closest('[data-action="whatsapp"]');
-    if (whatsAppBtn) { var l3 = findLead(whatsAppBtn.getAttribute('data-lead-id')); if (l3) openWhatsAppChat(l3); return; }
-
     var detailBtn = t.closest('[data-action="sale-detail"]');
     if (detailBtn) { var s = findSale(detailBtn.getAttribute('data-sale-id')); if (s) openSaleDetail(s); return; }
 
-    var typifyBtn = t.closest('[data-action="typify"]');
-    if (typifyBtn) { var l4 = findLead(typifyBtn.getAttribute('data-lead-id')); if (l4) openCallModal(l4); return; }
-
+    if (t.closest('#btn-trigger-upload-sale')) { openUploadModal(null); return; }
   });
+
+  /* El buscador vive dentro del bloque que se vuelve a dibujar: se devuelve el foco tras cada render. */
+  function renderKeepingFocus(inputId, render) {
+    var current = document.getElementById(inputId);
+    var caret = current ? current.selectionStart : 0;
+    render();
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    input.focus();
+    input.setSelectionRange(caret, caret);
+  }
 
   document.addEventListener('input', function (e) {
-    if (e.target.id === 'input-search-leads') { leadsFilter.search = e.target.value; renderFullCallBase(); }
-    if (e.target.id === 'input-search-sales') { salesFilter.search = e.target.value; renderFullSalesFeed(); }
+    if (e.target.id === 'input-search-leads') { leadsFilter.search = e.target.value; renderKeepingFocus('input-search-leads', renderFullCallBase); }
+    if (e.target.id === 'input-search-sales') { salesFilter.search = e.target.value; renderKeepingFocus('input-search-sales', renderFullSalesFeed); }
+    if (e.target.classList.contains('input-advisor-note')) {
+      var noteLead = findLead(e.target.getAttribute('data-lead-id'));
+      if (noteLead) { noteLead.advisorNote = e.target.value; persist(); }
+    }
   });
   document.addEventListener('change', function (e) {
-    if (e.target.id === 'select-sale-status') { salesFilter.status = e.target.value; renderFullSalesFeed(); }
-    if (e.target.classList.contains('input-advisor-note')) {
-      var noteLeadId = e.target.getAttribute('data-lead-id');
-      state.leads = state.leads.map(function (l) { return l.id === noteLeadId ? Object.assign({}, l, { advisorNote: e.target.value }) : l; });
-      persist();
+    if (e.target.classList.contains('artifact-status')) {
+      var statusLead = findLead(e.target.getAttribute('data-lead-id'));
+      var nextStatus = e.target.value;
+      if (!statusLead) return;
+      /* Preventa, sin cobertura y venta piden datos: se completan en la ventana de gestión. */
+      if (STATUSES_WITH_FORM.indexOf(nextStatus) > -1) {
+        e.target.value = statusLead.status || 'pendiente';
+        openCallModalWithStatus(statusLead, nextStatus);
+        return;
+      }
+      /* La primera vez que sale de pendiente cuenta como gestión en el tablero. */
+      var wasManaged = isManaged(statusLead);
+      statusLead.status = nextStatus;
+      if (!wasManaged && isManaged(statusLead)) {
+        statusLead.managementHistory = (statusLead.managementHistory || []).concat([new Date().toISOString()]);
+      }
+      persist(); renderAll();
+      return;
     }
+    if (e.target.id === 'select-lead-status') { leadsFilter.status = e.target.value; renderFullCallBase(); }
+    if (e.target.id === 'select-lead-campaign') { leadsFilter.campaign = e.target.value; renderFullCallBase(); }
+    if (e.target.id === 'select-sale-status') { salesFilter.status = e.target.value; renderFullSalesFeed(); }
   });
 
   document.addEventListener('keydown', function (e) {
@@ -870,6 +1100,8 @@
       if (!response.ok) throw new Error('No se pudo cargar Back Office');
       return response.json();
     }).then(function (data) {
+      var before = JSON.stringify([state.leads, state.sales]);
+      data.leads = data.leads.filter(function (lead) { return !isDemoLeadId(lead.id); });
       var assigned = new Set(data.leads.map(function (lead) { return lead.id; }));
       state.leads = state.leads.filter(function (lead) { return !data.knownIds.includes(lead.id) || assigned.has(lead.id); });
       data.leads.forEach(function (lead) {
@@ -881,7 +1113,9 @@
         var existing = state.sales.findIndex(function (s) { return s.id === sale.id; });
         if (existing >= 0 && sale.trackingUpdatedAt) state.sales[existing] = Object.assign({}, state.sales[existing], {status:sale.status});
       });
-      operationsReady = true; renderAll(); persist();
+      var firstLoad = !operationsReady;
+      operationsReady = true;
+      if (firstLoad || before !== JSON.stringify([state.leads, state.sales])) { renderAll(); persist(); }
     }).catch(function () { var el=document.getElementById('operations-sync-status');if(el)el.textContent='No se pudo cargar la base de Back Office. Recarga para reintentar.'; });
   }
   document.addEventListener('click', function (event) {
@@ -889,6 +1123,14 @@
     event.preventDefault();
     (operationsReady ? queueOperationsSync() : loadOperations().then(function(){if(!operationsReady)throw new Error('Sin conexión');return queueOperationsSync();})).then(function(){window.location.href=link.href;}).catch(function(){});
   });
+  /* Las asignaciones de Back Data aparecen solas: se consulta cada pocos segundos sin interrumpir lo que se está escribiendo. */
+  var ASSIGNMENT_POLL_MS = 5000;
+  function pollAssignments() {
+    if (document.hidden || !operationsReady) return;
+    var editing = document.activeElement && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+    if (editing || activeCallLead || uploadOpen) return;
+    loadOperations();
+  }
   /* ---------- init ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     initStaticLabels();
@@ -898,5 +1140,6 @@
     renderAll();
     document.getElementById('storage-error').hidden = !storageError;
     persist();
+    setInterval(pollAssignments, ASSIGNMENT_POLL_MS);
   });
 })();
