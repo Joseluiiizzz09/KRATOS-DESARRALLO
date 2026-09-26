@@ -4,8 +4,19 @@ import { api } from '../api/client';
 const STORAGE_KEY = 'kratos:token';
 const AuthContext = createContext(null);
 
+/** "Mantener sesión" guarda el token en localStorage; sin marcarla, en sessionStorage
+ *  (se pierde al cerrar la pestaña o el navegador). */
+function readStoredToken() {
+  return localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || null;
+}
+
+function clearStoredToken() {
+  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
+}
+
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(STORAGE_KEY) || null);
+  const [token, setToken] = useState(readStoredToken);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(Boolean(token));
 
@@ -13,20 +24,21 @@ export function AuthProvider({ children }) {
     if (!token) { setLoading(false); return; }
     api.me(token)
       .then((data) => setUser(data.user))
-      .catch(() => { setToken(null); localStorage.removeItem(STORAGE_KEY); })
+      .catch(() => { setToken(null); clearStoredToken(); })
       .finally(() => setLoading(false));
   }, [token]);
 
-  const login = async (usuario, password) => {
+  const login = async (usuario, password, remember = false) => {
     const data = await api.login(usuario, password);
-    localStorage.setItem(STORAGE_KEY, data.token);
+    clearStoredToken();
+    (remember ? localStorage : sessionStorage).setItem(STORAGE_KEY, data.token);
     setToken(data.token);
     setUser(data.user);
     return data.user;
   };
 
   const logout = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    clearStoredToken();
     setToken(null);
     setUser(null);
   };

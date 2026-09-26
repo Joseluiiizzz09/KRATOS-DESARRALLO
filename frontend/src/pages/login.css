@@ -1,0 +1,272 @@
+/* Pantalla de inicio de sesión: dividida en panel de marca (oscuro) y formulario (claro). */
+.kl-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #0f172a;
+  border-top: 1px solid #3a2a2a;
+}
+
+/* ── Panel de marca ── */
+.kl-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  color: #fff;
+  background-color: #111111;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.kl-brand-title {
+  margin: 0;
+  font-size: clamp(56px, 5.6vw, 88px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.kl-brand-tagline {
+  margin: 18px 0 0;
+  font-size: 20px;
+  font-weight: 400;
+  color: #e5e7eb;
+}
+
+.kl-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px 52px;
+  margin: 96px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kl-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #9ca3af;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.kl-feature svg {
+  width: 30px;
+  height: 30px;
+  color: #d1d5db;
+}
+
+/* ── Panel del formulario ── */
+.kl-form-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48px 32px 40px;
+  background: #fafafa;
+}
+
+.kl-form-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.kl-title {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 400;
+  text-align: center;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.kl-title strong {
+  font-weight: 800;
+}
+
+.kl-subtitle {
+  margin: 10px 0 42px;
+  font-size: 17px;
+  text-align: center;
+  color: #64748b;
+}
+
+.kl-field {
+  margin-bottom: 26px;
+}
+
+.kl-label {
+  display: block;
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.kl-input-wrap {
+  position: relative;
+}
+
+.kl-input {
+  width: 100%;
+  height: 54px;
+  padding: 0 16px;
+  font: inherit;
+  font-size: 16px;
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid #d5d9e0;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.kl-input::placeholder {
+  color: #9ca3af;
+}
+
+.kl-input:focus {
+  border-color: #d32f2f;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.18);
+}
+
+.kl-input.has-toggle {
+  padding-right: 52px;
+}
+
+.kl-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: #64748b;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.kl-toggle:hover {
+  color: #0f172a;
+}
+
+.kl-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.kl-remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 26px;
+  font-size: 16px;
+  color: #1f2937;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kl-remember input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: #d32f2f;
+  cursor: pointer;
+}
+
+.kl-error {
+  margin: -6px 0 18px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+}
+
+.kl-submit {
+  width: 100%;
+  height: 56px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 500;
+  color: #fff;
+  background: #d32f2f;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px -6px rgba(211, 47, 47, 0.6);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+}
+
+.kl-submit:hover:not(:disabled) {
+  background: #c62828;
+}
+
+.kl-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.kl-submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.kl-footer {
+  margin: 32px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+  color: #94a3b8;
+}
+
+/* ── Móvil / tablet: el panel de marca pasa arriba y se compacta ── */
+@media (max-width: 900px) {
+  .kl-page {
+    grid-template-columns: 1fr;
+  }
+
+  .kl-brand {
+    padding: 36px 24px;
+  }
+
+  .kl-brand-title {
+    font-size: 48px;
+  }
+
+  .kl-brand-tagline {
+    font-size: 17px;
+    text-align: center;
+  }
+
+  .kl-features {
+    display: none;
+  }
+
+  .kl-form-panel {
+    padding: 32px 24px 28px;
+  }
+
+  .kl-title {
+    font-size: 28px;
+  }
+}

@@ -19,6 +19,16 @@ app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 
+// La API no tiene pantalla: quien abra esta URL en el navegador ve a dónde ir.
+app.get('/', (req, res) => {
+  res.json({
+    servicio: 'KRATOS API',
+    estado: 'en línea',
+    aplicacion: process.env.FRONTEND_URL || allowedOrigins[0],
+    mensaje: 'Esto es solo la API. La aplicación se abre en la dirección de "aplicacion".',
+  });
+});
+
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadsRoutes);
