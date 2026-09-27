@@ -1,37 +1,54 @@
 import { useMemo } from 'react';
-import { useLeads } from '../../hooks/useLeads';
 import { useSales } from '../../hooks/useSales';
-import { localDay, today } from '../../utils/date';
-import { STATUSES } from '../../data/catalog';
+import { localDay } from '../../utils/date';
 
-function isManaged(status) {
-  return status && status !== 'pendiente';
+const ACTIVAS = ['aprobada', 'auditada'];
+
+function pad(n) {
+  return String(n).padStart(2, '0');
+}
+
+function ymd(d) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export default function Tablero() {
-  const { leads, loading: loadingLeads } = useLeads();
-  const { sales, loading: loadingSales } = useSales();
+  const { sales, loading } = useSales();
 
   const stats = useMemo(() => {
-    const todayStr = today();
-    const managed = leads.filter((lead) => isManaged(lead.status)).length;
-    const salesToday = sales.filter((sale) => sale.createdAt && localDay(sale.createdAt) === todayStr).length;
-    const activas = sales.filter((sale) => sale.status === 'aprobada' || sale.status === 'auditada').length;
-    const caidas = sales.filter((sale) => sale.status === 'rechazada').length;
-    const porEstado = STATUSES.map(([value, label]) => ({ label, n: leads.filter((l) => l.status === value).length })).filter((e) => e.n > 0);
-    const ventasTotal = sales.length;
-    const contactabilidad = leads.length ? Math.round((managed / leads.length) * 100) : 0;
-    const conversion = managed ? Math.round((leads.filter((l) => l.status === 'venta_cerrada').length / managed) * 100) : 0;
-    return { managed, salesToday, activas, caidas, porEstado, ventasTotal, contactabilidad, conversion };
-  }, [leads, sales]);
+    const now = new Date();
+    const hoy = ymd(now);
+    const lunes = new Date(now);
+    lunes.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    const semana = ymd(lunes);
+    const mes = hoy.slice(0, 7);
 
-  if (loadingLeads || loadingSales) return <p>Cargando…</p>;
+    const dias = sales.filter((s) => s.createdAt).map((s) => ({ dia: localDay(s.createdAt), status: s.status }));
+    const enSemana = dias.filter((s) => s.dia >= semana && s.dia <= hoy);
+    const enMes = dias.filter((s) => s.dia.slice(0, 7) === mes);
+    const activas = (list) => list.filter((s) => ACTIVAS.includes(s.status)).length;
+    const caidas = (list) => list.filter((s) => s.status === 'rechazada').length;
+
+    return {
+      diarias: dias.filter((s) => s.dia === hoy).length,
+      semanales: enSemana.length,
+      activasSemana: activas(enSemana),
+      mensuales: enMes.length,
+      activasMes: activas(enMes),
+      caidasSemana: caidas(enSemana),
+      caidasMes: caidas(enMes),
+    };
+  }, [sales]);
+
+  if (loading) return <p>Cargando…</p>;
 
   const cards = [
-    { label: 'Contactos asignados', value: leads.length, detail: `${leads.length - stats.managed} pendientes de gestión` },
-    { label: 'Gestionados hoy', value: stats.managed, detail: leads.length ? `${Math.round((stats.managed / leads.length) * 100)}% de la cartera` : 'Sin cartera' },
-    { label: 'Ventas del día', value: stats.salesToday, detail: 'Registradas en la jornada' },
-    { label: 'Ventas activas', value: stats.activas, detail: `${stats.caidas} caídas` },
+    { label: 'Ventas diarias', value: stats.diarias, detail: 'Registradas hoy' },
+    { label: 'Ventas semanales', value: stats.semanales, detail: 'Desde el lunes' },
+    { label: 'Activas semanales', value: stats.activasSemana, detail: 'Esta semana' },
+    { label: 'Ventas mensuales', value: stats.mensuales, detail: 'Este mes' },
+    { label: 'Activas mensuales', value: stats.activasMes, detail: 'Este mes' },
+    { label: 'Caídas', value: stats.caidasMes, detail: `${stats.caidasSemana} esta semana · ${stats.caidasMes} este mes` },
   ];
 
   return (
@@ -39,7 +56,7 @@ export default function Tablero() {
       <h1 className="h4 mb-3">Tablero y métricas</h1>
       <div className="row g-3">
         {cards.map((card) => (
-          <div className="col-sm-6 col-lg-3" key={card.label}>
+          <div className="col-sm-6 col-lg-4 col-xxl-2" key={card.label}>
             <div className="card h-100">
               <div className="card-body">
                 <div className="text-muted small text-uppercase fw-semibold">{card.label}</div>
@@ -49,48 +66,6 @@ export default function Tablero() {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="row g-3 mt-1">
-        <div className="col-lg-8">
-          <div className="card h-100">
-            <div className="card-body">
-              <div className="text-muted small text-uppercase fw-semibold mb-3">Gestión por estado</div>
-              {stats.porEstado.length === 0 ? (
-                <div className="small text-muted">Aún no hay contactos gestionados.</div>
-              ) : (
-                stats.porEstado.map((e) => (
-                  <div className="d-flex align-items-center gap-3 mb-2" key={e.label}>
-                    <div className="small" style={{ width: 160 }}>{e.label}</div>
-                    <div className="flex-grow-1 rounded" style={{ height: 8, background: '#eef0f3' }}>
-                      <div className="rounded" style={{ height: 8, width: `${(e.n / leads.length) * 100}%`, background: '#111a2c' }} />
-                    </div>
-                    <div className="small fw-semibold text-end" style={{ width: 28 }}>{e.n}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <div className="text-muted small text-uppercase fw-semibold mb-3">Resumen</div>
-              {[
-                ['Contactabilidad', `${stats.contactabilidad}%`],
-                ['Conversión sobre gestionados', `${stats.conversion}%`],
-                ['Ventas registradas', stats.ventasTotal],
-                ['Ventas activas', stats.activas],
-                ['Ventas caídas', stats.caidas],
-              ].map(([k, v]) => (
-                <div className="d-flex justify-content-between py-2 border-bottom small" key={k}>
-                  <span className="text-muted">{k}</span>
-                  <span className="fw-semibold">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
