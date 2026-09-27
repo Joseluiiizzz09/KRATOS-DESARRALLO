@@ -1,13 +1,12 @@
 /* Portal del asesor: menú lateral, fondo con destello rosado y tarjeta de tabla con cabecera azul oscura. */
 
-/* Nombre KRATOS: letra ancha y muy gruesa, como el logotipo de KRONO (Archivo expandido, peso 900) */
+/* Nombre KRATOS: Montserrat ExtraBold, limpia y firme junto al logo */
 .ka-wordmark {
-  font-family: 'Archivo', 'Inter', sans-serif;
-  font-stretch: 125%;
-  font-weight: 900;
+  font-family: 'Montserrat', 'Inter', sans-serif;
+  font-weight: 800;
   font-size: 24px;
   line-height: 1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   color: #111827;
 }
 
