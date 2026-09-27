@@ -3142,7 +3142,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
                     ['no_tocar','NO TOCAR',gruposProtegidos.no_tocar.length,'#9f1239'],
                     ['venta_cerrada','VENTA CERRADA',gruposProtegidos.venta_cerrada.length,'#16a34a'],
                     ['venta_caida','VENTA CAIDA',gruposProtegidos.venta_caida.length,'#a64d79'],
-                    ['instalado','INSTALADO',gruposProtegidos.instalado.length,'#0369a1'],
+                    ['instalado','ACTIVAS',gruposProtegidos.instalado.length,'#0369a1'],
                     ['blacklist','BLACKLIST',gruposProtegidos.blacklist.length,'#111827'],
                   ].map(([id,label,total,color]) => (
                     <button key={id} type="button" onClick={()=>setGrupoProtegidoVisible(prev=>prev===id?'':id)}
