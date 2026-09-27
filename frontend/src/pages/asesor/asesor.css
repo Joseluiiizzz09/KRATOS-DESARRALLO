@@ -116,33 +116,10 @@
   line-height: 1.4;
 }
 
-.ka-wa {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  color: #3b4557;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.ka-wa-icon {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  color: #0e8a76;
-  background: #e9f5f2;
-  border: 1px solid rgba(14, 138, 118, 0.2);
-  border-radius: 8px;
-}
-
-.ka-wa-icon svg {
-  width: 15px;
-  height: 15px;
-}
-
-.ka-wa:hover .ka-wa-icon {
-  background: #d7efe9;
+/* Usuario de WhatsApp: texto simple (p. ej. @usuario), sin enlace ni icono */
+.ka-user {
+  color: #4b5563;
+  overflow-wrap: anywhere;
 }
 
 /* Estado: selector con color según el valor */

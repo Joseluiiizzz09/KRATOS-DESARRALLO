@@ -32,16 +32,17 @@ async function seed() {
   if (total > 0) {
     console.log(`El asesor demo ya tiene ${total} contactos asignados; no se agregan más.`);
   } else {
+    // whatsapp_user es el nombre de usuario de WhatsApp (p. ej. @usuario), no el teléfono
     const contactos = [
-      ['+51 987 111 222', 'Miraflores', 'Av. Larco 1150, Miraflores', 'LLAMANDO', 'Interesado en portabilidad familiar.'],
-      ['+51 987 333 444', 'Surco', 'Jr. Monterrey 250, Santiago de Surco', null, 'Pide información de fibra simétrica.'],
-      ['+51 987 555 666', 'Callao', 'Av. Sáenz Peña 480, Callao', 'BUZON DE VOZ', 'Llamar después de las 16:00 hrs.'],
+      ['+51 987 111 222', '@rodrigo_mdz', 'Miraflores', 'Av. Larco 1150, Miraflores', 'LLAMANDO', 'Interesado en portabilidad familiar.'],
+      ['+51 987 333 444', '@karla_bnz', 'Surco', 'Jr. Monterrey 250, Santiago de Surco', null, 'Pide información de fibra simétrica.'],
+      ['+51 987 555 666', '@SHINNIG_ml', 'Callao', 'Av. Sáenz Peña 480, Callao', 'BUZON DE VOZ', 'Llamar después de las 16:00 hrs.'],
     ];
-    for (const [phone, zone, address, tipificacion, backNotes] of contactos) {
+    for (const [phone, whatsappUser, zone, address, tipificacion, backNotes] of contactos) {
       await pool.query(
         `INSERT INTO leads (id, phone, whatsapp_user, zone, address, tipificacion, back_notes, status, assigned_advisor_id, assigned_at, management_history)
          VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente', ?, NOW(), '[]')`,
-        [crypto.randomUUID(), phone, phone, zone, address, tipificacion, backNotes, advisorId]
+        [crypto.randomUUID(), phone, whatsappUser, zone, address, tipificacion, backNotes, advisorId]
       );
     }
     console.log(`Se asignaron ${contactos.length} contactos de ejemplo al asesor demo.`);

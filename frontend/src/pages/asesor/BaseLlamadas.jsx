@@ -22,15 +22,6 @@ function horaDe(valor) {
   return typeof valor === 'string' && valor.length >= 16 ? valor.slice(11, 16) : '—';
 }
 
-function IconoWhatsApp() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.7-5.2A8.5 8.5 0 1 1 21 11.5z" />
-      <path d="M8.7 8.6c.2-.5.6-.5.9-.4.2.5.6 1.3.6 1.5 0 .3-.4.7-.6 1 .6 1.1 1.4 1.9 2.6 2.5.3-.3.6-.8.9-.8.3 0 1.2.5 1.5.7.1.3-.1 1-.6 1.3-.7.4-1.7.3-3-.4a7.6 7.6 0 0 1-3-3c-.4-1-.3-1.7.7-2.4z" />
-    </svg>
-  );
-}
-
 export default function BaseLlamadas() {
   const { leads, loading, error, updateLead } = useLeads();
   const { createSale } = useSales();
@@ -138,20 +129,12 @@ export default function BaseLlamadas() {
 
 function FilaLead({ lead, onStatusChange, onNoteBlur }) {
   const [note, setNote] = useState(lead.advisorNote || '');
-  const whatsapp = lead.whatsappUser ? lead.whatsappUser.replace(/\D/g, '') : '';
 
   return (
     <tr>
       <td className="ka-phone">{lead.phone}</td>
       <td className="ka-muted">{lead.phone2 || '—'}</td>
-      <td>
-        {whatsapp ? (
-          <a className="ka-wa" href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
-            <span className="ka-wa-icon"><IconoWhatsApp /></span>
-            {lead.whatsappUser}
-          </a>
-        ) : '—'}
-      </td>
+      <td className="ka-user">{lead.whatsappUser || '—'}</td>
       <td><span className="ka-clamp" title={lead.backNotes || ''}>{lead.backNotes || 'Sin observaciones'}</span></td>
       <td>
         <select

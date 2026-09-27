@@ -43,7 +43,7 @@ async function initDB() {
         id VARCHAR(40) PRIMARY KEY,
         phone VARCHAR(30) NOT NULL,
         phone2 VARCHAR(30) DEFAULT NULL,
-        whatsapp_user VARCHAR(30) DEFAULT NULL,
+        whatsapp_user VARCHAR(60) DEFAULT NULL,
         client_name VARCHAR(150) DEFAULT NULL,
         campaign VARCHAR(120) DEFAULT NULL,
         zone VARCHAR(150) DEFAULT NULL,
