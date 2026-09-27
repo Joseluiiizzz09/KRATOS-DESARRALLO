@@ -1,10 +1,123 @@
-/* Portal del asesor: fondo suave con destello rosado y tarjetas redondeadas. */
-.ka-main {
-  min-width: 0;
-  padding: 28px 32px;
+/* ================================================================
+   Portal del asesor: barra superior con pestañas, fondo con destello
+   rosado y tarjeta de tabla con cabecera azul oscura.
+   ================================================================ */
+.ka-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1f2937;
+}
+
+/* ── Barra superior ── */
+.ka-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding: 20px 36px;
+  background: #fff;
+  border-bottom: 1px solid #eceef2;
+}
+
+.ka-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 230px;
+}
+
+.ka-logo {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  font-size: 21px;
+  font-weight: 800;
+  color: #fff;
+  background: #d32f2f;
+  border-radius: 13px;
+}
+
+.ka-brand-name {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #111827;
+}
+
+.ka-brand-sub {
+  margin-top: 5px;
+  font-size: 13px;
+  color: #8b95a5;
+}
+
+.ka-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  background: #eef0f4;
+  border-radius: 14px;
+}
+
+.ka-tab {
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #5b6472;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ka-tab:hover {
+  color: #111827;
+}
+
+.ka-tab.is-active {
+  font-weight: 600;
+  color: #111827;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.14);
+}
+
+.ka-userbox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 230px;
+  font-size: 13.5px;
+  color: #4b5563;
+}
+
+.ka-exit {
+  padding: 8px 20px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #d32f2f;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #f1c5c5;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.ka-exit:hover {
+  background: #fdf0f0;
+}
+
+/* ── Contenido ── */
+.ka-main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 36px 40px;
   background:
-    radial-gradient(900px 420px at 0% 0%, rgba(232, 196, 202, 0.55), transparent 70%),
+    radial-gradient(1100px 460px at 0% 0%, rgba(232, 196, 202, 0.55), transparent 70%),
     #ededf1;
 }
 
@@ -14,25 +127,32 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .ka-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: #111827;
 }
 
+.ka-head-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
 .ka-search {
-  width: 260px;
+  width: 200px;
   height: 38px;
   padding: 0 14px;
   font: inherit;
-  font-size: 14px;
+  font-size: 13.5px;
   background: #fff;
-  border: 1px solid #dfe3ea;
+  border: 1px solid #e3e6ec;
   border-radius: 10px;
   outline: none;
 }
@@ -40,6 +160,18 @@
 .ka-search:focus {
   border-color: #d32f2f;
   box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+}
+
+.ka-date {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 18px;
+  font-size: 13.5px;
+  color: #6b7280;
+  background: #fff;
+  border: 1px solid #e3e6ec;
+  border-radius: 10px;
 }
 
 /* ── Tarjeta con la tabla ── */
@@ -56,25 +188,26 @@
 
 .ka-table {
   width: 100%;
-  min-width: 1600px;
+  min-width: 1750px;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-/* Anchos por columna: teléfono, teléfono 2, WhatsApp, obs. back, estado,
-   observación asesor, zona, dirección, hora */
-.ka-table th:nth-child(1) { width: 150px; }
-.ka-table th:nth-child(2) { width: 130px; }
-.ka-table th:nth-child(3) { width: 210px; }
-.ka-table th:nth-child(4) { width: 230px; }
-.ka-table th:nth-child(5) { width: 190px; }
-.ka-table th:nth-child(6) { width: 230px; }
-.ka-table th:nth-child(7) { width: 120px; }
-.ka-table th:nth-child(8) { width: 240px; }
-.ka-table th:nth-child(9) { width: 100px; }
+/* Anchos: teléfono, teléfono 2, usuario WhatsApp, obs. back, tipificación,
+   estado, observación asesor, zona, dirección, hora */
+.ka-table th:nth-child(1) { width: 235px; }
+.ka-table th:nth-child(2) { width: 225px; }
+.ka-table th:nth-child(3) { width: 170px; }
+.ka-table th:nth-child(4) { width: 210px; }
+.ka-table th:nth-child(5) { width: 120px; }
+.ka-table th:nth-child(6) { width: 150px; }
+.ka-table th:nth-child(7) { width: 240px; }
+.ka-table th:nth-child(8) { width: 110px; }
+.ka-table th:nth-child(9) { width: 190px; }
+.ka-table th:nth-child(10) { width: 100px; }
 
 .ka-table thead th {
-  padding: 15px 18px;
+  padding: 16px 18px;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -86,26 +219,74 @@
 }
 
 .ka-table tbody td {
-  padding: 12px 18px;
+  padding: 13px 18px;
   font-size: 13.5px;
   color: #3b4557;
   vertical-align: middle;
   border-top: 1px solid #edf0f4;
 }
 
+.ka-table tbody tr:first-child td {
+  border-top: 0;
+}
+
 .ka-table tbody tr:hover td {
   background: #fafbfc;
 }
 
+/* Teléfono con acciones */
+.ka-phone-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 .ka-phone {
+  margin-right: 2px;
   font-weight: 600;
   color: #111827;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+}
+
+.ka-ibtn {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: #6b7686;
+  cursor: pointer;
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 7px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ka-ibtn:hover {
+  color: #111827;
+  background: #f4f6f8;
+}
+
+.ka-ibtn--wa {
+  color: #0e8a76;
+}
+
+.ka-ibtn--wa:hover {
+  color: #0e8a76;
+  background: #e9f5f2;
+  border-color: rgba(14, 138, 118, 0.35);
 }
 
 .ka-muted {
   color: #8b95a5;
+}
+
+.ka-user {
+  color: #4b5563;
+  overflow-wrap: anywhere;
 }
 
 .ka-clamp {
@@ -116,64 +297,66 @@
   line-height: 1.4;
 }
 
-/* Usuario de WhatsApp: texto simple (p. ej. @usuario), sin enlace ni icono */
-.ka-user {
-  color: #4b5563;
-  overflow-wrap: anywhere;
-}
-
-/* Estado: selector con color según el valor */
-.ka-status {
-  width: 100%;
-  max-width: 170px;
-  height: 32px;
-  padding: 0 28px 0 13px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: #55646f;
+/* Botón de tipificar */
+.ka-tipbtn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #fff;
   cursor: pointer;
-  background-color: #edf1f4;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23788595' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
+  background: #111a2c;
   border: 0;
+  border-radius: 10px;
+  transition: background 0.15s, transform 0.05s;
+}
+
+.ka-tipbtn:hover {
+  background: #1f2c47;
+}
+
+.ka-tipbtn:active {
+  transform: translateY(1px);
+}
+
+/* Estado: etiqueta con contorno */
+.ka-pill {
+  display: inline-block;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #475569;
+  background: #fff;
+  border: 1px solid #d5dae3;
   border-radius: 999px;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
 }
 
-.ka-status:focus-visible {
-  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
-}
-
-.ka-status--pendiente { color: #9a6414; background-color: #fbf1e2; }
-.ka-status--contactado { color: #1a6598; background-color: #e9f2f8; }
-.ka-status--agendado { color: #8a1c2b; background-color: #f9eef0; }
-.ka-status--venta_cerrada { color: #2c7048; background-color: #e9f4ed; }
-.ka-status--no_interesado { color: #a8323e; background-color: #fbeceb; }
+.ka-pill--pendiente { color: #9a6414; background: #fdf6e9; border-color: #efd9b0; }
+.ka-pill--contactado { color: #1a6598; background: #eef5fa; border-color: #c5dcec; }
+.ka-pill--agendado { color: #8a1c2b; background: #fbf1f2; border-color: #ecc5cb; }
+.ka-pill--no_contesta { color: #55646f; background: #f4f6f8; border-color: #d5dae3; }
+.ka-pill--no_interesado { color: #a8323e; background: #fbeceb; border-color: #f0c9cc; }
+.ka-pill--venta_cerrada { color: #2c7048; background: #eaf5ee; border-color: #bfdcc8; }
 
 .ka-note {
   width: 100%;
-  height: 34px;
-  padding: 0 10px;
+  height: 36px;
+  padding: 0 12px;
   font: inherit;
   font-size: 13px;
   color: #111827;
-  background: transparent;
-  border: 1px solid transparent;
+  background: #fff;
+  border: 1px solid #e3e6ec;
   border-radius: 8px;
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.ka-note:hover {
-  border-color: #dfe3ea;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .ka-note:focus {
-  background: #fff;
   border-color: #d32f2f;
   box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.13);
 }
@@ -190,7 +373,7 @@
   border-top: 1px solid #edf0f4;
 }
 
-/* Sin asignaciones: la cabecera queda visible y el mensaje va centrado */
+/* ── Sin asignaciones: la cabecera queda visible y el mensaje va centrado ── */
 .ka-table.ka-table--empty {
   min-width: 0;
 }
@@ -202,16 +385,16 @@
   text-overflow: ellipsis;
 }
 
-/* Sin scroll: mismos anchos relativos que la tabla con datos, repartidos en porcentaje */
-.ka-table.ka-table--empty th:nth-child(1) { width: 9.4%; }
-.ka-table.ka-table--empty th:nth-child(2) { width: 8.1%; }
-.ka-table.ka-table--empty th:nth-child(3) { width: 13.1%; }
-.ka-table.ka-table--empty th:nth-child(4) { width: 14.4%; }
-.ka-table.ka-table--empty th:nth-child(5) { width: 11.9%; }
-.ka-table.ka-table--empty th:nth-child(6) { width: 14.4%; }
-.ka-table.ka-table--empty th:nth-child(7) { width: 7.5%; }
-.ka-table.ka-table--empty th:nth-child(8) { width: 15%; }
-.ka-table.ka-table--empty th:nth-child(9) { width: 6.3%; }
+.ka-table.ka-table--empty th:nth-child(1) { width: 13.4%; }
+.ka-table.ka-table--empty th:nth-child(2) { width: 12.9%; }
+.ka-table.ka-table--empty th:nth-child(3) { width: 9.7%; }
+.ka-table.ka-table--empty th:nth-child(4) { width: 12%; }
+.ka-table.ka-table--empty th:nth-child(5) { width: 6.9%; }
+.ka-table.ka-table--empty th:nth-child(6) { width: 8.6%; }
+.ka-table.ka-table--empty th:nth-child(7) { width: 13.7%; }
+.ka-table.ka-table--empty th:nth-child(8) { width: 6.3%; }
+.ka-table.ka-table--empty th:nth-child(9) { width: 10.9%; }
+.ka-table.ka-table--empty th:nth-child(10) { width: 5.6%; }
 
 .ka-empty {
   padding: 46px 16px 52px !important;
@@ -230,4 +413,69 @@
   margin-top: 10px;
   font-size: 12px;
   color: #a6afc0;
+}
+
+/* ── Ventana de tipificar ── */
+.ka-modal {
+  border: 0;
+  border-radius: 18px;
+}
+
+.ka-tip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.ka-tip-option {
+  padding: 13px 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  border: 1.5px solid #e3e6ec;
+  border-radius: 12px;
+  background: #fff;
+  color: #3b4557;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ka-tip-option:hover {
+  background: #f7f8fa;
+}
+
+.ka-tip-option.is-selected {
+  border-color: #d32f2f;
+  background: #fdf0f0;
+  color: #8a1c2b;
+}
+
+/* ── Móvil ── */
+@media (max-width: 900px) {
+  .ka-topbar {
+    padding: 16px 18px;
+  }
+
+  .ka-brand,
+  .ka-userbox {
+    min-width: 0;
+  }
+
+  .ka-tabs {
+    order: 3;
+    width: 100%;
+  }
+
+  .ka-tab {
+    flex: 1;
+    padding: 9px 8px;
+    font-size: 13.5px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .ka-main {
+    padding: 20px 16px 32px;
+  }
 }
