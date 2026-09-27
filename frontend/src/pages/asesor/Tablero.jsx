@@ -15,6 +15,42 @@ function ymd(d) {
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+function DualBarChart({ title, data }) {
+  const max = Math.max(1, ...data.flatMap((d) => [d.activas, d.caidas]));
+  const bar = (value, color) => (
+    <div className="d-flex flex-column align-items-center justify-content-end h-100" style={{ width: 22 }}>
+      <div className="small fw-semibold mb-1">{value}</div>
+      <div style={{ width: '100%', height: `${(value / max) * 100}%`, minHeight: value ? 4 : 2, background: value ? color : '#d3d8df', borderRadius: '5px 5px 0 0' }} />
+    </div>
+  );
+  return (
+    <div className="card h-100">
+      <div className="card-body">
+        <div className="d-flex justify-content-between align-items-start mb-3">
+          <div className="text-muted small text-uppercase fw-semibold">{title}</div>
+          <div className="d-flex gap-3 text-muted" style={{ fontSize: 11 }}>
+            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: '#111a2c' }} />Activas</span>
+            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: '#8b95a5' }} />Caídas</span>
+          </div>
+        </div>
+        <div className="d-flex align-items-end" style={{ height: 180 }}>
+          {data.map((d) => (
+            <div className="flex-grow-1 d-flex align-items-end justify-content-center gap-1 h-100" key={d.label}>
+              {bar(d.activas, '#111a2c')}
+              {bar(d.caidas, '#8b95a5')}
+            </div>
+          ))}
+        </div>
+        <div className="d-flex mt-2 border-top pt-2">
+          {data.map((d) => (
+            <div className="flex-grow-1 text-center text-muted" style={{ fontSize: 11 }} key={d.label}>{d.label}</div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BarChart({ title, data }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
@@ -60,7 +96,8 @@ export default function Tablero() {
     const ultimosDias = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(now);
       d.setDate(now.getDate() - (6 - i));
-      return { label: DIAS[d.getDay()], value: dias.filter((s) => s.dia === ymd(d)).length };
+      const delDia = dias.filter((s) => s.dia === ymd(d));
+      return { label: DIAS[d.getDay()], activas: activas(delDia), caidas: caidas(delDia) };
     });
     const ultimosMeses = Array.from({ length: 6 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
@@ -131,7 +168,7 @@ export default function Tablero() {
 
       <div className="row g-3 mt-1">
         <div className="col-lg-4"><BarChart title="Hoy · ventas, activas y caídas" data={stats.resumenDia} /></div>
-        <div className="col-lg-4"><BarChart title="Ventas · últimos 7 días" data={stats.ultimosDias} /></div>
+        <div className="col-lg-4"><DualBarChart title="Últimos 7 días" data={stats.ultimosDias} /></div>
         <div className="col-lg-4"><BarChart title="Este mes · ventas, activas y caídas" data={stats.resumenMes} /></div>
       </div>
 
