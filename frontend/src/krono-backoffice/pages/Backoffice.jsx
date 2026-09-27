@@ -2548,11 +2548,11 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
       {/* TOPBAR */}
       <div className="topbar module-topbar-standard">
         <div className="bo-topbar-left">
-          <div className="brand">
-            <div className="logo-circle"><img src="/assets/kratos-logo.webp" alt="KRATOS" /></div>
+          <div className="brand" style={{gap:10}}>
+            <img src="/assets/kratos-logo.webp" alt="" width={40} height={40} style={{flexShrink:0,borderRadius:0,boxShadow:"none",background:"none"}} />
             <div className="brand-text">
-              <h1 style={{margin:0,fontSize:22,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1}}>KRATOS</h1>
-              <span className="brand-sub">Back Data</span>
+              <h1 style={{margin:0,fontFamily:"'Montserrat','Inter',sans-serif",fontWeight:800,fontSize:24,lineHeight:1,letterSpacing:"0.02em",color:"#111827"}}>KRATOS</h1>
+              <span className="brand-sub" style={{fontSize:11,color:"#6b7280",textTransform:"none",letterSpacing:"normal",fontWeight:400}}>Sistema de llamadas</span>
             </div>
           </div>
           <button
