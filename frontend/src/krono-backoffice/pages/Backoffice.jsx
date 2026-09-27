@@ -2577,7 +2577,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
           <div className="bo-topbar-stat purple"><strong>{statsBase.rotaciones}</strong><span>Rotaciones</span></div>
         </div>
         <div className="topbar-right">
-          <JefaturaViewControls><span className="bo-usuario">{sesion?.nombre || 'Back Data'}</span></JefaturaViewControls>
+          <JefaturaViewControls><span className="bo-usuario">{sesion?.usuario || 'backoffice'}</span></JefaturaViewControls>
           <CambiarAreaMenu />
           <a href="#" className="bo-salir" onClick={e=>{ e.preventDefault(); logout(); navigate('/') }}>Salir</a>
         </div>
