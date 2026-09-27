@@ -1,5 +1,16 @@
 /* Portal del asesor: menú lateral, fondo con destello rosado y tarjeta de tabla con cabecera azul oscura. */
 
+/* Nombre KRATOS: letra ancha y muy gruesa, como el logotipo de KRONO (Archivo expandido, peso 900) */
+.ka-wordmark {
+  font-family: 'Archivo', 'Inter', sans-serif;
+  font-stretch: 125%;
+  font-weight: 900;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #111827;
+}
+
 /* ── Contenido ── */
 .ka-main {
   min-width: 0;

@@ -19,7 +19,7 @@ export default function AsesorLayout() {
           <div className="d-flex align-items-center gap-2">
             <img src={logo} alt="" width={40} height={40} style={{ flexShrink: 0 }} />
             <div>
-              <div className="fw-bold" style={{ letterSpacing: '.05em' }}>KRATOS</div>
+              <div className="ka-wordmark">KRATOS</div>
               <div className="text-muted" style={{ fontSize: 11 }}>Sistema de llamadas</div>
             </div>
           </div>
