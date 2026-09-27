@@ -109,7 +109,7 @@ body{
 .bo-root .brand-text h1{font-family:'Montserrat','Inter',sans-serif!important;font-size:24px!important;font-weight:800!important;letter-spacing:.02em!important;white-space:nowrap;color:#111827;}
 .bo-root .brand-text h1 .red{font:inherit!important;color:var(--brand)!important;}
 .bo-root .brand-text h1 .dot{width:4px;height:4px;margin-left:1px;margin-right:1px;}
-.bo-root .brand-text .brand-sub{font-size:8px!important;letter-spacing:.8px!important;font-weight:600!important;margin-top:2px!important;white-space:nowrap;}
+.bo-root .brand-text .brand-sub{font-size:10px!important;letter-spacing:.8px!important;font-weight:700!important;text-transform:uppercase!important;margin-top:2px!important;white-space:nowrap;color:#6b7280!important;}
 
 .brand-text h1,.topbar-brand-text h1{
   font-family:'Archivo Black',sans-serif;
