@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useLeads } from '../../hooks/useLeads';
 import { useSales } from '../../hooks/useSales';
 import { localDay, today } from '../../utils/date';
+import { STATUSES } from '../../data/catalog';
 
 function isManaged(status) {
   return status && status !== 'pendiente';
@@ -17,7 +18,11 @@ export default function Tablero() {
     const salesToday = sales.filter((sale) => sale.createdAt && localDay(sale.createdAt) === todayStr).length;
     const activas = sales.filter((sale) => sale.status === 'aprobada' || sale.status === 'auditada').length;
     const caidas = sales.filter((sale) => sale.status === 'rechazada').length;
-    return { managed, salesToday, activas, caidas };
+    const porEstado = STATUSES.map(([value, label]) => ({ label, n: leads.filter((l) => l.status === value).length })).filter((e) => e.n > 0);
+    const ventasTotal = sales.length;
+    const contactabilidad = leads.length ? Math.round((managed / leads.length) * 100) : 0;
+    const conversion = managed ? Math.round((leads.filter((l) => l.status === 'venta_cerrada').length / managed) * 100) : 0;
+    return { managed, salesToday, activas, caidas, porEstado, ventasTotal, contactabilidad, conversion };
   }, [leads, sales]);
 
   if (loadingLeads || loadingSales) return <p>Cargando…</p>;
@@ -44,6 +49,48 @@ export default function Tablero() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="row g-3 mt-1">
+        <div className="col-lg-8">
+          <div className="card h-100">
+            <div className="card-body">
+              <div className="text-muted small text-uppercase fw-semibold mb-3">Gestión por estado</div>
+              {stats.porEstado.length === 0 ? (
+                <div className="small text-muted">Aún no hay contactos gestionados.</div>
+              ) : (
+                stats.porEstado.map((e) => (
+                  <div className="d-flex align-items-center gap-3 mb-2" key={e.label}>
+                    <div className="small" style={{ width: 160 }}>{e.label}</div>
+                    <div className="flex-grow-1 rounded" style={{ height: 8, background: '#eef0f3' }}>
+                      <div className="rounded" style={{ height: 8, width: `${(e.n / leads.length) * 100}%`, background: '#111a2c' }} />
+                    </div>
+                    <div className="small fw-semibold text-end" style={{ width: 28 }}>{e.n}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-4">
+          <div className="card h-100">
+            <div className="card-body">
+              <div className="text-muted small text-uppercase fw-semibold mb-3">Resumen</div>
+              {[
+                ['Contactabilidad', `${stats.contactabilidad}%`],
+                ['Conversión sobre gestionados', `${stats.conversion}%`],
+                ['Ventas registradas', stats.ventasTotal],
+                ['Ventas activas', stats.activas],
+                ['Ventas caídas', stats.caidas],
+              ].map(([k, v]) => (
+                <div className="d-flex justify-content-between py-2 border-bottom small" key={k}>
+                  <span className="text-muted">{k}</span>
+                  <span className="fw-semibold">{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
