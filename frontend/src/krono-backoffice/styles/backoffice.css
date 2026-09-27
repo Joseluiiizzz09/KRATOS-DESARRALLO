@@ -95,17 +95,16 @@ body{
   width:58px;height:58px;border-radius:50%;
   background:#fff;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  box-shadow:0 6px 18px rgba(229,62,62,.2),0 0 0 2px rgba(229,62,62,.1);
-  animation:bob 4s ease-in-out infinite;
+  box-shadow:0 1px 3px rgba(15,23,42,.12),0 0 0 1px rgba(15,23,42,.06);
   transition:transform .3s var(--sp),box-shadow .3s;
 }
-.logo-circle:hover{animation-play-state:paused;transform:scale(1.08);box-shadow:0 8px 24px rgba(229,62,62,.3),0 0 0 3px rgba(229,62,62,.2);}
+.logo-circle:hover{transform:scale(1.08);box-shadow:0 4px 12px rgba(15,23,42,.16),0 0 0 1px rgba(15,23,42,.08);}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .logo-circle img{width:42px;height:42px;object-fit:contain;}
 
 /* Encabezado compacto de Back Office, como la referencia del usuario. */
 .bo-root .brand{gap:9px;}
-.bo-root .logo-circle{width:46px!important;height:46px!important;animation:none;box-shadow:0 3px 11px rgba(229,62,62,.16),0 0 0 1px rgba(229,62,62,.12);}
+.bo-root .logo-circle{width:46px!important;height:46px!important;box-shadow:0 1px 3px rgba(15,23,42,.12),0 0 0 1px rgba(15,23,42,.06);}
 .bo-root .logo-circle img{width:34px!important;height:34px!important;}
 .bo-root .brand-text h1{font-family:'Archivo Black',sans-serif!important;font-size:15px!important;font-weight:400!important;letter-spacing:-.35px!important;white-space:nowrap;}
 .bo-root .brand-text h1 .red{font:inherit!important;color:var(--brand)!important;}
