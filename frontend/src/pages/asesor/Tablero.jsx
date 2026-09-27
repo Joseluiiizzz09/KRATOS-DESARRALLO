@@ -72,6 +72,12 @@ export default function Tablero() {
       label,
       value: dias.filter((s) => s.dia.slice(0, 7) === `${anio}-${pad(i + 1)}`).length,
     }));
+    const hoyDias = dias.filter((s) => s.dia === hoy);
+    const resumenDia = [
+      { label: 'Ventas', value: hoyDias.length },
+      { label: 'Activas', value: activas(hoyDias) },
+      { label: 'Caídas', value: caidas(hoyDias) },
+    ];
     const resumenMes = [
       { label: 'Ventas', value: enMes.length },
       { label: 'Activas', value: activas(enMes) },
@@ -81,6 +87,7 @@ export default function Tablero() {
     return {
       ultimosDias,
       todosMeses,
+      resumenDia,
       anio,
       ultimosMeses,
       resumenMes,
@@ -123,8 +130,8 @@ export default function Tablero() {
       </div>
 
       <div className="row g-3 mt-1">
+        <div className="col-lg-4"><BarChart title="Hoy · ventas, activas y caídas" data={stats.resumenDia} /></div>
         <div className="col-lg-4"><BarChart title="Ventas · últimos 7 días" data={stats.ultimosDias} /></div>
-        <div className="col-lg-4"><BarChart title="Ventas · últimos 6 meses" data={stats.ultimosMeses} /></div>
         <div className="col-lg-4"><BarChart title="Este mes · ventas, activas y caídas" data={stats.resumenMes} /></div>
       </div>
 
