@@ -11,6 +11,7 @@ import CargaMasiva from './pages/backoffice/CargaMasiva.jsx';
 import Rendimiento from './pages/backoffice/Rendimiento.jsx';
 import AvanceAsesores from './pages/backoffice/AvanceAsesores.jsx';
 import KronoBackoffice from './krono-backoffice/pages/Backoffice.jsx';
+import KronoLogin from './krono-backoffice/pages/Login.jsx';
 
 const HOME = { asesor: '/asesor', backoffice: '/backoffice', admin: '/backoffice' };
 
@@ -61,6 +62,7 @@ function AppRoutes() {
         <Route path="rendimiento" element={<Rendimiento />} />
         <Route path="avance-asesores" element={<AvanceAsesores />} />
       </Route>
+      <Route path="/krono-backoffice/login" element={<KronoLogin />} />
       <Route
         path="/krono-backoffice"
         element={

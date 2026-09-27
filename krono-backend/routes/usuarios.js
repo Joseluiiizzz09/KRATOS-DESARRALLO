@@ -1,0 +1,304 @@
+/* ================================================
+   ROUTES/USUARIOS.JS — MySQL
+   ================================================ */
+const express = require('express');
+const router  = express.Router();
+const bcrypt  = require('bcryptjs');
+const db      = require('../database');
+const auth    = require('../middleware/auth');
+const { validar, errorTexto, errorEnum, errorPermisos, GENERO_OK } = require('../middleware/validar');
+const { desbloquearLogin } = require('../security/loginRateLimit');
+
+const ROLES = ['jefatura','usuarios'];
+const CARGOS_VALIDOS = ['jefatura','usuarios','supervisor','backoffice','asesor','validacion','grabaciones','seguimiento','programacion','cobranzas','calidad','supcalidad','supgrabaciones','backreclutamiento','entrevistas','capacitador','marketing'];
+const ROLES_LECTURA_SALAS = ['jefatura','usuarios','backoffice','supervisor','backreclutamiento','programacion'];
+
+function normalizarPermisos(permisos) {
+  if (!Array.isArray(permisos)) return [];
+  return [...new Set(permisos.map(p => String(p).trim().toLowerCase()).filter(Boolean))];
+}
+
+function permisosSonValidos(permisos) {
+  return permisos.every(p => CARGOS_VALIDOS.includes(p));
+}
+
+function normalizarNombrePersonal(nombre) {
+  return String(nombre || '').trim().replace(/\s+/g, ' ').toUpperCase();
+}
+
+let promesaTablaPlanilla;
+function asegurarTablaPlanilla() {
+  if (!promesaTablaPlanilla) {
+    promesaTablaPlanilla = db.query(`
+      CREATE TABLE IF NOT EXISTS planilla_colaboradores (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        usuario_id INT NOT NULL UNIQUE,
+        capacitacion_id INT NULL UNIQUE,
+        nombres_completos VARCHAR(150) NOT NULL,
+        usuario VARCHAR(100) NOT NULL,
+        cargo VARCHAR(60) NOT NULL,
+        sala VARCHAR(60) NULL,
+        dni VARCHAR(20) NOT NULL,
+        fecha_nacimiento DATE NOT NULL,
+        banco VARCHAR(20) NOT NULL,
+        numero_cuenta VARCHAR(80) NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_planilla_dni (dni)
+      )
+    `).catch(error => { promesaTablaPlanilla = null; throw error; });
+  }
+  return promesaTablaPlanilla;
+}
+
+// Salas disponibles para filtros. No expone datos personales de usuarios.
+router.get('/salas', auth(ROLES_LECTURA_SALAS), async (req, res) => {
+  try {
+    const [lista] = await db.query(`
+      SELECT DISTINCT TRIM(sala) AS sala
+      FROM usuarios
+      WHERE sala IS NOT NULL AND TRIM(sala) <> ''
+      ORDER BY sala ASC
+    `);
+    res.json({ ok: true, data: lista.map(item => item.sala) });
+  } catch (e) {
+    res.status(500).json({ ok: false, mensaje: 'Error al obtener las salas.' });
+  }
+});
+
+router.get('/planilla', auth(ROLES), async (req, res) => {
+  try {
+    await asegurarTablaPlanilla();
+    const [lista] = await db.query(`
+      SELECT id, usuario_id, nombres_completos, usuario, cargo, sala, dni,
+             fecha_nacimiento, banco, numero_cuenta, created_at
+      FROM planilla_colaboradores ORDER BY created_at DESC, id DESC
+    `);
+    res.json({ ok:true, data:lista });
+  } catch (e) {
+    console.error('[GET /usuarios/planilla]', e.message || e);
+    res.status(500).json({ ok:false, mensaje:'No se pudo cargar Planilla.' });
+  }
+});
+
+// GET todos
+router.get('/', auth(['jefatura','usuarios','backoffice','supervisor','backreclutamiento']), async (req, res) => {
+  try {
+    const [lista] = await db.query(`
+      SELECT id, nombre, usuario, cargo, sala, genero, activo, permisos, created_at
+      FROM usuarios ORDER BY created_at DESC
+    `);
+    res.json({ ok: true, data: lista.map(u => ({
+      ...u,
+      activo: !!u.activo,
+      permisos: (() => { try { return JSON.parse(u.permisos||'[]'); } catch(e){ return []; } })()
+    }))});
+  } catch(e) {
+    res.status(500).json({ ok: false, mensaje: 'Error al obtener usuarios' });
+  }
+});
+
+// POST crear
+router.post('/', auth(ROLES), async (req, res) => {
+  try {
+    const { nombre, usuario, password, cargo, sala, genero, activo, permisos } = req.body;
+    const nombreNormalizado = normalizarNombrePersonal(nombre);
+    if (!nombre || !usuario || !password || !cargo)
+      return res.status(400).json({ ok: false, mensaje: 'Campos obligatorios faltantes' });
+
+    const errores = validar([
+      errorTexto(nombreNormalizado, 'nombre', { requerido: true, max: 150 }),
+      errorTexto(usuario,  'usuario',  { requerido: true, max: 100 }),
+      errorTexto(password, 'password', { requerido: true, max: 100 }),
+      (password && String(password).length < 6) ? 'password debe tener al menos 6 caracteres' : null,
+      errorEnum(genero, 'genero', GENERO_OK),
+      errorPermisos(permisos),
+    ]);
+    if (errores) return res.status(400).json({ ok: false, mensaje: errores[0], errores });
+
+    if (!CARGOS_VALIDOS.includes(cargo))
+      return res.status(400).json({ ok: false, mensaje: 'Cargo inválido' });
+
+    const permisosFinal = normalizarPermisos(permisos);
+    if (!permisosSonValidos(permisosFinal))
+      return res.status(400).json({ ok: false, mensaje: 'Permiso inválido' });
+    if (permisosFinal.includes(cargo))
+      return res.status(400).json({ ok: false, mensaje: 'El cargo adicional debe ser diferente al principal' });
+
+    // Jefatura no puede entregarse ni como cargo ni como permiso adicional
+    // por una cuenta de Gestión de Usuarios. De otro modo el middleware
+    // autorizaría sus rutas mediante `permisos` y habría escalamiento.
+    if ((cargo === 'jefatura' || permisosFinal.includes('jefatura')) && req.user.cargo !== 'jefatura')
+      return res.status(403).json({ ok: false, mensaje: 'Solo jefatura puede crear administradores' });
+
+    const [existe] = await db.query(`SELECT id FROM usuarios WHERE usuario = ?`, [usuario.toLowerCase()]);
+    if (existe.length) return res.status(409).json({ ok: false, mensaje: 'Ese usuario ya existe' });
+
+    const hash = bcrypt.hashSync(password, 10);
+    const permisosJSON = JSON.stringify(permisosFinal);
+    const [result] = await db.query(`
+      INSERT INTO usuarios (nombre, usuario, password, cargo, sala, genero, activo, permisos)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `, [nombreNormalizado, usuario.toLowerCase(), hash, cargo, sala||null, genero||'M', activo!==false?1:0, permisosJSON]);
+
+    res.json({ ok: true, id: result.insertId, mensaje: 'Usuario creado' });
+  } catch(e) {
+    console.error('[POST /usuarios]', e.message || e);
+    res.status(500).json({ ok: false, mensaje: 'Error al crear usuario' });
+  }
+});
+
+// PATCH editar
+router.patch('/:id', auth(ROLES), async (req, res) => {
+  try {
+    const { nombre, usuario, cargo, sala, genero, password, permisos } = req.body;
+    const nombreNormalizado = normalizarNombrePersonal(nombre);
+
+    const errores = validar([
+      errorTexto(nombreNormalizado, 'nombre', { requerido: true, max: 150 }),
+      errorTexto(usuario, 'usuario', { requerido: true, max: 100 }),
+      errorTexto(password, 'password', { max: 100 }),
+      (password && String(password).length < 6) ? 'password debe tener al menos 6 caracteres' : null,
+      errorPermisos(permisos),
+    ]);
+    if (errores) return res.status(400).json({ ok: false, mensaje: errores[0], errores });
+
+    const [rows] = await db.query(`SELECT id, cargo, genero FROM usuarios WHERE id = ?`, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ ok: false, mensaje: 'Usuario no encontrado' });
+
+    const cargoSolicitado = cargo === undefined ? rows[0].cargo : cargo;
+    if (!CARGOS_VALIDOS.includes(cargoSolicitado))
+      return res.status(400).json({ ok: false, mensaje: 'Cargo inválido' });
+    const generoFinal = genero === undefined ? rows[0].genero : genero;
+    if (errorEnum(generoFinal, 'genero', GENERO_OK))
+      return res.status(400).json({ ok: false, mensaje: 'genero inválido' });
+
+    const permisosFinal = permisos === undefined ? undefined : normalizarPermisos(permisos);
+    if (permisosFinal !== undefined && !permisosSonValidos(permisosFinal))
+      return res.status(400).json({ ok: false, mensaje: 'Permiso inválido' });
+    if (permisosFinal?.includes(cargoSolicitado))
+      return res.status(400).json({ ok: false, mensaje: 'El cargo adicional debe ser diferente al principal' });
+    if ((cargoSolicitado === 'jefatura' || permisosFinal?.includes('jefatura')) && req.user.cargo !== 'jefatura')
+      return res.status(403).json({ ok: false, mensaje: 'Solo jefatura puede asignar Jefatura' });
+
+    // Solo jefatura puede cambiar el cargo o los permisos de un usuario
+    if ((cargo !== undefined && cargo !== rows[0].cargo) || permisos !== undefined) {
+      if (req.user.cargo !== 'jefatura') {
+        return res.status(403).json({ ok: false, mensaje: 'Solo jefatura puede cambiar el cargo o permisos' });
+      }
+    }
+
+    if (usuario) {
+      const [existe] = await db.query(`SELECT id FROM usuarios WHERE usuario = ? AND id != ?`, [usuario.toLowerCase(), req.params.id]);
+      if (existe.length) return res.status(409).json({ ok: false, mensaje: 'Ese usuario ya existe' });
+    }
+
+    const cargofinal    = req.user.cargo === 'jefatura' ? cargoSolicitado : rows[0].cargo;
+    const permisosJSON  = req.user.cargo === 'jefatura' ? JSON.stringify(permisosFinal || []) : undefined;
+
+    if (password) {
+      const hash = bcrypt.hashSync(password, 10);
+      if (permisosJSON !== undefined) {
+        await db.query(`UPDATE usuarios SET nombre=?, usuario=?, cargo=?, sala=?, genero=?, password=?, permisos=? WHERE id=?`,
+          [nombreNormalizado, usuario.toLowerCase(), cargofinal, sala||null, generoFinal, hash, permisosJSON, req.params.id]);
+      } else {
+        await db.query(`UPDATE usuarios SET nombre=?, usuario=?, cargo=?, sala=?, genero=?, password=? WHERE id=?`,
+          [nombreNormalizado, usuario.toLowerCase(), cargofinal, sala||null, generoFinal, hash, req.params.id]);
+      }
+    } else {
+      if (permisosJSON !== undefined) {
+        await db.query(`UPDATE usuarios SET nombre=?, usuario=?, cargo=?, sala=?, genero=?, permisos=? WHERE id=?`,
+          [nombreNormalizado, usuario.toLowerCase(), cargofinal, sala||null, generoFinal, permisosJSON, req.params.id]);
+      } else {
+        await db.query(`UPDATE usuarios SET nombre=?, usuario=?, cargo=?, sala=?, genero=? WHERE id=?`,
+          [nombreNormalizado, usuario.toLowerCase(), cargofinal, sala||null, generoFinal, req.params.id]);
+      }
+    }
+    res.json({ ok: true, mensaje: 'Usuario actualizado' });
+  } catch(e) {
+    console.error('[PATCH /usuarios/:id]', e.message || e);
+    res.status(500).json({ ok: false, mensaje: 'Error al actualizar usuario' });
+  }
+});
+
+// PATCH activar/desactivar
+router.patch('/:id/estado', auth(ROLES), async (req, res) => {
+  try {
+    const { activo } = req.body;
+    const [target] = await db.query(`SELECT cargo FROM usuarios WHERE id = ?`, [req.params.id]);
+    if (!target.length) return res.status(404).json({ ok: false, mensaje: 'Usuario no encontrado' });
+    if (req.user.cargo !== 'jefatura' && target[0].cargo === 'jefatura')
+      return res.status(403).json({ ok: false, mensaje: 'Solo jefatura puede activar/desactivar cuentas de jefatura' });
+    await db.query(`UPDATE usuarios SET activo = ? WHERE id = ?`, [activo ? 1 : 0, req.params.id]);
+    res.json({ ok: true, mensaje: activo ? 'Usuario activado' : 'Usuario desactivado' });
+  } catch(e) {
+    res.status(500).json({ ok: false, mensaje: 'Error al cambiar estado' });
+  }
+});
+
+// PATCH /api/usuarios/:id/desbloquear-login
+// Reinicia únicamente los intentos fallidos del login. No cambia contraseña,
+// estado activo, cargo ni permisos. Acción exclusiva de Jefatura.
+router.patch('/:id/desbloquear-login', auth(['jefatura']), async (req, res) => {
+  try {
+    const [rows] = await db.query(`SELECT id, nombre, usuario FROM usuarios WHERE id = ? LIMIT 1`, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ ok: false, mensaje: 'Usuario no encontrado' });
+    desbloquearLogin(rows[0].usuario);
+    res.json({ ok: true, mensaje: `${rows[0].nombre} fue desbloqueado. Ya puede iniciar sesión.` });
+  } catch (e) {
+    console.error('[DESBLOQUEAR LOGIN]', e.message || e);
+    res.status(500).json({ ok: false, mensaje: 'No se pudo desbloquear el usuario' });
+  }
+});
+
+// DELETE
+router.delete('/:id', auth(ROLES), async (req, res) => {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.query(`SELECT id, nombre, usuario, cargo FROM usuarios WHERE id = ? FOR UPDATE`, [req.params.id]);
+    if (!rows.length) {
+      await conn.rollback();
+      return res.status(404).json({ ok: false, mensaje: 'Usuario no encontrado' });
+    }
+    if (Number(rows[0].id) === Number(req.user.id)) {
+      await conn.rollback();
+      return res.status(403).json({ ok: false, mensaje: 'No puedes eliminar tu propia cuenta' });
+    }
+    if (rows[0].cargo === 'jefatura') {
+      if (req.user.cargo !== 'jefatura') {
+        await conn.rollback();
+        return res.status(403).json({ ok: false, mensaje: 'Solo jefatura puede eliminar cuentas de jefatura' });
+      }
+      const [[{ total }]] = await conn.query(
+        'SELECT COUNT(*) AS total FROM usuarios WHERE cargo = ? AND activo = 1',
+        ['jefatura']
+      );
+      if (total <= 1) {
+        await conn.rollback();
+        return res.json({ ok: false, mensaje: 'No puedes eliminar el último usuario de Jefatura' });
+      }
+    }
+    const usuario = rows[0];
+    // Antes de soltar las llaves foráneas, consolida el nombre histórico en
+    // cada registro operativo para que ventas y asignaciones sigan atribuidas.
+    await conn.query(`UPDATE ventas SET asesor_nombre=? WHERE asesor_id=?`, [usuario.nombre, usuario.id]);
+    await conn.query(`UPDATE ventas SET grabando_por_nombre=? WHERE grabando_por_id=?`, [usuario.nombre, usuario.id]);
+    await conn.query(`UPDATE leads SET asesor_nombre=? WHERE asesor_id=?`, [usuario.nombre, usuario.id]);
+    await conn.query(`UPDATE lead_ciclos_venta SET asesor_nombre=? WHERE asesor_id=?`, [usuario.nombre, usuario.id]);
+    await conn.query(`UPDATE venta_asignaciones SET asesor_anterior_nombre=? WHERE asesor_anterior_id=?`, [usuario.nombre, usuario.id]);
+    await conn.query(`UPDATE venta_asignaciones SET asesor_nuevo_nombre=? WHERE asesor_nuevo_id=?`, [usuario.nombre, usuario.id]);
+    await conn.query(`UPDATE venta_historial SET usuario_nombre=? WHERE usuario_id=?`, [usuario.nombre, usuario.id]);
+    await conn.query(`DELETE FROM usuarios WHERE id = ?`, [usuario.id]);
+    await conn.commit();
+    res.json({ ok: true, mensaje: 'Usuario eliminado' });
+  } catch(e) {
+    await conn.rollback().catch(() => {});
+    console.error('[ELIMINAR USUARIO]', e.message || e);
+    res.status(500).json({ ok: false, mensaje: 'Error al eliminar usuario' });
+  } finally {
+    conn.release();
+  }
+});
+
+module.exports = router;
