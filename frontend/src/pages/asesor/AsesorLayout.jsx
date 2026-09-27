@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import logo from '../../assets/kratos-logo.webp';
 import './asesor.css';
 
 const NAV_ITEMS = [
@@ -16,12 +17,7 @@ export default function AsesorLayout() {
       <aside className="d-flex flex-column border-end bg-white" style={{ width: 232, flexShrink: 0 }}>
         <div className="p-3 border-bottom">
           <div className="d-flex align-items-center gap-2">
-            <div
-              className="d-flex align-items-center justify-content-center bg-danger text-white rounded fw-bold"
-              style={{ width: 32, height: 32 }}
-            >
-              K
-            </div>
+            <img src={logo} alt="" width={40} height={40} style={{ flexShrink: 0 }} />
             <div>
               <div className="fw-bold" style={{ letterSpacing: '.05em' }}>KRATOS</div>
               <div className="text-muted" style={{ fontSize: 11 }}>Sistema de llamadas</div>
