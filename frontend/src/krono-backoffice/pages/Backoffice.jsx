@@ -2552,7 +2552,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
             <img src="/assets/kratos-logo.webp" alt="" width={40} height={40} style={{flexShrink:0,borderRadius:0,boxShadow:"none",background:"none"}} />
             <div className="brand-text">
               <h1 style={{margin:0,fontFamily:"'Montserrat','Inter',sans-serif",fontWeight:800,fontSize:24,lineHeight:1,letterSpacing:"0.02em",color:"#111827"}}>KRATOS</h1>
-              <span className="brand-sub" style={{fontSize:11,color:"#6b7280",textTransform:"none",letterSpacing:"normal",fontWeight:400}}>Sistema de llamadas</span>
+              <span className="brand-sub" style={{fontSize:11,color:"#6b7280",textTransform:"none",letterSpacing:"normal",fontWeight:400}}>Back data</span>
             </div>
           </div>
           <button

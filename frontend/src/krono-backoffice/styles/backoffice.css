@@ -106,7 +106,7 @@ body{
 .bo-root .brand{gap:9px;}
 .bo-root .logo-circle{width:46px!important;height:46px!important;box-shadow:0 1px 3px rgba(15,23,42,.12),0 0 0 1px rgba(15,23,42,.06);}
 .bo-root .logo-circle img{width:34px!important;height:34px!important;}
-.bo-root .brand-text h1{font-family:'Archivo Black',sans-serif!important;font-size:15px!important;font-weight:400!important;letter-spacing:-.35px!important;white-space:nowrap;}
+.bo-root .brand-text h1{font-family:'Montserrat','Inter',sans-serif!important;font-size:24px!important;font-weight:800!important;letter-spacing:.02em!important;white-space:nowrap;color:#111827;}
 .bo-root .brand-text h1 .red{font:inherit!important;color:var(--brand)!important;}
 .bo-root .brand-text h1 .dot{width:4px;height:4px;margin-left:1px;margin-right:1px;}
 .bo-root .brand-text .brand-sub{font-size:8px!important;letter-spacing:.8px!important;font-weight:600!important;margin-top:2px!important;white-space:nowrap;}
