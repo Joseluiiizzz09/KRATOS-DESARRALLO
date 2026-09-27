@@ -200,8 +200,8 @@ export default function Login() {
   if (seleccionCargo) {
     return (
       <div className="kl-page">
-        <section className="kl-brand" aria-label="KRONO">
-          <h1 className="kl-brand-title">KRONO</h1>
+        <section className="kl-brand" aria-label="KRATOS">
+          <h1 className="kl-brand-title">KRATOS</h1>
           <p className="kl-brand-tagline">Gestión comercial con control total.</p>
           <ul className="kl-features">
             {FEATURES.map((feature) => (
@@ -243,8 +243,8 @@ export default function Login() {
   /* ===== LOGIN NORMAL: mismo diseño (partido, panel oscuro + formulario) del login de KRATOS ===== */
   return (
     <div className="kl-page">
-      <section className="kl-brand" aria-label="KRONO">
-        <h1 className="kl-brand-title">KRONO</h1>
+      <section className="kl-brand" aria-label="KRATOS">
+        <h1 className="kl-brand-title">KRATOS</h1>
         <p className="kl-brand-tagline">Gestión comercial con control total.</p>
         <ul className="kl-features">
           {FEATURES.map((feature) => (
@@ -259,7 +259,7 @@ export default function Login() {
       <main className="kl-form-panel">
         <div className="kl-form-wrap">
           <h2 className="kl-title">
-            Bienvenido a <strong>KRONO</strong>
+            Bienvenido a <strong>KRATOS</strong>
           </h2>
           <p className="kl-subtitle">Ingrese sus credenciales para continuar.</p>
 
@@ -329,7 +329,7 @@ export default function Login() {
         <p className="kl-footer">
           Acceso solo para usuarios autorizados.
           <br />
-          © 2026 KRONO · Back Office
+          © 2026 KRATOS · Back Office
         </p>
       </main>
     </div>
