@@ -5,8 +5,7 @@
 export const RUTAS = {
   asesor:         '/dashboard',
   supervisor:     '/supervisor',
-  // Cambio deliberado (solo esta línea): '/backoffice' ya es la ruta del Back Office propio de KRATOS.
-  backoffice:     '/krono-backoffice',
+  backoffice:     '/backoffice',
   validacion:     '/validacion',
   grabaciones:    '/grabaciones',
   seguimiento:    '/seguimiento',

@@ -30,7 +30,7 @@ lleva al backend). Aquí ese proxy lo hace Vite: ver `proxy` en
 `frontend/vite.config.js`, que reenvía `/api` a `http://localhost:3000`
 (este servidor) solo en desarrollo.
 
-Para iniciar sesión ahí: `http://localhost:5174/krono-backoffice/login`,
+Para iniciar sesión ahí: `http://localhost:5174/backoffice/login`,
 con un usuario que exista en `krono_local` con `cargo = 'backoffice'`.
 
 ## Qué se cambió a propósito (todo lo demás es literal)
@@ -39,9 +39,11 @@ con un usuario que exista en `krono_local` con `cargo = 'backoffice'`.
   de `/api` (relativa) a `http://localhost:3000/api`, porque esta página
   se abre antes de que exista el proxy de sesión — el resto del archivo
   no se tocó.
-- `frontend/src/krono-backoffice/utils/rutas.js`: la ruta del cargo
-  `backoffice` pasa de `/backoffice` a `/krono-backoffice`, porque
-  `/backoffice` ya es el Back Office propio de KRATOS.
+- `frontend/src/App.jsx`: la ruta `/backoffice` de KRATOS ahora es este
+  Back Office de KRONO tal cual (con su propio login, en
+  `/backoffice/login`, independiente del login de KRATOS). El Back Office
+  adaptado que había antes ahí sigue en el repo (`pages/backoffice/`),
+  solo que ya no está enrutado.
 
 ## Qué no funciona igual que en producción
 

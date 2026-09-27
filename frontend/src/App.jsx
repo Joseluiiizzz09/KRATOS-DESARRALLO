@@ -5,13 +5,9 @@ import AsesorLayout from './pages/asesor/AsesorLayout.jsx';
 import BaseLlamadas from './pages/asesor/BaseLlamadas.jsx';
 import Tablero from './pages/asesor/Tablero.jsx';
 import MisVentas from './pages/asesor/MisVentas.jsx';
-import BackofficeLayout from './pages/backoffice/BackofficeLayout.jsx';
-import Base from './pages/backoffice/Base.jsx';
-import CargaMasiva from './pages/backoffice/CargaMasiva.jsx';
-import Rendimiento from './pages/backoffice/Rendimiento.jsx';
-import AvanceAsesores from './pages/backoffice/AvanceAsesores.jsx';
 import KronoBackoffice from './krono-backoffice/pages/Backoffice.jsx';
 import KronoLogin from './krono-backoffice/pages/Login.jsx';
+import { leerSesionActual, useAuth as useAuthKrono } from './krono-backoffice/hooks/useAuth.js';
 
 const HOME = { asesor: '/asesor', backoffice: '/backoffice', admin: '/backoffice' };
 
@@ -31,6 +27,14 @@ function Inicio() {
   return <Navigate to={HOME[user.rol] || '/asesor'} replace />;
 }
 
+/** Puerta propia de KRONO (sessionStorage nc_token), igual que en su App.jsx original: sin sesión, a su login. */
+function RutaKrono({ children }) {
+  useAuthKrono();
+  const sesion = leerSesionActual();
+  if (!sesion) return <Navigate to="/backoffice/login" replace />;
+  return children;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -48,27 +52,13 @@ function AppRoutes() {
         <Route path="tablero" element={<Tablero />} />
         <Route path="ventas" element={<MisVentas />} />
       </Route>
+      <Route path="/backoffice/login" element={<KronoLogin />} />
       <Route
         path="/backoffice"
         element={
-          <RutaPrivada roles={['backoffice', 'admin']}>
-            <BackofficeLayout />
-          </RutaPrivada>
-        }
-      >
-        <Route index element={<Navigate to="base" replace />} />
-        <Route path="base" element={<Base />} />
-        <Route path="carga-masiva" element={<CargaMasiva />} />
-        <Route path="rendimiento" element={<Rendimiento />} />
-        <Route path="avance-asesores" element={<AvanceAsesores />} />
-      </Route>
-      <Route path="/krono-backoffice/login" element={<KronoLogin />} />
-      <Route
-        path="/krono-backoffice"
-        element={
-          <RutaPrivada roles={['backoffice', 'admin']}>
+          <RutaKrono>
             <KronoBackoffice />
-          </RutaPrivada>
+          </RutaKrono>
         }
       />
       <Route path="*" element={<Inicio />} />
