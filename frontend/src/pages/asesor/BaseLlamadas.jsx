@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLeads } from '../../hooks/useLeads';
 import { useSales } from '../../hooks/useSales';
-import { STATUSES } from '../../data/catalog';
+import { statusOptions, statusTone } from '../../data/catalog';
 import SaleModal from '../../components/SaleModal.jsx';
 import { CheckIcon, CopyIcon, PhoneIcon, WhatsAppIcon } from '../../components/icons.jsx';
 import './asesor.css';
@@ -206,12 +206,12 @@ function FilaLead({ lead, onStatusChange, onNoteBlur }) {
       <td><span className="ka-clamp" title={lead.backNotes || ''}>{lead.backNotes || 'Sin observaciones'}</span></td>
       <td>
         <select
-          className={`ka-status ka-status--${lead.status}`}
+          className={`ka-status ka-status--${statusTone(lead.status)}`}
           value={lead.status}
           onChange={(e) => onStatusChange(e.target.value)}
           aria-label={`Estado de ${lead.phone}`}
         >
-          {STATUSES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          {statusOptions(lead.status).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
       </td>
       <td>

@@ -87,8 +87,8 @@
 .ka-table th:nth-child(2) { width: 14.8%; }
 .ka-table th:nth-child(3) { width: 10.4%; }
 .ka-table th:nth-child(4) { width: 10.7%; }
-.ka-table th:nth-child(5) { width: 11.4%; }
-.ka-table th:nth-child(6) { width: 13.3%; }
+.ka-table th:nth-child(5) { width: 12.6%; }
+.ka-table th:nth-child(6) { width: 12.1%; }
 .ka-table th:nth-child(7) { width: 6.3%; }
 .ka-table th:nth-child(8) { width: 11.4%; }
 .ka-table th:nth-child(9) { width: 6.9%; }
@@ -188,11 +188,11 @@
 /* Estado: selector con color según el valor */
 .ka-status {
   width: 100%;
-  max-width: 170px;
+  max-width: 200px;
   height: 32px;
-  padding: 0 28px 0 13px;
+  padding: 0 26px 0 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #55646f;
   cursor: pointer;
@@ -212,10 +212,11 @@
 }
 
 .ka-status--pendiente { color: #9a6414; background-color: #fbf1e2; }
-.ka-status--contactado { color: #1a6598; background-color: #e9f2f8; }
+.ka-status--gestion { color: #1a6598; background-color: #e9f2f8; }
 .ka-status--agendado { color: #8a1c2b; background-color: #f9eef0; }
-.ka-status--venta_cerrada { color: #2c7048; background-color: #e9f4ed; }
-.ka-status--no_interesado { color: #a8323e; background-color: #fbeceb; }
+.ka-status--venta { color: #2c7048; background-color: #e9f4ed; }
+.ka-status--sin-respuesta { color: #55646f; background-color: #edf1f4; }
+.ka-status--negativo { color: #a8323e; background-color: #fbeceb; }
 
 .ka-note {
   width: 100%;
