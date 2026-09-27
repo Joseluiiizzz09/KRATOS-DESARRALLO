@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useSales } from '../../hooks/useSales';
 import { localDay } from '../../utils/date';
 
+const VERDE = '#16a34a';
+const ROJO = '#dc2626';
 const ACTIVAS = ['aprobada', 'auditada'];
 
 function pad(n) {
@@ -29,15 +31,15 @@ function DualBarChart({ title, data }) {
         <div className="d-flex justify-content-between align-items-start mb-3">
           <div className="text-muted small text-uppercase fw-semibold">{title}</div>
           <div className="d-flex gap-3 text-muted" style={{ fontSize: 11 }}>
-            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: '#111a2c' }} />Activas</span>
-            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: '#8b95a5' }} />Caídas</span>
+            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: VERDE }} />Activas</span>
+            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: ROJO }} />Caídas</span>
           </div>
         </div>
         <div className="d-flex align-items-end" style={{ height: 180 }}>
           {data.map((d) => (
             <div className="flex-grow-1 d-flex align-items-end justify-content-center gap-1 h-100" key={d.label}>
-              {bar(d.activas, '#111a2c')}
-              {bar(d.caidas, '#8b95a5')}
+              {bar(d.activas, VERDE)}
+              {bar(d.caidas, ROJO)}
             </div>
           ))}
         </div>
@@ -61,7 +63,7 @@ function BarChart({ title, data }) {
           {data.map((d) => (
             <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-end h-100" key={d.label}>
               <div className="small fw-semibold mb-1">{d.value}</div>
-              <div style={{ width: '100%', maxWidth: 64, height: `${(d.value / max) * 100}%`, minHeight: d.value ? 4 : 2, background: d.value ? '#111a2c' : '#d3d8df', borderRadius: '6px 6px 0 0' }} />
+              <div style={{ width: '100%', maxWidth: 64, height: `${(d.value / max) * 100}%`, minHeight: d.value ? 4 : 2, background: d.value ? d.color || VERDE : '#d3d8df', borderRadius: '6px 6px 0 0' }} />
             </div>
           ))}
         </div>
@@ -111,14 +113,14 @@ export default function Tablero() {
     }));
     const hoyDias = dias.filter((s) => s.dia === hoy);
     const resumenDia = [
-      { label: 'Ventas', value: hoyDias.length },
-      { label: 'Activas', value: activas(hoyDias) },
-      { label: 'Caídas', value: caidas(hoyDias) },
+      { label: 'Ventas', value: hoyDias.length, color: VERDE },
+      { label: 'Activas', value: activas(hoyDias), color: VERDE },
+      { label: 'Caídas', value: caidas(hoyDias), color: ROJO },
     ];
     const resumenMes = [
-      { label: 'Ventas', value: enMes.length },
-      { label: 'Activas', value: activas(enMes) },
-      { label: 'Caídas', value: caidas(enMes) },
+      { label: 'Ventas', value: enMes.length, color: VERDE },
+      { label: 'Activas', value: activas(enMes), color: VERDE },
+      { label: 'Caídas', value: caidas(enMes), color: ROJO },
     ];
 
     return {
