@@ -217,10 +217,6 @@
   -webkit-appearance: none;
 }
 
-.ka-status:focus-visible {
-  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
-}
-
 
 .ka-note {
   width: 100%;
