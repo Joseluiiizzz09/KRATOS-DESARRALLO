@@ -25,7 +25,7 @@ function BarChart({ title, data }) {
           {data.map((d) => (
             <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-end h-100" key={d.label}>
               <div className="small fw-semibold mb-1">{d.value}</div>
-              <div style={{ width: '100%', maxWidth: 44, height: `${(d.value / max) * 100}%`, minHeight: d.value ? 4 : 2, background: d.value ? '#111a2c' : '#d3d8df', borderRadius: '6px 6px 0 0' }} />
+              <div style={{ width: '100%', maxWidth: 64, height: `${(d.value / max) * 100}%`, minHeight: d.value ? 4 : 2, background: d.value ? '#111a2c' : '#d3d8df', borderRadius: '6px 6px 0 0' }} />
             </div>
           ))}
         </div>
@@ -35,6 +35,7 @@ function BarChart({ title, data }) {
           ))}
         </div>
       </div>
+
     </div>
   );
 }
@@ -66,6 +67,11 @@ export default function Tablero() {
       const clave = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
       return { label: MESES[d.getMonth()], value: dias.filter((s) => s.dia.slice(0, 7) === clave).length };
     });
+    const anio = String(now.getFullYear());
+    const todosMeses = MESES.map((label, i) => ({
+      label,
+      value: dias.filter((s) => s.dia.slice(0, 7) === `${anio}-${pad(i + 1)}`).length,
+    }));
     const resumenMes = [
       { label: 'Ventas', value: enMes.length },
       { label: 'Activas', value: activas(enMes) },
@@ -74,6 +80,8 @@ export default function Tablero() {
 
     return {
       ultimosDias,
+      todosMeses,
+      anio,
       ultimosMeses,
       resumenMes,
       diarias: dias.filter((s) => s.dia === hoy).length,
@@ -118,6 +126,10 @@ export default function Tablero() {
         <div className="col-lg-4"><BarChart title="Ventas · últimos 7 días" data={stats.ultimosDias} /></div>
         <div className="col-lg-4"><BarChart title="Ventas · últimos 6 meses" data={stats.ultimosMeses} /></div>
         <div className="col-lg-4"><BarChart title="Este mes · ventas, activas y caídas" data={stats.resumenMes} /></div>
+      </div>
+
+      <div className="mt-3">
+        <BarChart title={`Ventas por mes · ${stats.anio}`} data={stats.todosMeses} />
       </div>
     </div>
   );
