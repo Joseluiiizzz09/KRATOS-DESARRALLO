@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLeads } from '../../hooks/useLeads';
 import { useSales } from '../../hooks/useSales';
-import { statusOptions, statusTone } from '../../data/catalog';
+import { statusColors, statusOptions } from '../../data/catalog';
 import SaleModal from '../../components/SaleModal.jsx';
 import { CheckIcon, CopyIcon, PhoneIcon, WhatsAppIcon } from '../../components/icons.jsx';
 import './asesor.css';
@@ -197,6 +197,7 @@ function TelefonoConAcciones({ numero }) {
 
 function FilaLead({ lead, onStatusChange, onNoteBlur }) {
   const [note, setNote] = useState(lead.advisorNote || '');
+  const colores = statusColors(lead.status);
 
   return (
     <tr>
@@ -206,12 +207,16 @@ function FilaLead({ lead, onStatusChange, onNoteBlur }) {
       <td><span className="ka-clamp" title={lead.backNotes || ''}>{lead.backNotes || 'Sin observaciones'}</span></td>
       <td>
         <select
-          className={`ka-status ka-status--${statusTone(lead.status)}`}
+          className="ka-status"
+          style={{ backgroundColor: colores.bg, borderColor: colores.border, color: colores.text }}
           value={lead.status}
           onChange={(e) => onStatusChange(e.target.value)}
           aria-label={`Estado de ${lead.phone}`}
         >
-          {statusOptions(lead.status).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          {statusOptions(lead.status).map(([value, label]) => {
+            const color = statusColors(value);
+            return <option key={value} value={value} style={{ backgroundColor: color.bg, color: color.text }}>{label}</option>;
+          })}
         </select>
       </td>
       <td>
