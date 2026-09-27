@@ -1,15 +1,66 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
+import "../../pages/login.css";
 import { RUTAS, CARGO_LABELS } from "../utils/rutas";
 import { cargosDeUsuario } from "../utils/roles";
-
-const logo = "/assets/logo3.png";
 
 // Cambio deliberado (solo esta línea): en KRONO esto es relativo porque un proxy
 // del mismo dominio lo lleva al backend. Aquí, dentro de KRATOS, no hay ese proxy,
 // así que apunta directo al backend real de KRONO que corre en local (puerto 3000).
 const API = "http://localhost:3000/api";
+
+const FEATURES = [
+  {
+    label: 'Portabilidad',
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M8 12h8" />
+        <path d="m12 16 4-4-4-4" />
+      </>
+    ),
+  },
+  {
+    label: 'Altas de línea',
+    icon: (
+      <>
+        <path d="M5 12h14" />
+        <path d="M12 5v14" />
+      </>
+    ),
+  },
+  {
+    label: 'Ventas',
+    icon: (
+      <>
+        <path d="M12 16v5" />
+        <path d="M16 14v7" />
+        <path d="M20 10v11" />
+        <path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15" />
+        <path d="M4 18v3" />
+        <path d="M8 14v7" />
+      </>
+    ),
+  },
+  {
+    label: 'Operaciones',
+    icon: (
+      <>
+        <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ),
+  },
+];
+
+function Icon({ children }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,45 +69,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [errorKey, setErrorKey] = useState(0);
   const [cargando, setCargando] = useState(false);
   const [welcome, setWelcome] = useState(null);
   const [seleccionCargo, setSeleccionCargo] = useState(null);
 
   const passRef = useRef(null);
   const userRef = useRef(null);
-
-  /* ===== LIMPIEZA DE ESTILOS GLOBALES DE BODY ===== */
-  useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    const prevBg = document.body.style.background;
-    document.body.style.overflow = "hidden";
-    document.body.style.background = "#f2f2f7";
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.background = prevBg;
-    };
-  }, []);
-
-  /* ===== PARTICULAS (14, valores aleatorios fijos por montaje) ===== */
-  const particulas = useMemo(() =>
-    Array.from({ length: 14 }, () => {
-      const size = Math.random() * 5 + 3;
-      return {
-        left: Math.random() * 100 + "vw",
-        width: size + "px",
-        height: size + "px",
-        opacity: Math.random() * 0.5 + 0.2,
-        animationDuration: Math.random() * 10 + 8 + "s",
-        animationDelay: Math.random() * 8 + "s",
-      };
-    }), []);
-
-  /* ===== SALUDO DINÁMICO ===== */
-  const valUpper = usuario.trim().toUpperCase();
-  const femenino = valUpper.endsWith("A");
-  const saludoTxt = femenino ? "Bienvenida a KRONO" : "Bienvenido a KRONO";
-  const nombreTxt = usuario.trim().length < 2 ? "..." : valUpper;
 
   /* ===== Si ya hay sesión activa → redirigir ===== */
   useEffect(() => {
@@ -71,11 +89,6 @@ export default function Login() {
     } catch (e) { /* noop */ }
     userRef.current?.focus();
   }, [navigate]);
-
-  const mostrarError = (msg) => {
-    setError(msg);
-    setErrorKey((k) => k + 1);
-  };
 
   /* ===== ANIMACIÓN DE BIENVENIDA ===== */
   const mostrarBienvenida = (user) => {
@@ -129,8 +142,8 @@ export default function Login() {
     const u = usuario.trim().toLowerCase();
     const p = password;
 
-    if (!u) { mostrarError("Ingresa tu usuario."); return; }
-    if (!p) { mostrarError("Ingresa tu contraseña."); return; }
+    if (!u) { setError("Ingresa tu usuario."); return; }
+    if (!p) { setError("Ingresa tu contraseña."); return; }
 
     setCargando(true);
     try {
@@ -142,7 +155,7 @@ export default function Login() {
       const data = await res.json();
 
       if (!data.ok) {
-        mostrarError(data.mensaje || "Usuario o contraseña incorrectos.");
+        setError(data.mensaje || "Usuario o contraseña incorrectos.");
         setCargando(false);
         return;
       }
@@ -150,7 +163,7 @@ export default function Login() {
       completarLogin(data);
     } catch (err) {
       console.error("Error de conexión:", err);
-      mostrarError("No se pudo conectar al servidor. ¿Está corriendo el backend?");
+      setError("No se pudo conectar al servidor. ¿Está corriendo el backend?");
       setCargando(false);
     }
   };
@@ -160,13 +173,10 @@ export default function Login() {
     await autenticar();
   };
 
-  /* ===== PANTALLA DE TRANSICIÓN (blanca) ===== */
+  /* ===== PANTALLA DE TRANSICIÓN (bienvenida) ===== */
   if (welcome) {
     return (
       <div className={styles.transition}>
-        <div className={styles.transLogo}>
-          <img src={logo} alt="NC" />
-        </div>
         <div className={styles.transGreet}>
           {welcome.femenino ? "¡Bienvenida de nuevo," : "¡Bienvenido de nuevo,"}
         </div>
@@ -186,127 +196,142 @@ export default function Login() {
     );
   }
 
-  /* ===== LOGIN NORMAL ===== */
-  return (
-    <div className={styles.page}>
-      {/* Partículas */}
-      <div className={styles.particles}>
-        {particulas.map((p, i) => <span key={i} style={p} />)}
+  /* ===== SELECCIÓN DE ÁREA (varios cargos) ===== */
+  if (seleccionCargo) {
+    return (
+      <div className="kl-page">
+        <section className="kl-brand" aria-label="KRONO">
+          <h1 className="kl-brand-title">KRONO</h1>
+          <p className="kl-brand-tagline">Gestión comercial con control total.</p>
+          <ul className="kl-features">
+            {FEATURES.map((feature) => (
+              <li className="kl-feature" key={feature.label}>
+                <Icon>{feature.icon}</Icon>
+                <span>{feature.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <main className="kl-form-panel">
+          <div className="kl-form-wrap">
+            <h2 className="kl-title">Selecciona el área de trabajo</h2>
+            <p className="kl-subtitle">
+              {seleccionCargo.usuario?.nombre || usuario}, tienes más de un área asignada.
+            </p>
+            {error && <div className="kl-error" role="alert">{error}</div>}
+            <div className={styles.roleList}>
+              {seleccionCargo.cargos.map((cargo) => (
+                <button type="button" key={cargo} className={styles.roleButton} onClick={() => elegirArea(cargo)}>
+                  <span className={styles.roleIcon}>{(CARGO_LABELS[cargo] || cargo).slice(0, 1)}</span>
+                  <span>
+                    <strong>{CARGO_LABELS[cargo] || cargo}</strong>
+                    <small>Abrir este módulo</small>
+                  </span>
+                  <b>→</b>
+                </button>
+              ))}
+            </div>
+            <button type="button" className="kl-submit" style={{ background: '#374151', boxShadow: 'none', marginTop: 18 }} onClick={cancelarSeleccion}>
+              Cerrar sesión
+            </button>
+          </div>
+        </main>
       </div>
+    );
+  }
 
-      {/* Card */}
-      <div className={styles.loginBox}>
-        <div className={styles.blobClip}>
-          <div className={styles.blob} />
-        </div>
-        <div className={styles.frost} />
+  /* ===== LOGIN NORMAL: mismo diseño (partido, panel oscuro + formulario) del login de KRATOS ===== */
+  return (
+    <div className="kl-page">
+      <section className="kl-brand" aria-label="KRONO">
+        <h1 className="kl-brand-title">KRONO</h1>
+        <p className="kl-brand-tagline">Gestión comercial con control total.</p>
+        <ul className="kl-features">
+          {FEATURES.map((feature) => (
+            <li className="kl-feature" key={feature.label}>
+              <Icon>{feature.icon}</Icon>
+              <span>{feature.label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        <div className={styles.logoCircle}>
-          <img src={logo} alt="KRONO" />
-        </div>
+      <main className="kl-form-panel">
+        <div className="kl-form-wrap">
+          <h2 className="kl-title">
+            Bienvenido a <strong>KRONO</strong>
+          </h2>
+          <p className="kl-subtitle">Ingrese sus credenciales para continuar.</p>
 
-        <div className={styles.content}>
-          {seleccionCargo ? (
-            <>
-              <h2 className={styles.saludo}>Selecciona el área de trabajo</h2>
-              <p className={styles.roleSubtitle}>
-                {seleccionCargo.usuario?.nombre || usuario}, tienes más de un área asignada.
-              </p>
-
-              {error && <div key={errorKey} className={styles.errorMsg}>{error}</div>}
-
-              <div className={styles.roleList}>
-                {seleccionCargo.cargos.map((cargo) => (
-                  <button
-                    type="button"
-                    key={cargo}
-                    className={styles.roleButton}
-                    onClick={() => elegirArea(cargo)}
-                  >
-                    <span className={styles.roleIcon}>{(CARGO_LABELS[cargo] || cargo).slice(0, 1)}</span>
-                    <span>
-                      <strong>{CARGO_LABELS[cargo] || cargo}</strong>
-                      <small>Abrir este módulo</small>
-                    </span>
-                    <b>→</b>
-                  </button>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                className={styles.backButton}
-                onClick={cancelarSeleccion}
-              >
-                Cerrar sesión
-              </button>
-            </>
-          ) : (
-            <>
-          <h2 className={styles.saludo}>{saludoTxt}</h2>
-          <p className={styles.nombreUsuario}>{nombreTxt}</p>
-
-          {error && (
-            <div key={errorKey} className={styles.errorMsg}>{error}</div>
-          )}
-
-          <form onSubmit={doLogin} autoComplete="off">
-            <div className={styles.inputGroup}>
+          <form onSubmit={doLogin} noValidate>
+            <div className="kl-field">
+              <label className="kl-label" htmlFor="krono-usuario">Nombre de usuario</label>
               <input
+                id="krono-usuario"
                 ref={userRef}
+                className="kl-input"
                 type="text"
-                placeholder=" "
+                placeholder="Ingrese su nombre de usuario"
+                autoComplete="off"
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); passRef.current?.focus(); } }}
-                className={error ? styles.error : ""}
-                autoComplete="off"
-                required
+                autoFocus
               />
-              <label>Usuario</label>
             </div>
 
-            <div className={styles.inputGroup}>
-              <input
-                ref={passRef}
-                type={showPassword ? "text" : "password"}
-                placeholder=" "
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={error ? styles.error : ""}
-                autoComplete="new-password"
-                required
-              />
-              <label>Contraseña</label>
-              <span
-                className={styles.eye}
-                onClick={() => setShowPassword((v) => !v)}
-                title="Mostrar/ocultar"
-              >
-                {showPassword ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                    <line x1="2" x2="22" y1="2" y2="22" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </span>
+            <div className="kl-field">
+              <label className="kl-label" htmlFor="krono-password">Contraseña</label>
+              <div className="kl-input-wrap">
+                <input
+                  id="krono-password"
+                  ref={passRef}
+                  className="kl-input has-toggle"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Ingrese su contraseña"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="kl-toggle"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  <Icon>
+                    {showPassword ? (
+                      <>
+                        <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                        <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+                        <path d="m2 2 20 20" />
+                      </>
+                    ) : (
+                      <>
+                        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                        <circle cx="12" cy="12" r="3" />
+                      </>
+                    )}
+                  </Icon>
+                </button>
+              </div>
             </div>
 
-            <button type="submit" className={styles.submitBtn} disabled={cargando}>
-              {cargando ? "Verificando..." : "Iniciar sesión"}
+            {error && <div className="kl-error" role="alert">{error}</div>}
+
+            <button className="kl-submit" type="submit" disabled={cargando}>
+              {cargando ? 'Verificando…' : 'Iniciar sesión'}
             </button>
           </form>
-            </>
-          )}
         </div>
-      </div>
+
+        <p className="kl-footer">
+          Acceso solo para usuarios autorizados.
+          <br />
+          © 2026 KRONO · Back Office
+        </p>
+      </main>
     </div>
   );
 }
