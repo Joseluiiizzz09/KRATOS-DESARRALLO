@@ -1,0 +1,271 @@
+/* Portal del asesor: fondo suave con destello rosado y tarjetas redondeadas. */
+.ka-main {
+  min-width: 0;
+  padding: 28px 32px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(900px 420px at 0% 0%, rgba(232, 196, 202, 0.55), transparent 70%),
+    #ededf1;
+}
+
+.ka-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ka-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #111827;
+}
+
+.ka-search {
+  width: 260px;
+  height: 38px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 14px;
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-radius: 10px;
+  outline: none;
+}
+
+.ka-search:focus {
+  border-color: #d32f2f;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+}
+
+/* ── Tarjeta con la tabla ── */
+.ka-card {
+  overflow: hidden;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05), 0 12px 32px -18px rgba(17, 24, 39, 0.25);
+}
+
+.ka-scroll {
+  overflow-x: auto;
+}
+
+.ka-table {
+  width: 100%;
+  min-width: 1700px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* Anchos por columna: teléfono, teléfono 2, WhatsApp, obs. back, tipificación,
+   estado, observación asesor, zona, dirección, hora */
+.ka-table th:nth-child(1) { width: 150px; }
+.ka-table th:nth-child(2) { width: 130px; }
+.ka-table th:nth-child(3) { width: 210px; }
+.ka-table th:nth-child(4) { width: 230px; }
+.ka-table th:nth-child(5) { width: 150px; }
+.ka-table th:nth-child(6) { width: 190px; }
+.ka-table th:nth-child(7) { width: 230px; }
+.ka-table th:nth-child(8) { width: 120px; }
+.ka-table th:nth-child(9) { width: 240px; }
+.ka-table th:nth-child(10) { width: 100px; }
+
+.ka-table thead th {
+  padding: 15px 18px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #e6e9f0;
+  background: #111a2c;
+}
+
+.ka-table tbody td {
+  padding: 12px 18px;
+  font-size: 13.5px;
+  color: #3b4557;
+  vertical-align: middle;
+  border-top: 1px solid #edf0f4;
+}
+
+.ka-table tbody tr:hover td {
+  background: #fafbfc;
+}
+
+.ka-phone {
+  font-weight: 600;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ka-muted {
+  color: #8b95a5;
+}
+
+.ka-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.ka-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #3b4557;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ka-wa-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: #0e8a76;
+  background: #e9f5f2;
+  border: 1px solid rgba(14, 138, 118, 0.2);
+  border-radius: 8px;
+}
+
+.ka-wa-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.ka-wa:hover .ka-wa-icon {
+  background: #d7efe9;
+}
+
+/* Tipificación (la asigna Back Data): solo lectura */
+.ka-tip {
+  display: inline-block;
+  padding: 4px 11px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #445064;
+  white-space: nowrap;
+  background: #edf1f4;
+  border-radius: 999px;
+}
+
+/* Estado: selector con color según el valor */
+.ka-status {
+  width: 100%;
+  max-width: 170px;
+  height: 32px;
+  padding: 0 28px 0 13px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #55646f;
+  cursor: pointer;
+  background-color: #edf1f4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23788595' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: 0;
+  border-radius: 999px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ka-status:focus-visible {
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+}
+
+.ka-status--pendiente { color: #9a6414; background-color: #fbf1e2; }
+.ka-status--contactado { color: #1a6598; background-color: #e9f2f8; }
+.ka-status--agendado { color: #8a1c2b; background-color: #f9eef0; }
+.ka-status--venta_cerrada { color: #2c7048; background-color: #e9f4ed; }
+.ka-status--no_interesado { color: #a8323e; background-color: #fbeceb; }
+
+.ka-note {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+  color: #111827;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ka-note:hover {
+  border-color: #dfe3ea;
+}
+
+.ka-note:focus {
+  background: #fff;
+  border-color: #d32f2f;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.13);
+}
+
+.ka-note::placeholder {
+  color: #9aa4b2;
+}
+
+.ka-foot {
+  padding: 13px 18px;
+  font-size: 12.5px;
+  color: #8b95a5;
+  background: #fafbfc;
+  border-top: 1px solid #edf0f4;
+}
+
+/* Sin asignaciones: la cabecera queda visible y el mensaje va centrado */
+.ka-table.ka-table--empty {
+  min-width: 0;
+}
+
+.ka-table.ka-table--empty th {
+  padding-right: 10px;
+  padding-left: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sin scroll: mismos anchos relativos que la tabla con datos, repartidos en porcentaje */
+.ka-table.ka-table--empty th:nth-child(1) { width: 8.8%; }
+.ka-table.ka-table--empty th:nth-child(2) { width: 7.6%; }
+.ka-table.ka-table--empty th:nth-child(3) { width: 12.4%; }
+.ka-table.ka-table--empty th:nth-child(4) { width: 13.5%; }
+.ka-table.ka-table--empty th:nth-child(5) { width: 8.8%; }
+.ka-table.ka-table--empty th:nth-child(6) { width: 11.2%; }
+.ka-table.ka-table--empty th:nth-child(7) { width: 13.5%; }
+.ka-table.ka-table--empty th:nth-child(8) { width: 7.1%; }
+.ka-table.ka-table--empty th:nth-child(9) { width: 13.1%; }
+.ka-table.ka-table--empty th:nth-child(10) { width: 6.9%; }
+
+.ka-empty {
+  padding: 46px 16px 52px !important;
+  text-align: center;
+  background: #fff;
+}
+
+.ka-empty p {
+  margin: 0;
+  font-size: 15px;
+  color: #9ca3af;
+}
+
+.ka-empty small {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #a6afc0;
+}

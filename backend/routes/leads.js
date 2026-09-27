@@ -27,6 +27,8 @@ function mapLead(row) {
     campaign: row.campaign,
     zone: row.zone,
     coordinates: row.coordinates,
+    address: row.address,
+    tipificacion: row.tipificacion,
     backNotes: row.back_notes,
     advisorNote: row.advisor_note,
     status: row.status,

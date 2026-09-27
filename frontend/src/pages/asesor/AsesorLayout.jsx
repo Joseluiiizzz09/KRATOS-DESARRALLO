@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import './asesor.css';
 
 const NAV_ITEMS = [
   { to: 'llamadas', label: 'Base de llamadas' },
@@ -52,7 +53,7 @@ export default function AsesorLayout() {
         </div>
       </aside>
 
-      <main className="flex-grow-1 overflow-auto bg-light p-4">
+      <main className="ka-main flex-grow-1 overflow-auto">
         <Outlet />
       </main>
     </div>

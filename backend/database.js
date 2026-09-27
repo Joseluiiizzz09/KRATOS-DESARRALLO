@@ -84,8 +84,22 @@ async function initDB() {
         FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE SET NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+    /* Columnas añadidas después de la primera versión: CREATE TABLE IF NOT EXISTS no las agrega
+       a una tabla que ya existe, así que se comprueban una a una (compatible con MySQL y MariaDB). */
+    await ensureColumn(conn, 'leads', 'address', 'VARCHAR(250) DEFAULT NULL');
+    await ensureColumn(conn, 'leads', 'tipificacion', 'VARCHAR(40) DEFAULT NULL');
   } finally {
     conn.release();
+  }
+}
+
+async function ensureColumn(conn, table, column, definition) {
+  const [rows] = await conn.query(
+    'SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+    [table, column]
+  );
+  if (!rows.length) {
+    await conn.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
   }
 }
 

@@ -33,15 +33,15 @@ async function seed() {
     console.log(`El asesor demo ya tiene ${total} contactos asignados; no se agregan más.`);
   } else {
     const contactos = [
-      ['+51 987 111 222', 'Miraflores', 'Interesado en portabilidad familiar.'],
-      ['+51 987 333 444', 'Surco', 'Pide información de fibra simétrica.'],
-      ['+51 987 555 666', 'Callao', 'Llamar después de las 16:00 hrs.'],
+      ['+51 987 111 222', 'Miraflores', 'Av. Larco 1150, Miraflores', 'LLAMANDO', 'Interesado en portabilidad familiar.'],
+      ['+51 987 333 444', 'Surco', 'Jr. Monterrey 250, Santiago de Surco', null, 'Pide información de fibra simétrica.'],
+      ['+51 987 555 666', 'Callao', 'Av. Sáenz Peña 480, Callao', 'BUZON DE VOZ', 'Llamar después de las 16:00 hrs.'],
     ];
-    for (const [phone, zone, backNotes] of contactos) {
+    for (const [phone, zone, address, tipificacion, backNotes] of contactos) {
       await pool.query(
-        `INSERT INTO leads (id, phone, whatsapp_user, zone, back_notes, status, assigned_advisor_id, assigned_at, management_history)
-         VALUES (?, ?, ?, ?, ?, 'pendiente', ?, NOW(), '[]')`,
-        [crypto.randomUUID(), phone, phone, zone, backNotes, advisorId]
+        `INSERT INTO leads (id, phone, whatsapp_user, zone, address, tipificacion, back_notes, status, assigned_advisor_id, assigned_at, management_history)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente', ?, NOW(), '[]')`,
+        [crypto.randomUUID(), phone, phone, zone, address, tipificacion, backNotes, advisorId]
       );
     }
     console.log(`Se asignaron ${contactos.length} contactos de ejemplo al asesor demo.`);
