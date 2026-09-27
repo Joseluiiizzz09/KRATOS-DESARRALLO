@@ -10,7 +10,6 @@ const COLUMNAS = [
   ['telefono2', 'Teléfono 2'],
   ['whatsapp', 'Usuario WhatsApp'],
   ['obsBack', 'Obs. Back'],
-  ['tipificacion', 'Tipificación'],
   ['estado', 'Estado'],
   ['obsAsesor', 'Observación asesor'],
   ['zona', 'Zona'],
@@ -154,7 +153,6 @@ function FilaLead({ lead, onStatusChange, onNoteBlur }) {
         ) : '—'}
       </td>
       <td><span className="ka-clamp" title={lead.backNotes || ''}>{lead.backNotes || 'Sin observaciones'}</span></td>
-      <td>{lead.tipificacion ? <span className="ka-tip">{lead.tipificacion}</span> : <span className="ka-muted">—</span>}</td>
       <td>
         <select
           className={`ka-status ka-status--${lead.status}`}

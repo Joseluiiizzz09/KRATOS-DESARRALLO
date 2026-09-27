@@ -56,23 +56,22 @@
 
 .ka-table {
   width: 100%;
-  min-width: 1700px;
+  min-width: 1600px;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-/* Anchos por columna: teléfono, teléfono 2, WhatsApp, obs. back, tipificación,
-   estado, observación asesor, zona, dirección, hora */
+/* Anchos por columna: teléfono, teléfono 2, WhatsApp, obs. back, estado,
+   observación asesor, zona, dirección, hora */
 .ka-table th:nth-child(1) { width: 150px; }
 .ka-table th:nth-child(2) { width: 130px; }
 .ka-table th:nth-child(3) { width: 210px; }
 .ka-table th:nth-child(4) { width: 230px; }
-.ka-table th:nth-child(5) { width: 150px; }
-.ka-table th:nth-child(6) { width: 190px; }
-.ka-table th:nth-child(7) { width: 230px; }
-.ka-table th:nth-child(8) { width: 120px; }
-.ka-table th:nth-child(9) { width: 240px; }
-.ka-table th:nth-child(10) { width: 100px; }
+.ka-table th:nth-child(5) { width: 190px; }
+.ka-table th:nth-child(6) { width: 230px; }
+.ka-table th:nth-child(7) { width: 120px; }
+.ka-table th:nth-child(8) { width: 240px; }
+.ka-table th:nth-child(9) { width: 100px; }
 
 .ka-table thead th {
   padding: 15px 18px;
@@ -144,19 +143,6 @@
 
 .ka-wa:hover .ka-wa-icon {
   background: #d7efe9;
-}
-
-/* Tipificación (la asigna Back Data): solo lectura */
-.ka-tip {
-  display: inline-block;
-  padding: 4px 11px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: #445064;
-  white-space: nowrap;
-  background: #edf1f4;
-  border-radius: 999px;
 }
 
 /* Estado: selector con color según el valor */
@@ -240,16 +226,15 @@
 }
 
 /* Sin scroll: mismos anchos relativos que la tabla con datos, repartidos en porcentaje */
-.ka-table.ka-table--empty th:nth-child(1) { width: 8.8%; }
-.ka-table.ka-table--empty th:nth-child(2) { width: 7.6%; }
-.ka-table.ka-table--empty th:nth-child(3) { width: 12.4%; }
-.ka-table.ka-table--empty th:nth-child(4) { width: 13.5%; }
-.ka-table.ka-table--empty th:nth-child(5) { width: 8.8%; }
-.ka-table.ka-table--empty th:nth-child(6) { width: 11.2%; }
-.ka-table.ka-table--empty th:nth-child(7) { width: 13.5%; }
-.ka-table.ka-table--empty th:nth-child(8) { width: 7.1%; }
-.ka-table.ka-table--empty th:nth-child(9) { width: 13.1%; }
-.ka-table.ka-table--empty th:nth-child(10) { width: 6.9%; }
+.ka-table.ka-table--empty th:nth-child(1) { width: 9.4%; }
+.ka-table.ka-table--empty th:nth-child(2) { width: 8.1%; }
+.ka-table.ka-table--empty th:nth-child(3) { width: 13.1%; }
+.ka-table.ka-table--empty th:nth-child(4) { width: 14.4%; }
+.ka-table.ka-table--empty th:nth-child(5) { width: 11.9%; }
+.ka-table.ka-table--empty th:nth-child(6) { width: 14.4%; }
+.ka-table.ka-table--empty th:nth-child(7) { width: 7.5%; }
+.ka-table.ka-table--empty th:nth-child(8) { width: 15%; }
+.ka-table.ka-table--empty th:nth-child(9) { width: 6.3%; }
 
 .ka-empty {
   padding: 46px 16px 52px !important;
