@@ -12,6 +12,33 @@ function ymd(d) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+function BarChart({ title, data }) {
+  const max = Math.max(1, ...data.map((d) => d.value));
+  return (
+    <div className="card h-100">
+      <div className="card-body">
+        <div className="text-muted small text-uppercase fw-semibold mb-3">{title}</div>
+        <div className="d-flex align-items-end gap-2" style={{ height: 180 }}>
+          {data.map((d) => (
+            <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-end h-100" key={d.label}>
+              <div className="small fw-semibold mb-1">{d.value}</div>
+              <div style={{ width: '100%', maxWidth: 44, height: `${(d.value / max) * 100}%`, minHeight: d.value ? 4 : 2, background: d.value ? '#111a2c' : '#d3d8df', borderRadius: '6px 6px 0 0' }} />
+            </div>
+          ))}
+        </div>
+        <div className="d-flex gap-2 mt-2 border-top pt-2">
+          {data.map((d) => (
+            <div className="flex-grow-1 text-center text-muted" style={{ fontSize: 11 }} key={d.label}>{d.label}</div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Tablero() {
   const { sales, loading } = useSales();
 
@@ -29,7 +56,26 @@ export default function Tablero() {
     const activas = (list) => list.filter((s) => ACTIVAS.includes(s.status)).length;
     const caidas = (list) => list.filter((s) => s.status === 'rechazada').length;
 
+    const ultimosDias = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (6 - i));
+      return { label: DIAS[d.getDay()], value: dias.filter((s) => s.dia === ymd(d)).length };
+    });
+    const ultimosMeses = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const clave = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+      return { label: MESES[d.getMonth()], value: dias.filter((s) => s.dia.slice(0, 7) === clave).length };
+    });
+    const resumenMes = [
+      { label: 'Ventas', value: enMes.length },
+      { label: 'Activas', value: activas(enMes) },
+      { label: 'Caídas', value: caidas(enMes) },
+    ];
+
     return {
+      ultimosDias,
+      ultimosMeses,
+      resumenMes,
       diarias: dias.filter((s) => s.dia === hoy).length,
       semanales: enSemana.length,
       activasSemana: activas(enSemana),
@@ -66,6 +112,12 @@ export default function Tablero() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="row g-3 mt-1">
+        <div className="col-lg-4"><BarChart title="Ventas · últimos 7 días" data={stats.ultimosDias} /></div>
+        <div className="col-lg-4"><BarChart title="Ventas · últimos 6 meses" data={stats.ultimosMeses} /></div>
+        <div className="col-lg-4"><BarChart title="Este mes · ventas, activas y caídas" data={stats.resumenMes} /></div>
       </div>
     </div>
   );
