@@ -284,3 +284,23 @@
     padding: 20px 16px 32px;
   }
 }
+
+/* Botón para ocultar/mostrar el menú lateral */
+.ka-toggle {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #4b5563;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.ka-toggle:hover {
+  background: #eef0f3;
+  color: #111827;
+}

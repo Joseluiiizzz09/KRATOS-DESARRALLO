@@ -3,6 +3,7 @@ import { useSales } from '../../hooks/useSales';
 import { localDay } from '../../utils/date';
 
 const VERDE = '#16a34a';
+const NEGRO = '#111a2c';
 const ROJO = '#dc2626';
 const ACTIVAS = ['aprobada', 'auditada'];
 
@@ -28,11 +29,11 @@ function DualBarChart({ title, data }) {
   return (
     <div className="card h-100">
       <div className="card-body">
-        <div className="d-flex justify-content-between align-items-start mb-3">
+        <div className="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
           <div className="text-muted small text-uppercase fw-semibold">{title}</div>
           <div className="d-flex gap-3 text-muted" style={{ fontSize: 11 }}>
-            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: VERDE }} />Activas</span>
-            <span><span className="d-inline-block rounded me-1" style={{ width: 9, height: 9, background: ROJO }} />Caídas</span>
+            <span><span className="d-inline-block rounded-circle me-1" style={{ width: 9, height: 9, background: VERDE }} />Activas</span>
+            <span><span className="d-inline-block rounded-circle me-1" style={{ width: 9, height: 9, background: ROJO }} />Caídas</span>
           </div>
         </div>
         <div className="d-flex align-items-end" style={{ height: 180 }}>
@@ -53,17 +54,26 @@ function DualBarChart({ title, data }) {
   );
 }
 
-function BarChart({ title, data }) {
+function BarChart({ title, data, legend }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
     <div className="card h-100">
       <div className="card-body">
-        <div className="text-muted small text-uppercase fw-semibold mb-3">{title}</div>
+        <div className="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div className="text-muted small text-uppercase fw-semibold">{title}</div>
+          {legend && (
+            <div className="d-flex gap-3 text-muted" style={{ fontSize: 11 }}>
+              {data.map((d) => (
+                <span key={d.label}><span className="d-inline-block rounded-circle me-1" style={{ width: 9, height: 9, background: d.color }} />{d.label}</span>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="d-flex align-items-end gap-2" style={{ height: 180 }}>
           {data.map((d) => (
             <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-end h-100" key={d.label}>
               <div className="small fw-semibold mb-1">{d.value}</div>
-              <div style={{ width: '100%', maxWidth: 64, height: `${(d.value / max) * 100}%`, minHeight: d.value ? 4 : 2, background: d.value ? d.color || VERDE : '#d3d8df', borderRadius: '6px 6px 0 0' }} />
+              <div style={{ width: '100%', maxWidth: 64, height: `${(d.value / max) * 100}%`, minHeight: d.value ? 4 : 2, background: d.value ? d.color || NEGRO : '#d3d8df', borderRadius: '6px 6px 0 0' }} />
             </div>
           ))}
         </div>
@@ -113,12 +123,12 @@ export default function Tablero() {
     }));
     const hoyDias = dias.filter((s) => s.dia === hoy);
     const resumenDia = [
-      { label: 'Ventas', value: hoyDias.length, color: VERDE },
+      { label: 'Ventas', value: hoyDias.length, color: NEGRO },
       { label: 'Activas', value: activas(hoyDias), color: VERDE },
       { label: 'Caídas', value: caidas(hoyDias), color: ROJO },
     ];
     const resumenMes = [
-      { label: 'Ventas', value: enMes.length, color: VERDE },
+      { label: 'Ventas', value: enMes.length, color: NEGRO },
       { label: 'Activas', value: activas(enMes), color: VERDE },
       { label: 'Caídas', value: caidas(enMes), color: ROJO },
     ];
@@ -169,9 +179,9 @@ export default function Tablero() {
       </div>
 
       <div className="row g-3 mt-1">
-        <div className="col-lg-4"><BarChart title="Hoy · ventas, activas y caídas" data={stats.resumenDia} /></div>
+        <div className="col-lg-4"><BarChart title="Hoy · ventas, activas y caídas" data={stats.resumenDia} legend /></div>
         <div className="col-lg-4"><DualBarChart title="Últimos 7 días" data={stats.ultimosDias} /></div>
-        <div className="col-lg-4"><BarChart title="Este mes · ventas, activas y caídas" data={stats.resumenMes} /></div>
+        <div className="col-lg-4"><BarChart title="Este mes · ventas, activas y caídas" data={stats.resumenMes} legend /></div>
       </div>
 
       <div className="mt-3">
