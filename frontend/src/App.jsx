@@ -6,6 +6,7 @@ import BaseLlamadas from './pages/asesor/BaseLlamadas.jsx';
 import Tablero from './pages/asesor/Tablero.jsx';
 import MisVentas from './pages/asesor/MisVentas.jsx';
 import KronoBackoffice from './krono-backoffice/pages/Backoffice.jsx';
+import KronoSeguimiento from './krono-backoffice/pages/Seguimiento.jsx';
 import KronoLogin from './krono-backoffice/pages/Login.jsx';
 import { leerSesionActual, useAuth as useAuthKrono } from './krono-backoffice/hooks/useAuth.js';
 
@@ -58,6 +59,14 @@ function AppRoutes() {
         element={
           <RutaKrono>
             <KronoBackoffice />
+          </RutaKrono>
+        }
+      />
+      <Route
+        path="/seguimiento"
+        element={
+          <RutaKrono>
+            <KronoSeguimiento />
           </RutaKrono>
         }
       />
