@@ -64,7 +64,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (token) return <Navigate to="/asesor" replace />;
+  if (token) return <Navigate to="/" replace />;
 
   async function handleSubmit(event) {
     event.preventDefault();

@@ -14,4 +14,12 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth };
+/** Limita una ruta a ciertos roles (se usa después de requireAuth). */
+function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!roles.includes(req.user?.rol)) return res.status(403).json({ error: 'No tienes permiso para esta sección.' });
+    next();
+  };
+}
+
+module.exports = { requireAuth, requireRole };

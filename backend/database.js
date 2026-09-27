@@ -88,6 +88,19 @@ async function initDB() {
        a una tabla que ya existe, así que se comprueban una a una (compatible con MySQL y MariaDB). */
     await ensureColumn(conn, 'leads', 'address', 'VARCHAR(250) DEFAULT NULL');
     await ensureColumn(conn, 'leads', 'tipificacion', 'VARCHAR(40) DEFAULT NULL');
+    await ensureColumn(conn, 'leads', 'back2', 'VARCHAR(40) DEFAULT NULL');
+    await ensureColumn(conn, 'leads', 'rotations', 'INT NOT NULL DEFAULT 0');
+    await ensureColumn(conn, 'leads', 'bo_history', 'JSON DEFAULT NULL');
+    await ensureColumn(conn, 'leads', 'department', 'VARCHAR(80) DEFAULT NULL');
+    await ensureColumn(conn, 'leads', 'province', 'VARCHAR(80) DEFAULT NULL');
+    /* Seguimiento postventa (Back Office) */
+    await ensureColumn(conn, 'sales', 'tracking_status', "VARCHAR(40) NOT NULL DEFAULT 'en_ejecucion'");
+    await ensureColumn(conn, 'sales', 'reason', 'VARCHAR(80) DEFAULT NULL');
+    await ensureColumn(conn, 'sales', 'comment', 'TEXT DEFAULT NULL');
+    await ensureColumn(conn, 'sales', 'sot', 'VARCHAR(60) DEFAULT NULL');
+    await ensureColumn(conn, 'sales', 'scheduled_date', 'DATE DEFAULT NULL');
+    await ensureColumn(conn, 'sales', 'slot', 'VARCHAR(10) DEFAULT NULL');
+    await ensureColumn(conn, 'sales', 'tracking_history', 'JSON DEFAULT NULL');
   } finally {
     conn.release();
   }

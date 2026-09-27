@@ -48,6 +48,15 @@ async function seed() {
     console.log(`Se asignaron ${contactos.length} contactos de ejemplo al asesor demo.`);
   }
 
+  const [[bo]] = await pool.query("SELECT COUNT(*) AS n FROM usuarios WHERE usuario = 'backoffice'");
+  if (!bo.n) {
+    // La contraseña no se escribe en el código: sale de BACKOFFICE_PASSWORD (.env) o, si falta, se genera al azar y se muestra una sola vez.
+    const password = process.env.BACKOFFICE_PASSWORD || crypto.randomBytes(6).toString('hex');
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query('INSERT INTO usuarios (nombre, usuario, password, rol) VALUES (?, ?, ?, ?)', ['Back Office', 'backoffice', hash, 'backoffice']);
+    console.log(`Usuario creado: backoffice / ${password}${process.env.BACKOFFICE_PASSWORD ? '' : ' (generada al azar; guárdala, no se repetirá)'}`);
+  }
+
   await pool.end();
 }
 
