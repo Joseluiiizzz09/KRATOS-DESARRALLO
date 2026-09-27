@@ -14,9 +14,7 @@
 .ka-main {
   min-width: 0;
   padding: 28px 36px 40px;
-  background:
-    radial-gradient(1100px 460px at 0% 0%, rgba(232, 196, 202, 0.55), transparent 70%),
-    #ededf1;
+  background: #f1f2f5;
 }
 
 .ka-head {
