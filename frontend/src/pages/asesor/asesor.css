@@ -1,119 +1,7 @@
-/* ================================================================
-   Portal del asesor: barra superior con pestañas, fondo con destello
-   rosado y tarjeta de tabla con cabecera azul oscura.
-   ================================================================ */
-.ka-app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #1f2937;
-}
-
-/* ── Barra superior ── */
-.ka-topbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px 24px;
-  padding: 20px 36px;
-  background: #fff;
-  border-bottom: 1px solid #eceef2;
-}
-
-.ka-brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 230px;
-}
-
-.ka-logo {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  font-size: 21px;
-  font-weight: 800;
-  color: #fff;
-  background: #d32f2f;
-  border-radius: 13px;
-}
-
-.ka-brand-name {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  color: #111827;
-}
-
-.ka-brand-sub {
-  margin-top: 5px;
-  font-size: 13px;
-  color: #8b95a5;
-}
-
-.ka-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 5px;
-  background: #eef0f4;
-  border-radius: 14px;
-}
-
-.ka-tab {
-  padding: 10px 24px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #5b6472;
-  text-decoration: none;
-  border-radius: 10px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.ka-tab:hover {
-  color: #111827;
-}
-
-.ka-tab.is-active {
-  font-weight: 600;
-  color: #111827;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(17, 24, 39, 0.14);
-}
-
-.ka-userbox {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  min-width: 230px;
-  font-size: 13.5px;
-  color: #4b5563;
-}
-
-.ka-exit {
-  padding: 8px 20px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: #d32f2f;
-  cursor: pointer;
-  background: #fff;
-  border: 1px solid #f1c5c5;
-  border-radius: 10px;
-  transition: background 0.15s;
-}
-
-.ka-exit:hover {
-  background: #fdf0f0;
-}
+/* Portal del asesor: menú lateral, fondo con destello rosado y tarjeta de tabla con cabecera azul oscura. */
 
 /* ── Contenido ── */
 .ka-main {
-  flex: 1;
   min-width: 0;
   padding: 28px 36px 40px;
   background:
@@ -188,23 +76,22 @@
 
 .ka-table {
   width: 100%;
-  min-width: 1750px;
+  min-width: 1300px;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-/* Anchos: teléfono, teléfono 2, usuario WhatsApp, obs. back, tipificación,
+/* Anchos en porcentaje: teléfono, teléfono 2, usuario WhatsApp, obs. back,
    estado, observación asesor, zona, dirección, hora */
-.ka-table th:nth-child(1) { width: 235px; }
-.ka-table th:nth-child(2) { width: 225px; }
-.ka-table th:nth-child(3) { width: 170px; }
-.ka-table th:nth-child(4) { width: 210px; }
-.ka-table th:nth-child(5) { width: 120px; }
-.ka-table th:nth-child(6) { width: 150px; }
-.ka-table th:nth-child(7) { width: 240px; }
-.ka-table th:nth-child(8) { width: 110px; }
-.ka-table th:nth-child(9) { width: 190px; }
-.ka-table th:nth-child(10) { width: 100px; }
+.ka-table th:nth-child(1) { width: 13.7%; }
+.ka-table th:nth-child(2) { width: 13.4%; }
+.ka-table th:nth-child(3) { width: 10.6%; }
+.ka-table th:nth-child(4) { width: 13%; }
+.ka-table th:nth-child(5) { width: 9.3%; }
+.ka-table th:nth-child(6) { width: 14.9%; }
+.ka-table th:nth-child(7) { width: 6.8%; }
+.ka-table th:nth-child(8) { width: 11.8%; }
+.ka-table th:nth-child(9) { width: 6.5%; }
 
 .ka-table thead th {
   padding: 16px 18px;
@@ -297,50 +184,37 @@
   line-height: 1.4;
 }
 
-/* Botón de tipificar */
-.ka-tipbtn {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  color: #fff;
+/* Estado: selector con color según el valor */
+.ka-status {
+  width: 100%;
+  max-width: 170px;
+  height: 32px;
+  padding: 0 28px 0 13px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #55646f;
   cursor: pointer;
-  background: #111a2c;
+  background-color: #edf1f4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23788595' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
   border: 0;
-  border-radius: 10px;
-  transition: background 0.15s, transform 0.05s;
-}
-
-.ka-tipbtn:hover {
-  background: #1f2c47;
-}
-
-.ka-tipbtn:active {
-  transform: translateY(1px);
-}
-
-/* Estado: etiqueta con contorno */
-.ka-pill {
-  display: inline-block;
-  padding: 6px 16px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: #475569;
-  background: #fff;
-  border: 1px solid #d5dae3;
   border-radius: 999px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.ka-pill--pendiente { color: #9a6414; background: #fdf6e9; border-color: #efd9b0; }
-.ka-pill--contactado { color: #1a6598; background: #eef5fa; border-color: #c5dcec; }
-.ka-pill--agendado { color: #8a1c2b; background: #fbf1f2; border-color: #ecc5cb; }
-.ka-pill--no_contesta { color: #55646f; background: #f4f6f8; border-color: #d5dae3; }
-.ka-pill--no_interesado { color: #a8323e; background: #fbeceb; border-color: #f0c9cc; }
-.ka-pill--venta_cerrada { color: #2c7048; background: #eaf5ee; border-color: #bfdcc8; }
+.ka-status:focus-visible {
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+}
+
+.ka-status--pendiente { color: #9a6414; background-color: #fbf1e2; }
+.ka-status--contactado { color: #1a6598; background-color: #e9f2f8; }
+.ka-status--agendado { color: #8a1c2b; background-color: #f9eef0; }
+.ka-status--venta_cerrada { color: #2c7048; background-color: #e9f4ed; }
+.ka-status--no_interesado { color: #a8323e; background-color: #fbeceb; }
 
 .ka-note {
   width: 100%;
@@ -385,17 +259,6 @@
   text-overflow: ellipsis;
 }
 
-.ka-table.ka-table--empty th:nth-child(1) { width: 13.4%; }
-.ka-table.ka-table--empty th:nth-child(2) { width: 12.9%; }
-.ka-table.ka-table--empty th:nth-child(3) { width: 9.7%; }
-.ka-table.ka-table--empty th:nth-child(4) { width: 12%; }
-.ka-table.ka-table--empty th:nth-child(5) { width: 6.9%; }
-.ka-table.ka-table--empty th:nth-child(6) { width: 8.6%; }
-.ka-table.ka-table--empty th:nth-child(7) { width: 13.7%; }
-.ka-table.ka-table--empty th:nth-child(8) { width: 6.3%; }
-.ka-table.ka-table--empty th:nth-child(9) { width: 10.9%; }
-.ka-table.ka-table--empty th:nth-child(10) { width: 5.6%; }
-
 .ka-empty {
   padding: 46px 16px 52px !important;
   text-align: center;
@@ -415,66 +278,8 @@
   color: #a6afc0;
 }
 
-/* ── Ventana de tipificar ── */
-.ka-modal {
-  border: 0;
-  border-radius: 18px;
-}
-
-.ka-tip-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.ka-tip-option {
-  padding: 13px 14px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  border: 1.5px solid #e3e6ec;
-  border-radius: 12px;
-  background: #fff;
-  color: #3b4557;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.ka-tip-option:hover {
-  background: #f7f8fa;
-}
-
-.ka-tip-option.is-selected {
-  border-color: #d32f2f;
-  background: #fdf0f0;
-  color: #8a1c2b;
-}
-
 /* ── Móvil ── */
 @media (max-width: 900px) {
-  .ka-topbar {
-    padding: 16px 18px;
-  }
-
-  .ka-brand,
-  .ka-userbox {
-    min-width: 0;
-  }
-
-  .ka-tabs {
-    order: 3;
-    width: 100%;
-  }
-
-  .ka-tab {
-    flex: 1;
-    padding: 9px 8px;
-    font-size: 13.5px;
-    text-align: center;
-    white-space: nowrap;
-  }
-
   .ka-main {
     padding: 20px 16px 32px;
   }

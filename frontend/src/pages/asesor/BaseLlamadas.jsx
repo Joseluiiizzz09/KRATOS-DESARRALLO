@@ -3,8 +3,7 @@ import { useLeads } from '../../hooks/useLeads';
 import { useSales } from '../../hooks/useSales';
 import { STATUSES } from '../../data/catalog';
 import SaleModal from '../../components/SaleModal.jsx';
-import TipificarModal from '../../components/TipificarModal.jsx';
-import { CheckIcon, CopyIcon, FileTextIcon, PhoneIcon, WhatsAppIcon } from '../../components/icons.jsx';
+import { CheckIcon, CopyIcon, PhoneIcon, WhatsAppIcon } from '../../components/icons.jsx';
 import './asesor.css';
 
 const COLUMNAS = [
@@ -12,15 +11,12 @@ const COLUMNAS = [
   ['telefono2', 'Teléfono 2'],
   ['whatsapp', 'Usuario WhatsApp'],
   ['obsBack', 'Obs. Back'],
-  ['tipificacion', 'Tipificación'],
   ['estado', 'Estado'],
   ['obsAsesor', 'Observación asesor'],
   ['zona', 'Zona'],
   ['direccion', 'Dirección / Coord.'],
   ['hora', 'Hora asig.'],
 ];
-
-const ETIQUETA_ESTADO = Object.fromEntries(STATUSES);
 
 /** MySQL entrega "AAAA-MM-DD HH:MM:SS": se muestra solo la hora. */
 function horaDe(valor) {
@@ -59,7 +55,6 @@ export default function BaseLlamadas() {
   const { createSale } = useSales();
   const [search, setSearch] = useState('');
   const [saleLead, setSaleLead] = useState(null);
-  const [tipLead, setTipLead] = useState(null);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -70,14 +65,12 @@ export default function BaseLlamadas() {
     );
   }, [leads, search]);
 
-  async function handleTipificar(lead, status) {
+  async function handleStatusChange(lead, status) {
     if (status === 'venta_cerrada') {
-      setTipLead(null);
       setSaleLead(lead);
       return;
     }
-    if (status !== lead.status) await updateLead(lead.id, { status });
-    setTipLead(null);
+    await updateLead(lead.id, { status });
   }
 
   async function handleNoteBlur(lead, value) {
@@ -139,7 +132,7 @@ export default function BaseLlamadas() {
                   <FilaLead
                     key={lead.id}
                     lead={lead}
-                    onTipificar={() => setTipLead(lead)}
+                    onStatusChange={(status) => handleStatusChange(lead, status)}
                     onNoteBlur={(value) => handleNoteBlur(lead, value)}
                   />
                 ))
@@ -153,15 +146,6 @@ export default function BaseLlamadas() {
           </div>
         )}
       </div>
-
-      {tipLead && (
-        <TipificarModal
-          key={tipLead.id}
-          lead={tipLead}
-          onClose={() => setTipLead(null)}
-          onSave={(status) => handleTipificar(tipLead, status)}
-        />
-      )}
 
       <SaleModal
         key={saleLead?.id || 'none'}
@@ -211,7 +195,7 @@ function TelefonoConAcciones({ numero }) {
   );
 }
 
-function FilaLead({ lead, onTipificar, onNoteBlur }) {
+function FilaLead({ lead, onStatusChange, onNoteBlur }) {
   const [note, setNote] = useState(lead.advisorNote || '');
 
   return (
@@ -221,12 +205,14 @@ function FilaLead({ lead, onTipificar, onNoteBlur }) {
       <td className="ka-user">{lead.whatsappUser || '—'}</td>
       <td><span className="ka-clamp" title={lead.backNotes || ''}>{lead.backNotes || 'Sin observaciones'}</span></td>
       <td>
-        <button type="button" className="ka-tipbtn" onClick={onTipificar} title="Tipificar llamada" aria-label={`Tipificar ${lead.phone}`}>
-          <FileTextIcon size={16} />
-        </button>
-      </td>
-      <td>
-        <span className={`ka-pill ka-pill--${lead.status}`}>{ETIQUETA_ESTADO[lead.status] || lead.status}</span>
+        <select
+          className={`ka-status ka-status--${lead.status}`}
+          value={lead.status}
+          onChange={(e) => onStatusChange(e.target.value)}
+          aria-label={`Estado de ${lead.phone}`}
+        >
+          {STATUSES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select>
       </td>
       <td>
         <input
