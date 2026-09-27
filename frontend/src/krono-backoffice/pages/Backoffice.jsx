@@ -2549,9 +2549,9 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
       <div className="topbar module-topbar-standard">
         <div className="bo-topbar-left">
           <div className="brand">
-            <div className="logo-circle"><img src="/assets/logo3.png" alt="KRONO" /></div>
+            <div className="logo-circle"><img src="/assets/kratos-logo.webp" alt="KRATOS" /></div>
             <div className="brand-text">
-              <img src="/assets/krono-wordmark.png" alt="KRONO" style={{height:22,width:"auto",display:"block"}} />
+              <h1 style={{margin:0,fontSize:22,fontWeight:800,letterSpacing:"-0.02em",lineHeight:1}}>KRATOS</h1>
               <span className="brand-sub">Back Data</span>
             </div>
           </div>
