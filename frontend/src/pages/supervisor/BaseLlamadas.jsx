@@ -3,6 +3,15 @@ import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Field, Filters, Modal, Pager, fmtTime, prettyStatus, useDebounced } from '../../components/bo.jsx';
 
+function PersonIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111a2c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+    </svg>
+  );
+}
+
 /** Lista de asesores como tarjetas: clic en una para entrar a su base completa. */
 function AdvisorGrid({ advisors, metricsByAdvisor, onOpen }) {
   return (
@@ -11,14 +20,20 @@ function AdvisorGrid({ advisors, metricsByAdvisor, onOpen }) {
         const m = metricsByAdvisor[a.id];
         return (
           <div className="col-sm-6 col-lg-4 col-xxl-3" key={a.id}>
-            <button type="button" className="card h-100 w-100 text-start border-0" style={{ cursor: 'pointer' }} onClick={() => onOpen(a.id)}>
-              <div className="card-body">
+            <div className="card h-100">
+              <div className="card-body d-flex flex-column">
+                <div className="d-flex align-items-center justify-content-center rounded-circle bg-light mb-3" style={{ width: 40, height: 40 }}>
+                  <PersonIcon />
+                </div>
+                <div className="fw-bold fs-5">{a.contactos}</div>
+                <div className="text-muted small mb-2">contacto{a.contactos === 1 ? '' : 's'} asignado{a.contactos === 1 ? '' : 's'}</div>
                 <div className="fw-semibold">{a.nombre}</div>
-                <div className="display-6 fw-bold mt-1">{a.contactos}</div>
-                <div className="small text-muted">contacto{a.contactos === 1 ? '' : 's'} asignados</div>
-                {m && <div className="small text-muted mt-2">{m.gestionados} gestionados · {m.ventas} ventas</div>}
+                <div className="small text-muted mb-3">{m ? `${m.gestionados} gestionados · ${m.ventas} ventas` : 'Cargando…'}</div>
+                <button type="button" className="btn btn-link btn-sm p-0 text-decoration-none mt-auto d-flex align-items-center gap-1" onClick={() => onOpen(a.id)}>
+                  Ver base de llamadas <span aria-hidden="true">›</span>
+                </button>
               </div>
-            </button>
+            </div>
           </div>
         );
       })}
