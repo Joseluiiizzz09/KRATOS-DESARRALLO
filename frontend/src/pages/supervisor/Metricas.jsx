@@ -157,39 +157,6 @@ export default function Metricas() {
           <div className="mb-3">
             <BarChart title={`Ventas por mes · ${stats.anio}`} data={stats.todosMeses} />
           </div>
-
-          <div className="ka-card">
-            <div className="ka-scroll">
-              <table className="ka-table" style={{ minWidth: 900, tableLayout: 'auto' }}>
-                <thead>
-                  <tr>
-                    <th>Asesor</th><th>Contactos</th><th>Gestionados</th><th>Avance</th><th>Ventas</th><th>Aprobadas</th><th>Rechazadas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!porAsesor.length && <tr><td colSpan={7} className="ka-empty"><p>Todavía no hay asesores con contactos asignados.</p></td></tr>}
-                  {porAsesor.map((a) => (
-                    <tr key={a.id}>
-                      <td className="ka-phone">{a.nombre}</td>
-                      <td>{a.contactos}</td>
-                      <td>{a.gestionados}</td>
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="rounded flex-grow-1" style={{ height: 8, background: '#eef0f3', maxWidth: 120 }}>
-                            <div className="rounded" style={{ height: 8, width: `${a.avance}%`, background: '#111a2c' }} />
-                          </div>
-                          <span className="small">{a.avance}%</span>
-                        </div>
-                      </td>
-                      <td>{a.ventas}</td>
-                      <td>{a.aprobadas}</td>
-                      <td>{a.rechazadas}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </>
       )}
     </div>
