@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Field, Filters, Modal, fmtTime, prettyStatus, useDebounced } from '../../components/bo.jsx';
+import { Field, Filters, Modal, Pager, fmtTime, prettyStatus, useDebounced } from '../../components/bo.jsx';
 
 export default function BaseLlamadas() {
   const { token } = useAuth();
   const [advisors, setAdvisors] = useState([]);
   const [filters, setFilters] = useState({ advisorId: '', status: '', q: '' });
-  const [leads, setLeads] = useState([]);
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState({ leads: [], total: 0, pageSize: 20 });
   const [loading, setLoading] = useState(true);
   const [historial, setHistorial] = useState(null);
   const q = useDebounced(filters.q);
@@ -17,17 +18,17 @@ export default function BaseLlamadas() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { leads: rows } = await api.supLeads(token, params);
-      setLeads(rows);
+      setData(await api.supLeads(token, { ...params, page }));
     } finally {
       setLoading(false);
     }
-  }, [token, params]);
+  }, [token, params, page]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.supAdvisors(token).then((r) => setAdvisors(r.advisors)).catch(() => {}); }, [token]);
 
-  const setFilter = (field, value) => setFilters((current) => ({ ...current, [field]: value }));
+  const setFilter = (field, value) => { setFilters((current) => ({ ...current, [field]: value })); setPage(1); };
+  const { leads } = data;
 
   return (
     <div>
@@ -42,10 +43,10 @@ export default function BaseLlamadas() {
         <Field label="Buscar" grow>
           <input className="form-control form-control-sm" value={filters.q} onChange={(e) => setFilter('q', e.target.value)} placeholder="Teléfono, cliente o zona" />
         </Field>
-        <Field label="Asesor">
+        <Field label="Asesor" grow>
           <select className="form-select form-select-sm" value={filters.advisorId} onChange={(e) => setFilter('advisorId', e.target.value)}>
-            <option value="">Todos</option>
-            {advisors.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+            <option value="">Todos los asesores ({advisors.reduce((sum, a) => sum + a.contactos, 0)})</option>
+            {advisors.map((a) => <option key={a.id} value={a.id}>{a.nombre} — {a.contactos} contacto{a.contactos === 1 ? '' : 's'}</option>)}
           </select>
         </Field>
         <Field label="Estado">
@@ -55,7 +56,7 @@ export default function BaseLlamadas() {
             <option value="venta_cerrada">Venta cerrada</option>
           </select>
         </Field>
-        <button className="btn btn-outline-secondary btn-sm" onClick={() => setFilters({ advisorId: '', status: '', q: '' })}>Limpiar</button>
+        <button className="btn btn-outline-secondary btn-sm" onClick={() => { setFilters({ advisorId: '', status: '', q: '' }); setPage(1); }}>Limpiar</button>
       </Filters>
 
       <div className="ka-card">
@@ -88,11 +89,11 @@ export default function BaseLlamadas() {
             </tbody>
           </table>
         </div>
-        <div className="ka-foot">{leads.length} contactos</div>
+        <Pager total={data.total} page={page} pageSize={data.pageSize || 20} onPage={setPage} />
       </div>
 
       {historial && (
-        <Modal title="Historial de gestión" subtitle={historial.phone} onClose={() => setHistorial(null)} size="md">
+        <Modal title="Historial de gestión" subtitle={`${historial.phone} · ${historial.advisor || 'Sin asignar'}`} onClose={() => setHistorial(null)} size="md">
           <div className="modal-body">
             {historial.managementHistory?.length ? (
               <ul className="list-unstyled mb-0">

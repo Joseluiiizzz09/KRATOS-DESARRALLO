@@ -15,9 +15,14 @@ function isManaged(status) {
 /** Asesores a cargo de este supervisor (todos, en esta versión de un solo equipo). */
 router.get('/advisors', async (req, res) => {
   const [rows] = await pool.query(
-    "SELECT id, nombre, usuario FROM usuarios WHERE rol = 'asesor' AND activo = 1 ORDER BY nombre"
+    `SELECT u.id, u.nombre, u.usuario, COUNT(l.id) AS contactos
+     FROM usuarios u
+     LEFT JOIN leads l ON l.assigned_advisor_id = u.id
+     WHERE u.rol = 'asesor' AND u.activo = 1
+     GROUP BY u.id, u.nombre, u.usuario
+     ORDER BY u.nombre`
   );
-  res.json({ advisors: rows });
+  res.json({ advisors: rows.map((r) => ({ ...r, contactos: Number(r.contactos) })) });
 });
 
 /** Métricas generales del equipo y por asesor. */
@@ -88,7 +93,9 @@ router.get('/metrics', async (req, res) => {
   });
 });
 
-/** Base de llamadas de todos los asesores (o de uno, con ?advisorId=), solo lectura. */
+const PAGE_SIZE = 20;
+
+/** Base de llamadas de todos los asesores (o de uno, con ?advisorId=), solo lectura, paginada. */
 router.get('/leads', async (req, res) => {
   const { advisorId, status, q } = req.query;
   const where = ['assigned_advisor_id IS NOT NULL'];
@@ -100,30 +107,55 @@ router.get('/leads', async (req, res) => {
     const like = `%${q}%`;
     params.push(like, like, like, like);
   }
+  const clause = where.join(' AND ');
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const [[{ total }]] = await pool.query(`SELECT COUNT(*) AS total FROM leads WHERE ${clause}`, params);
   const [rows] = await pool.query(
     `SELECT l.*, u.nombre AS advisor_nombre FROM leads l
      LEFT JOIN usuarios u ON u.id = l.assigned_advisor_id
-     WHERE ${where.join(' AND ')} ORDER BY l.assigned_at DESC LIMIT 500`,
-    params
+     WHERE ${clause} ORDER BY l.assigned_at DESC LIMIT ? OFFSET ?`,
+    [...params, PAGE_SIZE, (page - 1) * PAGE_SIZE]
   );
-  res.json({ leads: rows.map((row) => ({ ...mapLead(row), advisor: row.advisor_nombre })) });
+  res.json({
+    leads: rows.map((row) => ({ ...mapLead(row), advisor: row.advisor_nombre })),
+    total, page, pageSize: PAGE_SIZE,
+  });
 });
 
-/** Ventas de todos los asesores (o de uno, con ?advisorId=). */
+/** Ventas de todos los asesores (o de uno, con ?advisorId=). Sin ?page, trae hasta 500
+ *  (lo que usan las gráficas de Métricas); con ?page, viene paginado de a 20. */
 router.get('/sales', async (req, res) => {
-  const { advisorId, status } = req.query;
+  const { advisorId, status, page: pageParam } = req.query;
   const where = [];
   const params = [];
   if (advisorId) { where.push('s.advisor_id = ?'); params.push(Number(advisorId)); }
   if (status) { where.push('s.status = ?'); params.push(status); }
   const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+  if (!pageParam) {
+    const [rows] = await pool.query(
+      `SELECT s.*, u.nombre AS advisor_nombre FROM sales s
+       LEFT JOIN usuarios u ON u.id = s.advisor_id
+       ${clause} ORDER BY s.created_at DESC LIMIT 500`,
+      params
+    );
+    return res.json({ sales: rows.map((row) => ({ ...mapSale(row), advisor: row.advisor_nombre })) });
+  }
+
+  const page = Math.max(1, Number(pageParam) || 1);
+  const [[{ total }]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM sales s ${clause}`, params
+  );
   const [rows] = await pool.query(
     `SELECT s.*, u.nombre AS advisor_nombre FROM sales s
      LEFT JOIN usuarios u ON u.id = s.advisor_id
-     ${clause} ORDER BY s.created_at DESC LIMIT 500`,
-    params
+     ${clause} ORDER BY s.created_at DESC LIMIT ? OFFSET ?`,
+    [...params, PAGE_SIZE, (page - 1) * PAGE_SIZE]
   );
-  res.json({ sales: rows.map((row) => ({ ...mapSale(row), advisor: row.advisor_nombre })) });
+  res.json({
+    sales: rows.map((row) => ({ ...mapSale(row), advisor: row.advisor_nombre })),
+    total, page, pageSize: PAGE_SIZE,
+  });
 });
 
 module.exports = router;

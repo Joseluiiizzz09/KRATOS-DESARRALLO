@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Field, Filters, fmtDateTime, prettyStatus } from '../../components/bo.jsx';
+import { Field, Filters, Pager, fmtDateTime, prettyStatus } from '../../components/bo.jsx';
 
 const ESTADOS = [
   ['', 'Todos'],
@@ -14,23 +14,24 @@ export default function Ventas() {
   const { token } = useAuth();
   const [advisors, setAdvisors] = useState([]);
   const [filters, setFilters] = useState({ advisorId: '', status: '' });
-  const [sales, setSales] = useState([]);
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState({ sales: [], total: 0, pageSize: 20 });
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { sales: rows } = await api.supSales(token, filters);
-      setSales(rows);
+      setData(await api.supSales(token, { ...filters, page }));
     } finally {
       setLoading(false);
     }
-  }, [token, filters]);
+  }, [token, filters, page]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.supAdvisors(token).then((r) => setAdvisors(r.advisors)).catch(() => {}); }, [token]);
 
-  const setFilter = (field, value) => setFilters((current) => ({ ...current, [field]: value }));
+  const setFilter = (field, value) => { setFilters((current) => ({ ...current, [field]: value })); setPage(1); };
+  const { sales } = data;
   const totalMonto = sales.reduce((sum, s) => sum + Number(s.amount || 0), 0);
 
   return (
@@ -43,9 +44,9 @@ export default function Ventas() {
       </div>
 
       <Filters>
-        <Field label="Asesor">
+        <Field label="Asesor" grow>
           <select className="form-select form-select-sm" value={filters.advisorId} onChange={(e) => setFilter('advisorId', e.target.value)}>
-            <option value="">Todos</option>
+            <option value="">Todos los asesores</option>
             {advisors.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
           </select>
         </Field>
@@ -54,8 +55,8 @@ export default function Ventas() {
             {ESTADOS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </Field>
-        <button className="btn btn-outline-secondary btn-sm" onClick={() => setFilters({ advisorId: '', status: '' })}>Limpiar</button>
-        <span className="small text-muted ms-auto">{sales.length} ventas · S/ {totalMonto.toFixed(2)}</span>
+        <button className="btn btn-outline-secondary btn-sm" onClick={() => { setFilters({ advisorId: '', status: '' }); setPage(1); }}>Limpiar</button>
+        <span className="small text-muted ms-auto">{data.total} ventas en esta página · S/ {totalMonto.toFixed(2)}</span>
       </Filters>
 
       <div className="ka-card">
@@ -89,6 +90,7 @@ export default function Ventas() {
             </tbody>
           </table>
         </div>
+        <Pager total={data.total} page={page} pageSize={data.pageSize || 20} onPage={setPage} />
       </div>
     </div>
   );
