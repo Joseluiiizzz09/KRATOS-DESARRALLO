@@ -8,9 +8,13 @@ import MisVentas from './pages/asesor/MisVentas.jsx';
 import KronoBackoffice from './krono-backoffice/pages/Backoffice.jsx';
 import KronoSeguimiento from './krono-backoffice/pages/Seguimiento.jsx';
 import KronoLogin from './krono-backoffice/pages/Login.jsx';
+import SupervisorLayout from './pages/supervisor/SupervisorLayout.jsx';
+import SupervisorMetricas from './pages/supervisor/Metricas.jsx';
+import SupervisorBaseLlamadas from './pages/supervisor/BaseLlamadas.jsx';
+import SupervisorVentas from './pages/supervisor/Ventas.jsx';
 import { leerSesionActual, useAuth as useAuthKrono } from './krono-backoffice/hooks/useAuth.js';
 
-const HOME = { asesor: '/asesor', backoffice: '/backoffice', admin: '/backoffice' };
+const HOME = { asesor: '/asesor', backoffice: '/backoffice', admin: '/backoffice', supervisor: '/supervisor' };
 
 function RutaPrivada({ children, roles }) {
   const { token, user, loading } = useAuth();
@@ -52,6 +56,19 @@ function AppRoutes() {
         <Route path="llamadas" element={<BaseLlamadas />} />
         <Route path="tablero" element={<Tablero />} />
         <Route path="ventas" element={<MisVentas />} />
+      </Route>
+      <Route
+        path="/supervisor"
+        element={
+          <RutaPrivada roles={['supervisor', 'admin']}>
+            <SupervisorLayout />
+          </RutaPrivada>
+        }
+      >
+        <Route index element={<Navigate to="metricas" replace />} />
+        <Route path="metricas" element={<SupervisorMetricas />} />
+        <Route path="llamadas" element={<SupervisorBaseLlamadas />} />
+        <Route path="ventas" element={<SupervisorVentas />} />
       </Route>
       <Route path="/backoffice/login" element={<KronoLogin />} />
       <Route

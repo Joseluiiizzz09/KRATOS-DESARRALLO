@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const leadsRoutes = require('./routes/leads');
 const salesRoutes = require('./routes/sales');
 const backofficeRoutes = require('./routes/backoffice');
+const supervisorRoutes = require('./routes/supervisor');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/backoffice', backofficeRoutes);
+app.use('/api/supervisor', supervisorRoutes);
 
 app.use((req, res) => res.status(404).json({ error: 'Ruta no encontrada.' }));
 // eslint-disable-next-line no-unused-vars

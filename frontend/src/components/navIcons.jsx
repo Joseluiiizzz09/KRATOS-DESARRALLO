@@ -16,3 +16,5 @@ export const ICON_CARGA = <NavIcon><path d="M12 16V4M8 8l4-4 4 4" /><path d="M4 
 export const ICON_ROTACION = <NavIcon><path d="M17 2.1 21 6l-4 3.9" /><path d="M3 12a9 9 0 0 1 15-6.7L21 6" /><path d="M7 21.9 3 18l4-3.9" /><path d="M21 12a9 9 0 0 1-15 6.7L3 18" /></NavIcon>;
 export const ICON_RENDIMIENTO = <NavIcon><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></NavIcon>;
 export const ICON_AVANCE = <NavIcon><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></NavIcon>;
+export const ICON_METRICAS = <NavIcon><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></NavIcon>;
+export const ICON_EQUIPO = <NavIcon><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></NavIcon>;

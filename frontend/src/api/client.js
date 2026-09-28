@@ -63,4 +63,10 @@ export const api = {
   boRotate: (token, fromAdvisorId, toAdvisorIds) => request('/backoffice/leads/rotate', { method: 'POST', body: { fromAdvisorId, toAdvisorIds }, token }),
   boReportAdvisors: (token) => request('/backoffice/reports/advisors', { token }),
   boReportPerformance: (token, days) => request(`/backoffice/reports/performance${toQuery({ days })}`, { token }),
+
+  /* Supervisor */
+  supAdvisors: (token) => request('/supervisor/advisors', { token }),
+  supMetrics: (token) => request('/supervisor/metrics', { token }),
+  supLeads: (token, params) => request(`/supervisor/leads${toQuery(params)}`, { token }),
+  supSales: (token, params) => request(`/supervisor/sales${toQuery(params)}`, { token }),
 };

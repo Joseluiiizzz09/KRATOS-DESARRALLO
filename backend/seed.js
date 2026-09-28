@@ -57,6 +57,14 @@ async function seed() {
     console.log(`Usuario creado: backoffice / ${password}${process.env.BACKOFFICE_PASSWORD ? '' : ' (generada al azar; guárdala, no se repetirá)'}`);
   }
 
+  const [[sup]] = await pool.query("SELECT COUNT(*) AS n FROM usuarios WHERE usuario = 'supervisor'");
+  if (!sup.n) {
+    const password = process.env.SUPERVISOR_PASSWORD || crypto.randomBytes(6).toString('hex');
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query('INSERT INTO usuarios (nombre, usuario, password, rol) VALUES (?, ?, ?, ?)', ['Supervisor Demo', 'supervisor', hash, 'supervisor']);
+    console.log(`Usuario creado: supervisor / ${password}${process.env.SUPERVISOR_PASSWORD ? '' : ' (generada al azar; guárdala, no se repetirá)'}`);
+  }
+
   await pool.end();
 }
 
