@@ -525,13 +525,11 @@ export default function Seguimiento() {
   return (
     <div>
       <div className="topbar module-topbar-standard">
-        <div className="brand">
-          <div className="logo-circle">
-            <img src="/assets/logo3.png" alt="NC" onError={e => { e.target.parentNode.textContent = '' }} />
-          </div>
+        <div className="brand" style={{gap:10}}>
+          <img src="/assets/kratos-logo.webp" alt="" width={40} height={40} style={{flexShrink:0,borderRadius:0,boxShadow:"none",background:"none"}} />
           <div className="brand-text">
-            <img src="/assets/krono-wordmark.png" alt="KRONO" style={{height:22,width:"auto",display:"block"}} />
-            <span className="brand-sub">Seguimiento</span>
+            <h1 style={{margin:0,fontFamily:"'Montserrat','Inter',sans-serif",fontWeight:800,fontSize:24,lineHeight:1,letterSpacing:"0.02em",color:"#111827"}}>KRATOS</h1>
+            <span className="brand-sub" style={{fontSize:10,letterSpacing:".8px",fontWeight:700,textTransform:"uppercase",marginTop:2,whiteSpace:"nowrap",color:"#6b7280"}}>Seguimiento</span>
           </div>
         </div>
         <div className="topbar-right">

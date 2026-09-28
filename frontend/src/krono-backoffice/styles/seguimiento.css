@@ -655,8 +655,8 @@ body{
   box-shadow: 0 6px 18px rgba(229,62,62,.18), 0 0 0 2px rgba(229,62,62,.1) !important;
 }
 .logo-circle img { width: 42px !important; height: 42px !important; }
-.brand-text h1, .topbar-brand-text h1 { font-size: 18px !important; letter-spacing: -.5px !important; }
-.brand-text .brand-sub, .topbar-brand-text .brand-sub { font-size: 10px !important; letter-spacing: 1px !important; font-weight: 600 !important; margin-top: 2px !important; }
+.brand-text h1, .topbar-brand-text h1 { font-family:'Montserrat','Inter',sans-serif !important; font-size: 24px !important; font-weight: 800 !important; letter-spacing: .02em !important; color: #111827 !important; }
+.brand-text .brand-sub, .topbar-brand-text .brand-sub { font-size: 10px !important; letter-spacing: .8px !important; font-weight: 700 !important; text-transform: uppercase !important; margin-top: 2px !important; color: #6b7280 !important; }
 .brand,.topbar-brand { gap: 14px !important; }
 .app-layout, .bo-layout { min-height: calc(100vh - 80px) !important; }
 /* Codex polish: softer seguimiento colors, no harsh separators */
