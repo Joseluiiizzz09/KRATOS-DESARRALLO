@@ -65,10 +65,10 @@ function AppRoutes() {
           </RutaPrivada>
         }
       >
-        <Route index element={<Navigate to="metricas" replace />} />
+        <Route index element={<Navigate to="ventas" replace />} />
+        <Route path="ventas" element={<SupervisorVentas />} />
         <Route path="metricas" element={<SupervisorMetricas />} />
         <Route path="llamadas" element={<SupervisorBaseLlamadas />} />
-        <Route path="ventas" element={<SupervisorVentas />} />
       </Route>
       <Route path="/backoffice/login" element={<KronoLogin />} />
       <Route
