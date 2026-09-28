@@ -3,9 +3,34 @@ import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Field, Filters, Modal, Pager, fmtTime, prettyStatus, useDebounced } from '../../components/bo.jsx';
 
+/** Lista de asesores como tarjetas: clic en una para entrar a su base completa. */
+function AdvisorGrid({ advisors, metricsByAdvisor, onOpen }) {
+  return (
+    <div className="row g-3">
+      {advisors.map((a) => {
+        const m = metricsByAdvisor[a.id];
+        return (
+          <div className="col-sm-6 col-lg-4 col-xxl-3" key={a.id}>
+            <button type="button" className="card h-100 w-100 text-start border-0" style={{ cursor: 'pointer' }} onClick={() => onOpen(a.id)}>
+              <div className="card-body">
+                <div className="fw-semibold">{a.nombre}</div>
+                <div className="display-6 fw-bold mt-1">{a.contactos}</div>
+                <div className="small text-muted">contacto{a.contactos === 1 ? '' : 's'} asignados</div>
+                {m && <div className="small text-muted mt-2">{m.gestionados} gestionados · {m.ventas} ventas</div>}
+              </div>
+            </button>
+          </div>
+        );
+      })}
+      {!advisors.length && <div className="col-12"><div className="ka-card ka-empty"><p>Todavía no hay asesores.</p></div></div>}
+    </div>
+  );
+}
+
 export default function BaseLlamadas() {
   const { token } = useAuth();
   const [advisors, setAdvisors] = useState([]);
+  const [metricsByAdvisor, setMetricsByAdvisor] = useState({});
   const [filters, setFilters] = useState({ advisorId: '', status: '', q: '' });
   const [page, setPage] = useState(1);
   const [data, setData] = useState({ leads: [], total: 0, pageSize: 20 });
@@ -16,18 +41,28 @@ export default function BaseLlamadas() {
   const params = useMemo(() => ({ ...filters, q }), [filters, q]);
 
   const load = useCallback(async () => {
+    if (!filters.advisorId) return;
     setLoading(true);
     try {
       setData(await api.supLeads(token, { ...params, page }));
     } finally {
       setLoading(false);
     }
-  }, [token, params, page]);
+  }, [token, params, page, filters.advisorId]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.supAdvisors(token).then((r) => setAdvisors(r.advisors)).catch(() => {}); }, [token]);
+  useEffect(() => {
+    api.supMetrics(token).then((r) => {
+      setMetricsByAdvisor(Object.fromEntries(r.porAsesor.map((a) => [a.id, a])));
+    }).catch(() => {});
+  }, [token]);
 
   const setFilter = (field, value) => { setFilters((current) => ({ ...current, [field]: value })); setPage(1); };
+  const abrirAsesor = (advisorId) => { setFilters({ advisorId: String(advisorId), status: '', q: '' }); setPage(1); };
+  const volver = () => setFilters({ advisorId: '', status: '', q: '' });
+
+  const asesorActivo = advisors.find((a) => String(a.id) === String(filters.advisorId));
   const { leads } = data;
 
   return (
@@ -39,58 +74,63 @@ export default function BaseLlamadas() {
         </div>
       </div>
 
-      <Filters>
-        <Field label="Buscar" grow>
-          <input className="form-control form-control-sm" value={filters.q} onChange={(e) => setFilter('q', e.target.value)} placeholder="Teléfono, cliente o zona" />
-        </Field>
-        <Field label="Asesor" grow>
-          <select className="form-select form-select-sm" value={filters.advisorId} onChange={(e) => setFilter('advisorId', e.target.value)}>
-            <option value="">Todos los asesores ({advisors.reduce((sum, a) => sum + a.contactos, 0)})</option>
-            {advisors.map((a) => <option key={a.id} value={a.id}>{a.nombre} — {a.contactos} contacto{a.contactos === 1 ? '' : 's'}</option>)}
-          </select>
-        </Field>
-        <Field label="Estado">
-          <select className="form-select form-select-sm" value={filters.status} onChange={(e) => setFilter('status', e.target.value)}>
-            <option value="">Todos</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="venta_cerrada">Venta cerrada</option>
-          </select>
-        </Field>
-        <button className="btn btn-outline-secondary btn-sm" onClick={() => { setFilters({ advisorId: '', status: '', q: '' }); setPage(1); }}>Limpiar</button>
-      </Filters>
+      {!filters.advisorId ? (
+        <AdvisorGrid advisors={advisors} metricsByAdvisor={metricsByAdvisor} onOpen={abrirAsesor} />
+      ) : (
+        <>
+          <div className="d-flex align-items-center gap-2 mb-3">
+            <button className="btn btn-outline-secondary btn-sm" onClick={volver}>← Todos los asesores</button>
+            <span className="fw-semibold">{asesorActivo?.nombre}</span>
+          </div>
 
-      <div className="ka-card">
-        <div className="ka-scroll">
-          <table className="ka-table" style={{ minWidth: 1100, tableLayout: 'auto' }}>
-            <thead>
-              <tr>
-                <th>Contacto</th><th>Asesor</th><th>Zona</th><th>Estado</th><th>Hora asig.</th><th>Observación</th><th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && <tr><td colSpan={7} className="ka-empty"><p>Cargando…</p></td></tr>}
-              {!loading && !leads.length && (
-                <tr><td colSpan={7} className="ka-empty"><p>No hay contactos que coincidan con el filtro.</p></td></tr>
-              )}
-              {leads.map((lead) => (
-                <tr key={lead.id}>
-                  <td>
-                    <div className="ka-phone">{lead.phone}</div>
-                    <div className="small ka-muted">{lead.phone2 || 'Sin teléfono secundario'}</div>
-                  </td>
-                  <td>{lead.advisor || <span className="ka-muted">Sin asignar</span>}</td>
-                  <td>{lead.zone || '—'}</td>
-                  <td><span className={`badge ${lead.status === 'venta_cerrada' ? 'text-bg-success' : 'text-bg-light border'}`}>{prettyStatus(lead.status)}</span></td>
-                  <td>{fmtTime(lead.assignedAt)}</td>
-                  <td><div className="ka-clamp">{lead.advisorNote || lead.backNotes || '—'}</div></td>
-                  <td><button className="btn btn-outline-secondary btn-sm" onClick={() => setHistorial(lead)}>Historial</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <Pager total={data.total} page={page} pageSize={data.pageSize || 20} onPage={setPage} />
-      </div>
+          <Filters>
+            <Field label="Buscar" grow>
+              <input className="form-control form-control-sm" value={filters.q} onChange={(e) => setFilter('q', e.target.value)} placeholder="Teléfono, cliente o zona" />
+            </Field>
+            <Field label="Estado">
+              <select className="form-select form-select-sm" value={filters.status} onChange={(e) => setFilter('status', e.target.value)}>
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="venta_cerrada">Venta cerrada</option>
+              </select>
+            </Field>
+            <button className="btn btn-outline-secondary btn-sm" onClick={() => setFilters((current) => ({ ...current, status: '', q: '' }))}>Limpiar</button>
+          </Filters>
+
+          <div className="ka-card">
+            <div className="ka-scroll">
+              <table className="ka-table" style={{ minWidth: 1150, tableLayout: 'auto' }}>
+                <thead>
+                  <tr>
+                    <th>Contacto</th><th>Zona</th><th>Tipif. Back</th><th>Estado asesor</th><th>Hora asig.</th><th>Observación asesor</th><th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading && <tr><td colSpan={7} className="ka-empty"><p>Cargando…</p></td></tr>}
+                  {!loading && !leads.length && (
+                    <tr><td colSpan={7} className="ka-empty"><p>Este asesor no tiene contactos que coincidan con el filtro.</p></td></tr>
+                  )}
+                  {leads.map((lead) => (
+                    <tr key={lead.id}>
+                      <td>
+                        <div className="ka-phone">{lead.phone}</div>
+                        <div className="small ka-muted">{lead.phone2 || 'Sin teléfono secundario'}</div>
+                      </td>
+                      <td>{lead.zone || '—'}</td>
+                      <td>{lead.tipificacion || '—'}</td>
+                      <td><span className={`badge ${lead.status === 'venta_cerrada' ? 'text-bg-success' : 'text-bg-light border'}`}>{prettyStatus(lead.status)}</span></td>
+                      <td>{fmtTime(lead.assignedAt)}</td>
+                      <td><div className="ka-clamp">{lead.advisorNote || lead.backNotes || '—'}</div></td>
+                      <td><button className="btn btn-outline-secondary btn-sm" onClick={() => setHistorial(lead)}>Historial</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pager total={data.total} page={page} pageSize={data.pageSize || 20} onPage={setPage} />
+          </div>
+        </>
+      )}
 
       {historial && (
         <Modal title="Historial de gestión" subtitle={`${historial.phone} · ${historial.advisor || 'Sin asignar'}`} onClose={() => setHistorial(null)} size="md">
