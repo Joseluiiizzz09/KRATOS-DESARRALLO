@@ -5,14 +5,19 @@ import { MetricCards } from '../../components/bo.jsx';
 
 export default function Metricas() {
   const { token } = useAuth();
-  const [data, setData] = useState({ porAsesor: [], totales: { contactos: 0, gestionados: 0, ventas: 0, aprobadas: 0, rechazadas: 0 }, asesores: 0 });
+  const [data, setData] = useState({
+    porAsesor: [],
+    totales: { contactos: 0, gestionados: 0, ventas: 0, aprobadas: 0, rechazadas: 0 },
+    asesores: 0,
+    hoy: { ventas: 0, activas: 0, caidas: 0, asesoresActivos: 0 },
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.supMetrics(token).then(setData).finally(() => setLoading(false));
   }, [token]);
 
-  const { totales } = data;
+  const { totales, hoy } = data;
   const avanceEquipo = totales.contactos ? Math.round((totales.gestionados / totales.contactos) * 100) : 0;
 
   return (
@@ -31,6 +36,15 @@ export default function Metricas() {
             ['Contactos', totales.contactos, 'Base total del equipo'],
             ['Gestionados', totales.gestionados, `${avanceEquipo}% de avance`],
             ['Ventas', totales.ventas, `${totales.aprobadas} aprobadas · ${totales.rechazadas} rechazadas`],
+          ]}
+          />
+
+          <div className="text-muted small text-uppercase fw-semibold mb-2">Hoy</div>
+          <MetricCards items={[
+            ['Ventas del día', hoy.ventas, 'Registradas hoy en todo el equipo'],
+            ['Activas', hoy.activas, 'Aprobadas hoy'],
+            ['Caídas', hoy.caidas, 'Rechazadas hoy'],
+            ['Asesores vendiendo', hoy.asesoresActivos, 'Con al menos una venta hoy'],
           ]}
           />
 

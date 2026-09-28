@@ -67,7 +67,25 @@ router.get('/metrics', async (req, res) => {
     { contactos: 0, gestionados: 0, ventas: 0, aprobadas: 0, rechazadas: 0 }
   );
 
-  res.json({ porAsesor, totales, asesores: advisors.length });
+  const [[hoy]] = await pool.query(
+    `SELECT COUNT(*) AS ventas,
+            SUM(status = 'aprobada') AS activas,
+            SUM(status = 'rechazada') AS caidas,
+            COUNT(DISTINCT advisor_id) AS asesoresActivos
+     FROM sales WHERE DATE(created_at) = CURDATE()`
+  );
+
+  res.json({
+    porAsesor,
+    totales,
+    asesores: advisors.length,
+    hoy: {
+      ventas: Number(hoy.ventas || 0),
+      activas: Number(hoy.activas || 0),
+      caidas: Number(hoy.caidas || 0),
+      asesoresActivos: Number(hoy.asesoresActivos || 0),
+    },
+  });
 });
 
 /** Base de llamadas de todos los asesores (o de uno, con ?advisorId=), solo lectura. */
