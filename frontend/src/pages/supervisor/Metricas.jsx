@@ -17,8 +17,7 @@ export default function Metricas() {
     api.supMetrics(token).then(setData).finally(() => setLoading(false));
   }, [token]);
 
-  const { totales, hoy } = data;
-  const avanceEquipo = totales.contactos ? Math.round((totales.gestionados / totales.contactos) * 100) : 0;
+  const { hoy } = data;
 
   return (
     <div>
@@ -31,15 +30,6 @@ export default function Metricas() {
 
       {loading ? <p className="text-muted small">Cargando…</p> : (
         <>
-          <MetricCards items={[
-            ['Asesores', data.asesores, 'En el equipo'],
-            ['Contactos', totales.contactos, 'Base total del equipo'],
-            ['Gestionados', totales.gestionados, `${avanceEquipo}% de avance`],
-            ['Ventas', totales.ventas, `${totales.aprobadas} aprobadas · ${totales.rechazadas} rechazadas`],
-          ]}
-          />
-
-          <div className="text-muted small text-uppercase fw-semibold mb-2">Hoy</div>
           <MetricCards items={[
             ['Ventas del día', hoy.ventas, 'Registradas hoy en todo el equipo'],
             ['Activas', hoy.activas, 'Aprobadas hoy'],
