@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Field, Filters, Modal, Pager, fmtTime, prettyStatus, useDebounced } from '../../components/bo.jsx';
+import { Pager, useDebounced } from '../../components/bo.jsx';
+import { statusColors, statusOptions } from '../../data/catalog.js';
+import { CopyIcon, PhoneIcon, WhatsAppIcon } from '../../components/icons.jsx';
+import '../asesor/asesor.css';
 
 function PersonIcon() {
   return (
@@ -42,28 +45,95 @@ function AdvisorGrid({ advisors, metricsByAdvisor, onOpen }) {
   );
 }
 
+/** Igual que en la base del asesor: número + llamar/WhatsApp/copiar, sin editar nada. */
+function TelefonoConAcciones({ numero }) {
+  const [copiado, setCopiado] = useState(false);
+  if (!numero) return <span className="ka-muted">—</span>;
+  const digitos = numero.replace(/\D/g, '');
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(numero);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 1400);
+    } catch { /* noop */ }
+  }
+
+  return (
+    <span className="ka-phone-cell">
+      <span className="ka-phone">{numero}</span>
+      <a className="ka-ibtn" href={`tel:${digitos}`} title="Llamar" aria-label={`Llamar a ${numero}`}>
+        <PhoneIcon />
+      </a>
+      <a className="ka-ibtn ka-ibtn--wa" href={`https://wa.me/${digitos}`} target="_blank" rel="noreferrer" title="Abrir WhatsApp" aria-label={`Abrir WhatsApp de ${numero}`}>
+        <WhatsAppIcon />
+      </a>
+      <button type="button" className="ka-ibtn" onClick={copiar} title="Copiar número" aria-label={`Copiar ${numero}`}>
+        <CopyIcon />
+      </button>
+      {copiado && <span className="small text-success">✓</span>}
+    </span>
+  );
+}
+
+/** Nombre del estado tal como lo ve el asesor (mismas 13 tipificaciones + las antiguas). */
+function labelEstado(status) {
+  const match = statusOptions(status).find(([value]) => value === status);
+  return match ? match[1] : status;
+}
+
+const COLUMNAS = ['Teléfono', 'Teléfono 2', 'Usuario WhatsApp', 'Obs. Back', 'Estado', 'Observación asesor', 'Zona', 'Dirección / Coord.', 'Hora asig.'];
+
+/** Misma tabla de 9 columnas que ve el asesor en su propia Base de llamadas, pero de solo lectura. */
+function FilaLead({ lead }) {
+  const colores = statusColors(lead.status);
+  const hora = typeof lead.assignedAt === 'string' && lead.assignedAt.length >= 16 ? lead.assignedAt.slice(11, 16) : '—';
+  return (
+    <tr>
+      <td><TelefonoConAcciones numero={lead.phone} /></td>
+      <td><TelefonoConAcciones numero={lead.phone2} /></td>
+      <td className="ka-user">{lead.whatsappUser || '—'}</td>
+      <td><span className="ka-clamp" title={lead.backNotes || ''}>{lead.backNotes || 'Sin observaciones'}</span></td>
+      <td>
+        <span
+          className="ka-status"
+          style={{
+            backgroundColor: colores.bg, borderColor: colores.border, color: colores.text,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            backgroundImage: 'none', paddingRight: 12, cursor: 'default',
+          }}
+        >
+          {labelEstado(lead.status)}
+        </span>
+      </td>
+      <td><span className="ka-clamp">{lead.advisorNote || 'Sin observación'}</span></td>
+      <td>{lead.zone || '—'}</td>
+      <td><span className="ka-clamp">{lead.address || lead.coordinates || '—'}</span></td>
+      <td className="ka-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>{hora}</td>
+    </tr>
+  );
+}
+
 export default function BaseLlamadas() {
   const { token } = useAuth();
   const [advisors, setAdvisors] = useState([]);
   const [metricsByAdvisor, setMetricsByAdvisor] = useState({});
-  const [filters, setFilters] = useState({ advisorId: '', status: '', q: '' });
+  const [advisorId, setAdvisorId] = useState('');
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [data, setData] = useState({ leads: [], total: 0, pageSize: 20 });
   const [loading, setLoading] = useState(true);
-  const [historial, setHistorial] = useState(null);
-  const q = useDebounced(filters.q);
-
-  const params = useMemo(() => ({ ...filters, q }), [filters, q]);
+  const q = useDebounced(search);
 
   const load = useCallback(async () => {
-    if (!filters.advisorId) return;
+    if (!advisorId) return;
     setLoading(true);
     try {
-      setData(await api.supLeads(token, { ...params, page }));
+      setData(await api.supLeads(token, { advisorId, q, page }));
     } finally {
       setLoading(false);
     }
-  }, [token, params, page, filters.advisorId]);
+  }, [token, advisorId, q, page]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.supAdvisors(token).then((r) => setAdvisors(r.advisors)).catch(() => {}); }, [token]);
@@ -73,90 +143,56 @@ export default function BaseLlamadas() {
     }).catch(() => {});
   }, [token]);
 
-  const setFilter = (field, value) => { setFilters((current) => ({ ...current, [field]: value })); setPage(1); };
-  const abrirAsesor = (advisorId) => { setFilters({ advisorId: String(advisorId), status: '', q: '' }); setPage(1); };
-  const volver = () => setFilters({ advisorId: '', status: '', q: '' });
+  const abrirAsesor = (id) => { setAdvisorId(String(id)); setSearch(''); setPage(1); };
+  const volver = () => { setAdvisorId(''); setSearch(''); setPage(1); };
 
-  const asesorActivo = advisors.find((a) => String(a.id) === String(filters.advisorId));
+  const asesorActivo = advisors.find((a) => String(a.id) === String(advisorId));
   const { leads } = data;
 
   return (
     <div>
-      <div className="ka-head">
-        <div>
-          <div className="text-muted small text-uppercase fw-semibold">Supervisión</div>
-          <h1 className="ka-title">Base de llamadas del equipo</h1>
-        </div>
-      </div>
-
-      {!filters.advisorId ? (
-        <AdvisorGrid advisors={advisors} metricsByAdvisor={metricsByAdvisor} onOpen={abrirAsesor} />
+      {!advisorId ? (
+        <>
+          <div className="ka-head">
+            <div>
+              <div className="text-muted small text-uppercase fw-semibold">Supervisión</div>
+              <h1 className="ka-title">Base de llamadas del equipo</h1>
+            </div>
+          </div>
+          <AdvisorGrid advisors={advisors} metricsByAdvisor={metricsByAdvisor} onOpen={abrirAsesor} />
+        </>
       ) : (
         <>
-          <div className="d-flex align-items-center gap-2 mb-3">
-            <button className="btn btn-outline-secondary btn-sm" onClick={volver}>← Todos los asesores</button>
-            <span className="fw-semibold">{asesorActivo?.nombre}</span>
+          <div className="ka-head">
+            <div>
+              <button type="button" className="btn btn-link btn-sm p-0 text-decoration-none mb-1 d-block" onClick={volver}>← Todos los asesores</button>
+              <h1 className="ka-title">{asesorActivo?.nombre}</h1>
+            </div>
+            <div className="ka-head-tools">
+              <input className="ka-search" placeholder="Filtrar número…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+            </div>
           </div>
-
-          <Filters>
-            <Field label="Buscar" grow>
-              <input className="form-control form-control-sm" value={filters.q} onChange={(e) => setFilter('q', e.target.value)} placeholder="Teléfono, cliente o zona" />
-            </Field>
-            <Field label="Estado">
-              <select className="form-select form-select-sm" value={filters.status} onChange={(e) => setFilter('status', e.target.value)}>
-                <option value="">Todos</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="venta_cerrada">Venta cerrada</option>
-              </select>
-            </Field>
-            <button className="btn btn-outline-secondary btn-sm" onClick={() => setFilters((current) => ({ ...current, status: '', q: '' }))}>Limpiar</button>
-          </Filters>
 
           <div className="ka-card">
             <div className="ka-scroll">
-              <table className="ka-table" style={{ minWidth: 1150, tableLayout: 'auto' }}>
+              <table className="ka-table" style={{ minWidth: 1500 }}>
                 <thead>
                   <tr>
-                    <th>Contacto</th><th>Zona</th><th>Tipif. Back</th><th>Estado asesor</th><th>Hora asig.</th><th>Observación asesor</th><th>Acciones</th>
+                    {COLUMNAS.map((etiqueta) => <th key={etiqueta}>{etiqueta}</th>)}
                   </tr>
                 </thead>
                 <tbody>
-                  {loading && <tr><td colSpan={7} className="ka-empty"><p>Cargando…</p></td></tr>}
+                  {loading && <tr><td colSpan={COLUMNAS.length} className="ka-empty"><p>Cargando…</p></td></tr>}
                   {!loading && !leads.length && (
-                    <tr><td colSpan={7} className="ka-empty"><p>Este asesor no tiene contactos que coincidan con el filtro.</p></td></tr>
+                    <tr><td colSpan={COLUMNAS.length} className="ka-empty"><p>Este asesor no tiene contactos que coincidan con el filtro.</p></td></tr>
                   )}
-                  {leads.map((lead) => (
-                    <tr key={lead.id}>
-                      <td>
-                        <div className="ka-phone">{lead.phone}</div>
-                        <div className="small ka-muted">{lead.phone2 || 'Sin teléfono secundario'}</div>
-                      </td>
-                      <td>{lead.zone || '—'}</td>
-                      <td>{lead.tipificacion || '—'}</td>
-                      <td><span className={`badge ${lead.status === 'venta_cerrada' ? 'text-bg-success' : 'text-bg-light border'}`}>{prettyStatus(lead.status)}</span></td>
-                      <td>{fmtTime(lead.assignedAt)}</td>
-                      <td><div className="ka-clamp">{lead.advisorNote || lead.backNotes || '—'}</div></td>
-                      <td><button className="btn btn-outline-secondary btn-sm" onClick={() => setHistorial(lead)}>Historial</button></td>
-                    </tr>
-                  ))}
+                  {leads.map((lead) => <FilaLead key={lead.id} lead={lead} />)}
                 </tbody>
               </table>
             </div>
             <Pager total={data.total} page={page} pageSize={data.pageSize || 20} onPage={setPage} />
           </div>
         </>
-      )}
-
-      {historial && (
-        <Modal title="Historial de gestión" subtitle={`${historial.phone} · ${historial.advisor || 'Sin asignar'}`} onClose={() => setHistorial(null)} size="md">
-          <div className="modal-body">
-            {historial.managementHistory?.length ? (
-              <ul className="list-unstyled mb-0">
-                {historial.managementHistory.map((iso, i) => <li key={i} className="small border-start ps-3 pb-2">{new Date(iso).toLocaleString('es-PE', { timeZone: 'America/Lima' })}</li>)}
-              </ul>
-            ) : <p className="small text-muted mb-0">Sin gestiones registradas.</p>}
-          </div>
-        </Modal>
       )}
     </div>
   );
