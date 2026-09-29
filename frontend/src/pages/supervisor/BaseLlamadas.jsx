@@ -3,7 +3,6 @@ import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Pager, useDebounced } from '../../components/bo.jsx';
 import { statusColors, statusOptions } from '../../data/catalog.js';
-import { CopyIcon, PhoneIcon, WhatsAppIcon } from '../../components/icons.jsx';
 import '../asesor/asesor.css';
 
 function PersonIcon() {
@@ -45,35 +44,10 @@ function AdvisorGrid({ advisors, metricsByAdvisor, onOpen }) {
   );
 }
 
-/** Igual que en la base del asesor: número + llamar/WhatsApp/copiar, sin editar nada. */
-function TelefonoConAcciones({ numero }) {
-  const [copiado, setCopiado] = useState(false);
+/** Solo lectura: el supervisor ve el número, pero no llama ni escribe desde aquí (eso es tarea del asesor). */
+function Telefono({ numero }) {
   if (!numero) return <span className="ka-muted">—</span>;
-  const digitos = numero.replace(/\D/g, '');
-
-  async function copiar() {
-    try {
-      await navigator.clipboard.writeText(numero);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 1400);
-    } catch { /* noop */ }
-  }
-
-  return (
-    <span className="ka-phone-cell">
-      <span className="ka-phone">{numero}</span>
-      <a className="ka-ibtn" href={`tel:${digitos}`} title="Llamar" aria-label={`Llamar a ${numero}`}>
-        <PhoneIcon />
-      </a>
-      <a className="ka-ibtn ka-ibtn--wa" href={`https://wa.me/${digitos}`} target="_blank" rel="noreferrer" title="Abrir WhatsApp" aria-label={`Abrir WhatsApp de ${numero}`}>
-        <WhatsAppIcon />
-      </a>
-      <button type="button" className="ka-ibtn" onClick={copiar} title="Copiar número" aria-label={`Copiar ${numero}`}>
-        <CopyIcon />
-      </button>
-      {copiado && <span className="small text-success">✓</span>}
-    </span>
-  );
+  return <span className="ka-phone">{numero}</span>;
 }
 
 /** Nombre del estado tal como lo ve el asesor (mismas 13 tipificaciones + las antiguas). */
@@ -90,8 +64,8 @@ function FilaLead({ lead }) {
   const hora = typeof lead.assignedAt === 'string' && lead.assignedAt.length >= 16 ? lead.assignedAt.slice(11, 16) : '—';
   return (
     <tr>
-      <td><TelefonoConAcciones numero={lead.phone} /></td>
-      <td><TelefonoConAcciones numero={lead.phone2} /></td>
+      <td><Telefono numero={lead.phone} /></td>
+      <td><Telefono numero={lead.phone2} /></td>
       <td className="ka-user">{lead.whatsappUser || '—'}</td>
       <td><span className="ka-clamp" title={lead.backNotes || ''}>{lead.backNotes || 'Sin observaciones'}</span></td>
       <td>
