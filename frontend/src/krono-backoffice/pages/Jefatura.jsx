@@ -28,19 +28,8 @@ const CARGOS = [
   { id:'asesor',         label:'Asesor',           cls:'bc-asesor'         },
   { id:'supervisor',     label:'Supervisor',        cls:'bc-supervisor'     },
   { id:'backoffice',     label:'Back Data',         cls:'bc-backoffice'     },
-  { id:'validacion',     label:'Validación',        cls:'bc-validacion'     },
-  { id:'grabaciones',    label:'Grabaciones',       cls:'bc-grabaciones'    },
   { id:'seguimiento',    label:'Seguimiento',       cls:'bc-seguimiento'    },
   { id:'jefatura',       label:'Jefatura',          cls:'bc-jefatura'       },
-  { id:'usuarios',       label:'Usuarios',          cls:'bc-usuarios'       },
-  { id:'programacion',   label:'Programación',      cls:'bc-programacion'   },
-  { id:'cobranzas',      label:'Cobranzas',         cls:'bc-cobranzas'      },
-  { id:'calidad',        label:'Calidad',           cls:'bc-calidad'        },
-  { id:'supcalidad',     label:'Super de Calidad',  cls:'bc-calidad'        },
-  { id:'supgrabaciones', label:'Sup. Grabaciones',  cls:'bc-supgrabaciones' },
-  { id:'backreclutamiento',   label:'Back Data Reclutamiento',  cls:'bc-backreclutamiento'   },
-  { id:'capacitador',   label:'Capacitación',  cls:'bc-capacitador'   },
-  { id:'marketing',     label:'Marketing',     cls:'bc-marketing'     },
 ]
 const SALAS = ['SALA 1','SALA 2','SALA 3','SALA 4','SALA CHANCAY','SALA 5','SALA 6']
 const TIPIFICACIONES_ENTREVISTA = ['NO CONTESTA','DESISTE','REPROGRAMA','CORTA LLAMADA','ASISTE','EN CAMINO','FALTA']
@@ -107,20 +96,9 @@ function estadoProgramacionFlujo(venta) {
 
 const ACCESOS_MODS = [
   { nombre:'Back Data',        desc:'Gestión y asignación de leads', icon:'clipboard', path:'/backoffice',      color:'#dc3545', cargo:'backoffice' },
-  { nombre:'Validación',       desc:'Control y revisión de ventas',  icon:'shield',    path:'/validacion',      color:'#059669', cargo:'validacion' },
-  { nombre:'Grabaciones',      desc:'Auditoría de llamadas',         icon:'mic',       path:'/grabaciones',     color:'#0f766e', cargo:'grabaciones' },
   { nombre:'Seguimiento',      desc:'Seguimiento postventa',         icon:'activity',  path:'/seguimiento',     color:'#0284c7', cargo:'seguimiento' },
   { nombre:'Supervisor',       desc:'Gestión de equipos y salas',    icon:'briefcase', path:'/supervisor',      color:'#7c3aed', cargo:'supervisor' },
-  { nombre:'Dashboard CRM',    desc:'Panel individual del asesor',   icon:'chart',     path:'/dashboard',       color:'#2563eb', cargo:'asesor' },
-  { nombre:'Gestión Usuarios', desc:'Administración de accesos',     icon:'users',     path:'/usuarios',        color:'#be185d', cargo:'usuarios' },
-  { nombre:'Programación',     desc:'Agenda de instalaciones',       icon:'calendar',  path:'/programacion',    color:'#c2410c', cargo:'programacion' },
-  { nombre:'Cobranzas',        desc:'Clientes instalados y contratos',icon:'wallet',    path:'/cobranzas',       color:'#0f766e', cargo:'cobranzas' },
-  { nombre:'Calidad',          desc:'Control de clientes instalados',   icon:'quality',   path:'/calidad',         color:'#2563eb', cargo:'calidad' },
-  { nombre:'Super de Calidad', desc:'Supervisión del equipo de Calidad',icon:'quality',   path:'/sup-calidad',     color:'#7c3aed', cargo:'supcalidad' },
-  { nombre:'Sup. Grabaciones', desc:'Supervisión del equipo de audio',icon:'headphones',path:'/sup-grabaciones',color:'#047857', cargo:'supgrabaciones' },
-  { nombre:'Back Data Reclutamiento',       desc:'Gestión y asignación de candidatos', icon:'clipboard', path:'/backdata-reclutamiento', color:'#4338ca', cargo:'backreclutamiento' },
-  { nombre:'Capacitación',      desc:'Seguimiento de postulantes en capacitación', icon:'graduation', path:'/backdata-reclutamiento', color:'#0e7490', cargo:'capacitador' },
-  { nombre:'Marketing · Leads', desc:'Gestión de campañas y prospectos', icon:'chart', path:'/marketing-leads', color:'#be185d', cargo:'marketing' },
+  { nombre:'Dashboard CRM',    desc:'Panel individual del asesor',   icon:'chart',     path:'/asesor',       color:'#2563eb', cargo:'asesor' },
 ]
 
 function ModuloIcon({ tipo, size = 24 }) {
@@ -2052,17 +2030,12 @@ export default function Jefatura() {
           <button className={`nav-btn${seccion==='accesos'?'     active':''}`} onClick={()=>irSeccion('accesos')}><span className="nav-dot"></span> Accesos directos</button>
           <div className="sidebar-sep">Operaciones</div>
           <button className={`nav-btn${seccion==='marketing-leads'?' active':''}`} onClick={()=>irSeccion('marketing-leads')}><span className="nav-dot"></span> Marketing · Leads</button>
-          <button className={`nav-btn${seccion==='grab-rendimiento'?' active':''}`} onClick={()=>irSeccion('grab-rendimiento')}><span className="nav-dot"></span> Grabaciones</button>
           <button className={`nav-btn${seccion==='envio-masivo'?' active':''}`} onClick={()=>irSeccion('envio-masivo')}><span className="nav-dot"></span> Envío masivo</button>
-          <button className={`nav-btn${seccion==='cobranza-codigos'?' active':''}`} onClick={()=>irSeccion('cobranza-codigos')}><span className="nav-dot"></span> Cobranza · Códigos</button>
           <button className={`nav-btn${seccion==='ventas-flujo'?' active':''}`} onClick={()=>irSeccion('ventas-flujo')}><span className="nav-dot"></span> Ventas generales</button>
-          <button className={`nav-btn${seccion==='seguimiento'?' active':''}`} onClick={()=>irSeccion('seguimiento')}><span className="nav-dot"></span> Seguimiento en campo</button>
-          <button className={`nav-btn${seccion==='reclutados-generales'?' active':''}`} onClick={()=>irSeccion('reclutados-generales')}><span className="nav-dot"></span> Reclutados generales</button>
           <div className="sidebar-sep">Gestión</div>
           <button className={`nav-btn${seccion==='usuarios'?'   active':''}`} onClick={()=>irSeccion('usuarios')}><span className="nav-dot"></span> Usuarios</button>
           <button className={`nav-btn${seccion==='reportes'?'   active':''}`} onClick={()=>irSeccion('reportes')}><span className="nav-dot"></span> Reportes</button>
           <div className="sidebar-sep">Sistema</div>
-          <button className={`nav-btn${seccion==='logs'?'       active':''}`} onClick={()=>irSeccion('logs')}><span className="nav-dot"></span> Logs de actividad</button>
           <button className={`nav-btn${seccion==='eliminaciones'?' active':''}`} onClick={()=>irSeccion('eliminaciones')}><span className="nav-dot"></span> Eliminaciones generales</button>
         </aside>
 
