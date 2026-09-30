@@ -7,6 +7,7 @@ import Tablero from './pages/asesor/Tablero.jsx';
 import MisVentas from './pages/asesor/MisVentas.jsx';
 import KronoBackoffice from './krono-backoffice/pages/Backoffice.jsx';
 import KronoSeguimiento from './krono-backoffice/pages/Seguimiento.jsx';
+import KronoJefatura from './krono-backoffice/pages/Jefatura.jsx';
 import KronoLogin from './krono-backoffice/pages/Login.jsx';
 import SupervisorLayout from './pages/supervisor/SupervisorLayout.jsx';
 import SupervisorMetricas from './pages/supervisor/Metricas.jsx';
@@ -84,6 +85,14 @@ function AppRoutes() {
         element={
           <RutaKrono>
             <KronoSeguimiento />
+          </RutaKrono>
+        }
+      />
+      <Route
+        path="/jefatura"
+        element={
+          <RutaKrono>
+            <KronoJefatura />
           </RutaKrono>
         }
       />
