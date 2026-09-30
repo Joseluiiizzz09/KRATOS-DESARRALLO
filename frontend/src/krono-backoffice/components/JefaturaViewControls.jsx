@@ -1,3 +1,4 @@
+import '../styles/jefatura-view.css'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 

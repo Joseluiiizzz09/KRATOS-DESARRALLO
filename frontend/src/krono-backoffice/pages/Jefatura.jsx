@@ -2007,10 +2007,10 @@ export default function Jefatura() {
             <span></span><span></span><span></span>
           </button>
           <div className="brand" style={{gap:10}}>
-          <img src="/assets/kratos-logo.webp" alt="" width={40} height={40} style={{flexShrink:0,borderRadius:0,boxShadow:"none",background:"none"}} />
+          <img src="/assets/kratos-logo.webp" alt="" width={48} height={48} style={{flexShrink:0,borderRadius:0,boxShadow:"none",background:"none"}} />
           <div className="brand-text">
-            <h1 style={{margin:0,fontFamily:"'Montserrat','Inter',sans-serif",fontWeight:800,fontSize:24,lineHeight:1,letterSpacing:"0.02em",color:"#111827"}}>KRATOS</h1>
-            <span className="brand-sub" style={{fontSize:10,letterSpacing:".8px",fontWeight:700,textTransform:"uppercase",marginTop:2,whiteSpace:"nowrap",color:"#6b7280"}}>Panel de Jefatura</span>
+            <h1 style={{margin:0}}>KRATOS</h1>
+            <span className="brand-sub" style={{fontSize:10,letterSpacing:"1.6px",fontWeight:700,textTransform:"uppercase",marginTop:4,whiteSpace:"nowrap",color:"#94a3b8"}}>Panel de Jefatura</span>
           </div>
           </div>
         </div>

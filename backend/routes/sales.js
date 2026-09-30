@@ -26,6 +26,37 @@ function mapSale(row) {
   };
 }
 
+/* Conexión con KRONO: la venta del asesor entra directo a Seguimiento (sin pasar por
+   validación ni grabación) en la base KRONO_DB_NAME. */
+const KRONO_DB = /^\w+$/.test(process.env.KRONO_DB_NAME || '') ? process.env.KRONO_DB_NAME : null;
+
+async function enviarVentaAKrono(user, v) {
+  if (!KRONO_DB) return;
+  try {
+    const [ku] = await pool.query(
+      `SELECT id, nombre, sala FROM \`${KRONO_DB}\`.usuarios WHERE usuario = ? LIMIT 1`, [user.usuario]);
+    if (!ku[0]) return;
+    let lead = {};
+    if (v.leadId) {
+      const [l] = await pool.query('SELECT address, coordinates, department, province, zone FROM leads WHERE id = ?', [v.leadId]);
+      lead = l[0] || {};
+    }
+    const leadKrono = String(v.leadId || '').startsWith('krono-') ? Number(String(v.leadId).slice(6)) : null;
+    await pool.query(
+      `INSERT INTO \`${KRONO_DB}\`.ventas
+         (asesor_id, asesor_nombre, tipo_doc, dni, nombre, telefono1, telefono2, departamento, provincia, distrito,
+          direccion, coordenadas, paquete, estado, observacion, estado_supgrab, seguimiento_ingresado_at,
+          sala_atribucion, lead_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'VENTA', ?, 'conforme', NOW(), ?, ?)`,
+      [ku[0].id, ku[0].nombre, v.documentType, v.documentNumber, v.clientName, v.clientPhone, v.referencePhone || '',
+       lead.department || '', lead.province || '', lead.zone || '', lead.address || '', lead.coordinates || '',
+       v.productName, v.notes || '', ku[0].sala || null, leadKrono]
+    );
+  } catch (e) {
+    console.error('No se pudo enviar la venta a KRONO:', e.message);
+  }
+}
+
 /** Ventas registradas por el asesor autenticado. */
 router.get('/', requireAuth, async (req, res) => {
   const [rows] = await pool.query(
@@ -72,6 +103,8 @@ router.post('/', requireAuth, async (req, res) => {
       [documentType, documentNumber, leadId, req.user.id]
     );
   }
+
+  await enviarVentaAKrono(req.user, { clientName, clientPhone, referencePhone, documentType, documentNumber, productName, notes, leadId });
 
   const [rows] = await pool.query('SELECT * FROM sales WHERE id = ?', [id]);
   res.status(201).json({ sale: mapSale(rows[0]) });

@@ -41,6 +41,7 @@ async function download(path, token, fileName) {
 
 export const api = {
   login: (usuario, password) => request('/auth/login', { method: 'POST', body: { usuario, password } }),
+  kronoSso: (kronoToken, como) => request('/auth/krono', { method: 'POST', body: { token: kronoToken, como } }),
   me: (token) => request('/auth/me', { token }),
   getLeads: (token) => request('/leads', { token }),
   updateLead: (token, id, changes) => request(`/leads/${id}`, { method: 'PATCH', body: changes, token }),

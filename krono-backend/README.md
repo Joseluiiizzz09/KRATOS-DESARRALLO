@@ -52,3 +52,7 @@ con un usuario que exista en `krono_local` con `cargo = 'backoffice'`.
   (`GOOGLE_SHEETS_RECLUTAMIENTO_ENABLED=false`).
 - Los archivos `logo3.png` y otros assets estáticos de KRONO no se copiaron;
   el logo del login sale roto por eso.
+
+## Login unificado con KRATOS
+
+`routes/auth.js` tiene una funcion extra (`sincronizarDesdeKratos`): si `KRATOS_DB_NAME` esta definido en `.env` y el usuario no existe en `krono_local` (o la clave no coincide), se busca en la base de KRATOS; si la clave es correcta se registra aqui con el cargo equivalente (asesor, supervisor, backoffice, admin -> jefatura). Sin esa variable el login es el original.

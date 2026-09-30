@@ -4,6 +4,24 @@ import { useAuth } from '../context/AuthContext.jsx';
 import logo from '../assets/kratos-logo.webp';
 import '../pages/asesor/asesor.css';
 
+/** Jefatura entró a este módulo como otro usuario (desde "Accesos directos"): puede volver a su panel. */
+function entroDesdeJefatura() {
+  try {
+    const actor = JSON.parse(sessionStorage.getItem('nc_usuario') || 'null');
+    return actor?.cargo === 'jefatura' && Boolean(sessionStorage.getItem('nc_jefatura_usuario_objetivo'));
+  } catch {
+    return false;
+  }
+}
+
+function volverAJefatura() {
+  sessionStorage.removeItem('nc_jefatura_usuario_objetivo');
+  sessionStorage.removeItem('nc_dashboard_asesor_objetivo');
+  sessionStorage.removeItem('kratos:token');
+  localStorage.removeItem('kratos:token');
+  window.location.assign('/jefatura');
+}
+
 /** Menú lateral plegable compartido por el portal del asesor y el de Back Office. */
 export default function SidebarLayout({ items, extra }) {
   const { user, logout } = useAuth();
@@ -71,6 +89,11 @@ export default function SidebarLayout({ items, extra }) {
 
         <div className="p-3 border-top flex-shrink-0">
           {!collapsed && <div className="small text-muted mb-2">{user?.nombre}</div>}
+          {entroDesdeJefatura() && (
+            <button className="btn btn-dark btn-sm w-100 mb-2" onClick={volverAJefatura} title="Volver a Jefatura">
+              {collapsed ? '←' : '← Volver a Jefatura'}
+            </button>
+          )}
           <button className="btn btn-outline-secondary btn-sm w-100" onClick={logout}>
             {collapsed ? '⏻' : 'Cerrar sesión'}
           </button>

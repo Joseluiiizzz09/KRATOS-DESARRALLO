@@ -47,6 +47,8 @@ export function useAuth() {
     sessionStorage.removeItem('nc_dashboard_asesor_objetivo')
     sessionStorage.removeItem('nc_token')
     sessionStorage.removeItem('nc_usuario')
+    localStorage.removeItem('kratos:token')
+    sessionStorage.removeItem('kratos:token')
     setSesion(null)
     refrescarSesion()
   }

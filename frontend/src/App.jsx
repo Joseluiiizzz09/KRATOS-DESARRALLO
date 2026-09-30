@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Navigate, Route, BrowserRouter, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import Login from './pages/Login.jsx';
@@ -13,13 +14,21 @@ import SupervisorLayout from './pages/supervisor/SupervisorLayout.jsx';
 import SupervisorMetricas from './pages/supervisor/Metricas.jsx';
 import SupervisorBaseLlamadas from './pages/supervisor/BaseLlamadas.jsx';
 import SupervisorVentas from './pages/supervisor/Ventas.jsx';
+import { usuarioTieneCargo } from './krono-backoffice/utils/roles.js';
+import { RUTAS as RUTAS_KRONO } from './krono-backoffice/utils/rutas.js';
 import { leerSesionActual, useAuth as useAuthKrono } from './krono-backoffice/hooks/useAuth.js';
 
 const HOME = { asesor: '/asesor', backoffice: '/backoffice', admin: '/backoffice', supervisor: '/supervisor' };
 
 function RutaPrivada({ children, roles }) {
-  const { token, user, loading } = useAuth();
-  if (loading) return <div className="d-flex vh-100 align-items-center justify-content-center">Cargando…</div>;
+  const { token, user, loading, loginConKrono } = useAuth();
+  const hayKrono = Boolean(sessionStorage.getItem('nc_token'));
+  const [ssoListo, setSsoListo] = useState(!hayKrono);
+  useEffect(() => {
+    if (ssoListo) return;
+    loginConKrono().catch(() => {}).finally(() => setSsoListo(true));
+  }, []);
+  if (loading || !ssoListo) return <div className="d-flex vh-100 align-items-center justify-content-center">Cargando…</div>;
   if (!token) return <Navigate to="/login" replace />;
   if (roles && user && !roles.includes(user.rol)) return <Navigate to="/" replace />;
   return children;
@@ -34,10 +43,13 @@ function Inicio() {
 }
 
 /** Puerta propia de KRONO (sessionStorage nc_token), igual que en su App.jsx original: sin sesión, a su login. */
-function RutaKrono({ children }) {
+function RutaKrono({ children, cargo }) {
   useAuthKrono();
   const sesion = leerSesionActual();
   if (!sesion) return <Navigate to="/backoffice/login" replace />;
+  const actor = sesion._actorJefatura || sesion;
+  const permitido = !cargo || actor.cargo === 'jefatura' || usuarioTieneCargo(sesion, cargo);
+  if (!permitido) return <Navigate to={RUTAS_KRONO[sesion.cargo] || '/backoffice/login'} replace />;
   return children;
 }
 
@@ -75,7 +87,7 @@ function AppRoutes() {
       <Route
         path="/backoffice"
         element={
-          <RutaKrono>
+          <RutaKrono cargo="backoffice">
             <KronoBackoffice />
           </RutaKrono>
         }
@@ -83,7 +95,7 @@ function AppRoutes() {
       <Route
         path="/seguimiento"
         element={
-          <RutaKrono>
+          <RutaKrono cargo="seguimiento">
             <KronoSeguimiento />
           </RutaKrono>
         }
@@ -91,7 +103,7 @@ function AppRoutes() {
       <Route
         path="/jefatura"
         element={
-          <RutaKrono>
+          <RutaKrono cargo="jefatura">
             <KronoJefatura />
           </RutaKrono>
         }
@@ -103,7 +115,7 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

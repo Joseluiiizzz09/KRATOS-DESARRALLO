@@ -3,22 +3,11 @@
 // (cambiar de cargo sin cerrar sesión). Un cargo sin entrada aquí no tiene
 // ruta navegable — se filtra al construir cualquier selector de área.
 export const RUTAS = {
-  asesor:         '/dashboard',
+  asesor:         '/asesor',
   supervisor:     '/supervisor',
   backoffice:     '/backoffice',
-  validacion:     '/validacion',
-  grabaciones:    '/grabaciones',
   seguimiento:    '/seguimiento',
   jefatura:       '/jefatura',
-  usuarios:       '/usuarios',
-  programacion:   '/programacion',
-  cobranzas:      '/cobranzas',
-  calidad:        '/calidad',
-  supcalidad:     '/sup-calidad',
-  supgrabaciones: '/sup-grabaciones',
-  backreclutamiento:   '/backdata-reclutamiento',
-  capacitador:         '/backdata-reclutamiento',
-  marketing:           '/marketing-leads',
 }
 export const CARGO_LABELS = {
   asesor: 'Asesor',

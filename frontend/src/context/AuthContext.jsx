@@ -37,13 +37,32 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  /** Sesión única: si hay sesión de KRONO (sessionStorage nc_token), la canjea por una de KRATOS. */
+  const loginConKrono = async () => {
+    const kronoToken = sessionStorage.getItem('nc_token');
+    if (!kronoToken) return null;
+    let como;
+    try {
+      const actor = JSON.parse(sessionStorage.getItem('nc_usuario') || 'null');
+      const objetivo = JSON.parse(sessionStorage.getItem('nc_jefatura_usuario_objetivo') || 'null');
+      if (actor?.cargo === 'jefatura' && objetivo?.usuario) como = objetivo.usuario;
+    } catch { /* sin objetivo */ }
+    const data = await api.kronoSso(kronoToken, como);
+    clearStoredToken();
+    sessionStorage.setItem(STORAGE_KEY, data.token);
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  };
+
   const logout = () => {
+    ['nc_token', 'nc_usuario', 'nc_jefatura_usuario_objetivo', 'nc_dashboard_asesor_objetivo'].forEach((k) => sessionStorage.removeItem(k));
     clearStoredToken();
     setToken(null);
     setUser(null);
   };
 
-  const value = useMemo(() => ({ token, user, loading, login, logout }), [token, user, loading]);
+  const value = useMemo(() => ({ token, user, loading, login, loginConKrono, logout }), [token, user, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

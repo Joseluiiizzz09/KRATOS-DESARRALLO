@@ -39,8 +39,51 @@ function mapLead(row) {
   };
 }
 
+/* Conexión con KRONO: lo que Back Data asigna en KRONO (base KRONO_DB_NAME) aparece en
+   la base de llamadas del asesor, y lo que el asesor gestiona aquí se devuelve a KRONO. */
+const KRONO_DB = /^\w+$/.test(process.env.KRONO_DB_NAME || '') ? process.env.KRONO_DB_NAME : null;
+
+async function traerAsignadosDeKrono(user) {
+  if (!KRONO_DB) return;
+  try {
+    const [pendientes] = await pool.query(
+      `SELECT l.* FROM \`${KRONO_DB}\`.leads l
+       JOIN \`${KRONO_DB}\`.usuarios ku ON ku.id = l.asesor_id
+       WHERE ku.usuario = ? AND l.sin_asignar = 0 AND l.n1 IS NOT NULL AND l.n1 <> ''`,
+      [user.usuario]
+    );
+    for (const k of pendientes) {
+      const asignado = k.fecha ? `${new Date(k.fecha).toISOString().slice(0, 10)} ${k.hora_asig || '00:00'}:00` : null;
+      await pool.query(
+        `INSERT IGNORE INTO leads
+           (id, phone, phone2, whatsapp_user, campaign, zone, coordinates, address, back_notes, advisor_note,
+            status, assigned_advisor_id, assigned_at, management_history, rotations)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?, COALESCE(?, NOW()), '[]', ?)`,
+        [`krono-${k.id}`, k.n1, k.n2, k.usuario_whatsapp, k.campana, k.distrito, k.coordenadas, k.direccion,
+         k.obs_back, k.obs_asesor, user.id, asignado, k.rotaciones || 0]
+      );
+    }
+  } catch (e) {
+    console.error('No se pudo traer lo asignado desde KRONO:', e.message);
+  }
+}
+
+async function devolverAKrono(lead, status, advisorNote) {
+  if (!KRONO_DB || !String(lead.id).startsWith('krono-')) return;
+  try {
+    const etiqueta = String(status || '').replace(/_/g, ' ').toUpperCase();
+    await pool.query(
+      `UPDATE \`${KRONO_DB}\`.leads SET tipif_vend = ?, obs_asesor = ? WHERE id = ?`,
+      [status === 'pendiente' ? '' : etiqueta, advisorNote || '', Number(String(lead.id).slice(6))]
+    );
+  } catch (e) {
+    console.error('No se pudo devolver la gestión a KRONO:', e.message);
+  }
+}
+
 /** Contactos asignados al asesor autenticado. */
 router.get('/', requireAuth, async (req, res) => {
+  await traerAsignadosDeKrono(req.user);
   const [rows] = await pool.query(
     'SELECT * FROM leads WHERE assigned_advisor_id = ? ORDER BY assigned_at DESC',
     [req.user.id]
@@ -83,6 +126,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   );
 
   const [updatedRows] = await pool.query('SELECT * FROM leads WHERE id = ?', [id]);
+  await devolverAKrono(lead, nextStatus, advisorNote !== undefined ? advisorNote : lead.advisor_note);
   res.json({ lead: mapLead(updatedRows[0]) });
 });
 

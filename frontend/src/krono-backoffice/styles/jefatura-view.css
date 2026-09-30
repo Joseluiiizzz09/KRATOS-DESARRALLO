@@ -1,0 +1,51 @@
+.jefatura-vista {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+.jefatura-vista::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .15);
+}
+.jefatura-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #111827;
+  background: #111827;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s, color .2s, transform .15s, box-shadow .2s;
+}
+.jefatura-volver:hover {
+  background: #fff;
+  color: #111827;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(17, 24, 39, .15);
+}
+.jefatura-volver svg { display: block; flex: 0 0 auto; }
+@media (max-width: 900px) {
+  .jefatura-vista { display: none; }
+  .jefatura-volver span { display: none; }
+  .jefatura-volver { padding: 7px 10px; }
+}

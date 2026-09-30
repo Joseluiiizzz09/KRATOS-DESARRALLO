@@ -794,10 +794,10 @@ body {
 
 .jef-root .brand-text h1 {
   font-family: 'Archivo Black', 'Inter', sans-serif !important;
-  font-size: 15px !important;
+  font-size: 36px !important;
   font-weight: 400 !important;
   color: #111827 !important;
-  letter-spacing: -.35px !important;
+  letter-spacing: .5px !important;
   line-height: 1 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -1559,3 +1559,5 @@ button.export-kpi-card:hover {
 .badge-canal-netcontact{background:#eef2ff;color:#4338ca;}
 .badge-canal-kels{background:#fdf4ff;color:#a21caf;}
 .badge-canal-sin{background:#f3f4f6;color:#6b7280;}
+
+@media (max-width: 900px) { .jef-root .brand-text h1 { font-size: 22px !important; } }
