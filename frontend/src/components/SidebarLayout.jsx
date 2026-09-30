@@ -17,8 +17,6 @@ function entroDesdeJefatura() {
 function volverAJefatura() {
   sessionStorage.removeItem('nc_jefatura_usuario_objetivo');
   sessionStorage.removeItem('nc_dashboard_asesor_objetivo');
-  sessionStorage.removeItem('kratos:token');
-  localStorage.removeItem('kratos:token');
   window.location.assign('/jefatura');
 }
 

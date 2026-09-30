@@ -1,57 +1,89 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-
-const { initDB } = require('./database');
-const authRoutes = require('./routes/auth');
-const leadsRoutes = require('./routes/leads');
-const salesRoutes = require('./routes/sales');
-const backofficeRoutes = require('./routes/backoffice');
-const supervisorRoutes = require('./routes/supervisor');
+﻿require('dotenv').config();
+const express    = require('express');
+const cors       = require('cors');
+const path       = require('path');
+const fs         = require('fs');
+const rateLimit  = require('express-rate-limit');
+const helmet     = require('helmet');
+const auth       = require('./middleware/auth');
+const { loginLimiter } = require('./security/loginRateLimit');
 
 const app = express();
+app.use(express.json({ limit: '5mb' }));
 
-app.use(helmet());
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim());
-app.use(cors({ origin: allowedOrigins }));
-app.use(express.json({ limit: '3mb' }));
-app.use(rateLimit({ windowMs: 60_000, max: 300 }));
+const FRONTEND_URL = process.env.FRONTEND_URL;
+if (!FRONTEND_URL || FRONTEND_URL === '*') {
+  console.warn('[WARN] FRONTEND_URL no está definida o es "*". Configúrala en .env para producción.');
+}
+app.use(cors({
+  origin: (!FRONTEND_URL || FRONTEND_URL === '*') ? '*' : FRONTEND_URL.split(',').map(u => u.trim()),
+  methods: ['GET','POST','PATCH','PUT','DELETE'],
+  allowedHeaders: ['Content-Type','Authorization','X-NC-View-User','X-NC-View-Area'],
+  credentials: false,
+}));
 
-// La API no tiene pantalla: quien abra esta URL en el navegador ve a dónde ir.
-app.get('/', (req, res) => {
-  res.json({
-    servicio: 'KRATOS API',
-    estado: 'en línea',
-    aplicacion: process.env.FRONTEND_URL || allowedOrigins[0],
-    mensaje: 'Esto es solo la API. La aplicación se abre en la dirección de "aplicacion".',
-  });
+app.use('/api/login', loginLimiter);
+
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { ok: false, mensaje: 'Demasiados archivos subidos. Espera un momento.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/ventas/:id/audio', uploadLimiter);
+app.use('/api/ventas/:id/fotos', uploadLimiter);
+
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+
+// Ruta protegida para archivos — requiere token JWT válido
+const UPLOADS_DIR = path.resolve(path.join(__dirname, 'uploads'));
+app.get('/uploads/*', auth([]), (req, res) => {
+  const relativePath = req.params[0];
+  const filePath = path.resolve(path.join(UPLOADS_DIR, relativePath));
+
+  // Prevenir path traversal
+  if (!filePath.startsWith(UPLOADS_DIR + path.sep)) {
+    return res.status(403).json({ ok: false, mensaje: 'Acceso denegado' });
+  }
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ ok: false, mensaje: 'Archivo no encontrado' });
+  }
+
+  res.sendFile(filePath);
 });
 
-app.get('/api/health', (req, res) => res.json({ ok: true }));
-app.use('/api/auth', authRoutes);
-app.use('/api/leads', leadsRoutes);
-app.use('/api/sales', salesRoutes);
-app.use('/api/backoffice', backofficeRoutes);
-app.use('/api/supervisor', supervisorRoutes);
+app.use('/api', require('./routes/auth'));
+app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/ventas', require('./routes/ventas'));
+app.use('/api/frases', require('./routes/frases'));
+app.use('/api/leads', require('./routes/leads'));
+app.use('/api/leads-reclutamiento', require('./routes/leads-reclutamiento'));
+app.use('/api/ventas-reclutamiento', require('./routes/ventas-reclutamiento'));
+app.use('/api/eliminaciones', require('./routes/eliminaciones'));
+app.use('/api/interno', require('./routes/interno'));
+app.use('/api/kr', require('./routes/kratos'));
 
-app.use((req, res) => res.status(404).json({ error: 'Ruta no encontrada.' }));
-// eslint-disable-next-line no-unused-vars
+const db = require('./database');
+app.get('/api/health', auth([]), async (req, res) => {
+  try {
+    await db.query('SELECT 1');
+    res.json({ ok: true, mensaje: 'API corriendo', db: 'conectada' });
+  } catch(e) {
+    res.status(500).json({ ok: false, mensaje: 'BD desconectada' });
+  }
+});
+
+app.use((req, res) => res.status(404).json({ ok: false, mensaje: 'Ruta no encontrada' }));
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Error interno del servidor.' });
+  console.error('[' + new Date().toISOString() + '] ERROR:', err.message);
+  if (err.type === 'entity.too.large') return res.status(413).json({ ok: false, mensaje: 'Archivo demasiado grande' });
+  res.status(500).json({ ok: false, mensaje: 'Error interno' });
 });
 
-const PORT = process.env.PORT || 4001;
+process.on('uncaughtException',    (err) => console.error('[UNCAUGHT]', err.message));
+process.on('unhandledRejection',   (r)   => console.error('[UNHANDLED]', r));
 
-initDB()
-  .then(() => {
-    app.listen(PORT, () => console.log(`KRATOS API escuchando en http://localhost:${PORT}`));
-  })
-  .catch((err) => {
-    console.error('No se pudo inicializar la base de datos:', err);
-    process.exit(1);
-  });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => console.log('KRATOS API puerto ' + PORT));

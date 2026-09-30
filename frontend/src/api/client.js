@@ -1,9 +1,10 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4001/api';
+import { ncHeaders } from '../operaciones/services/api.js';
 
-/** Envoltorio de fetch: agrega el token, arma JSON y lanza con el mensaje del backend. */
-async function request(path, { method = 'GET', body, token } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers.Authorization = `Bearer ${token}`;
+const API_URL = import.meta.env.VITE_API_URL || '/api/kr';
+
+/** Envoltorio de fetch: agrega la sesión (y el "ver como" de Jefatura), arma JSON y lanza con el mensaje del backend. */
+async function request(path, { method = 'GET', body } = {}) {
+  const headers = ncHeaders();
 
   const response = await fetch(`${API_URL}${path}`, {
     method,
@@ -13,7 +14,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.error || 'Ocurrió un error al comunicarse con el servidor.');
+    throw new Error(data.error || data.mensaje || 'Ocurrió un error al comunicarse con el servidor.');
   }
   return data;
 }
@@ -29,7 +30,7 @@ function toQuery(params = {}) {
 
 /** Descarga un CSV protegido: se pide con el token y se guarda como archivo. */
 async function download(path, token, fileName) {
-  const response = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  const response = await fetch(`${API_URL}${path}`, { headers: ncHeaders() });
   if (!response.ok) throw new Error('No se pudo exportar el archivo.');
   const blob = await response.blob();
   const link = document.createElement('a');
@@ -40,30 +41,10 @@ async function download(path, token, fileName) {
 }
 
 export const api = {
-  login: (usuario, password) => request('/auth/login', { method: 'POST', body: { usuario, password } }),
-  kronoSso: (kronoToken, como) => request('/auth/krono', { method: 'POST', body: { token: kronoToken, como } }),
-  me: (token) => request('/auth/me', { token }),
   getLeads: (token) => request('/leads', { token }),
   updateLead: (token, id, changes) => request(`/leads/${id}`, { method: 'PATCH', body: changes, token }),
   getSales: (token) => request('/sales', { token }),
   createSale: (token, sale) => request('/sales', { method: 'POST', body: sale, token }),
-
-  /* Back Office */
-  boAdvisors: (token) => request('/backoffice/advisors', { token }),
-  boLeads: (token, params) => request(`/backoffice/leads${toQuery(params)}`, { token }),
-  boCreateLead: (token, lead) => request('/backoffice/leads', { method: 'POST', body: lead, token }),
-  boUpdateLead: (token, id, lead) => request(`/backoffice/leads/${id}`, { method: 'PUT', body: lead, token }),
-  boAssign: (token, ids, advisorId) => request('/backoffice/leads/assign', { method: 'POST', body: { ids, advisorId }, token }),
-  boImport: (token, csv) => request('/backoffice/leads/import', { method: 'POST', body: { csv }, token }),
-  boExportLeads: (token, params) => download(`/backoffice/leads/export${toQuery(params)}`, token, 'kratos-backoffice.csv'),
-  boSales: (token, params) => request(`/backoffice/sales${toQuery(params)}`, { token }),
-  boTracking: (token, id, changes) => request(`/backoffice/sales/${id}/tracking`, { method: 'PATCH', body: changes, token }),
-  boObservation: (token, id, body) => request(`/backoffice/sales/${id}/observation`, { method: 'POST', body, token }),
-  boExportSales: (token, params) => download(`/backoffice/sales/export${toQuery(params)}`, token, 'kratos-seguimiento.csv'),
-  boCampaigns: (token) => request('/backoffice/campaigns', { token }),
-  boRotate: (token, fromAdvisorId, toAdvisorIds) => request('/backoffice/leads/rotate', { method: 'POST', body: { fromAdvisorId, toAdvisorIds }, token }),
-  boReportAdvisors: (token) => request('/backoffice/reports/advisors', { token }),
-  boReportPerformance: (token, days) => request(`/backoffice/reports/performance${toQuery({ days })}`, { token }),
 
   /* Supervisor */
   supAdvisors: (token) => request('/supervisor/advisors', { token }),

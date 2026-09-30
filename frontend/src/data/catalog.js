@@ -32,7 +32,7 @@ export const STATUSES = [
 /* Estados de versiones anteriores que pueden seguir guardados en la base de datos. */
 const ESTADOS_ANTIGUOS = { contactado: 'Contactado', no_interesado: 'No le interesa' };
 
-/* Colores de cada estado (fondo, borde y texto), tomados de las tipificaciones de KRONO.
+/* Colores de cada estado (fondo, borde y texto).
    "Pendiente" es gris: todavía no se gestionó. */
 const COLOR_GRIS = { bg: '#eef0f3', border: '#d3d8df', text: '#5b6472' };
 const COLORES = {

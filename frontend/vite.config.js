@@ -6,9 +6,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // El Backoffice.jsx copiado tal cual de KRONO pide rutas relativas "/api"
-      // (en KRONO, un proxy del mismo dominio las lleva al backend). Aquí las
-      // reenvía al backend real de KRONO que corre en local (puerto 3000).
+      // Toda la API de KRATOS vive en un solo backend (puerto 3000): /api/login, /api/ventas, /api/kr/…
       '/api': { target: 'http://localhost:3000', changeOrigin: true },
     },
   },

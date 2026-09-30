@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'netcontact-api',
+      name: 'kratos-api',
       script: './server.js',
       instances: 2,
       exec_mode: 'cluster',

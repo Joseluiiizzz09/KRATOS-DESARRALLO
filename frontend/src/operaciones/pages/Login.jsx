@@ -5,10 +5,7 @@ import "../../pages/login.css";
 import { RUTAS, CARGO_LABELS } from "../utils/rutas";
 import { cargosDeUsuario } from "../utils/roles";
 
-// Cambio deliberado (solo esta línea): en KRONO esto es relativo porque un proxy
-// del mismo dominio lo lleva al backend. Aquí, dentro de KRATOS, no hay ese proxy,
-// así que apunta directo al backend real de KRONO que corre en local (puerto 3000).
-const API = "http://localhost:3000/api";
+const API = "/api";
 
 const FEATURES = [
   {
@@ -265,9 +262,9 @@ export default function Login() {
 
           <form onSubmit={doLogin} noValidate>
             <div className="kl-field">
-              <label className="kl-label" htmlFor="krono-usuario">Nombre de usuario</label>
+              <label className="kl-label" htmlFor="kratos-usuario">Nombre de usuario</label>
               <input
-                id="krono-usuario"
+                id="kratos-usuario"
                 ref={userRef}
                 className="kl-input"
                 type="text"
@@ -281,10 +278,10 @@ export default function Login() {
             </div>
 
             <div className="kl-field">
-              <label className="kl-label" htmlFor="krono-password">Contraseña</label>
+              <label className="kl-label" htmlFor="kratos-password">Contraseña</label>
               <div className="kl-input-wrap">
                 <input
-                  id="krono-password"
+                  id="kratos-password"
                   ref={passRef}
                   className="kl-input has-toggle"
                   type={showPassword ? 'text' : 'password'}

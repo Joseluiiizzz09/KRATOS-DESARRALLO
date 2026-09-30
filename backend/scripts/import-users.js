@@ -115,7 +115,7 @@ async function main() {
     port:     process.env.DB_PORT     || 3306,
     user:     process.env.DB_USER     || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME     || 'netcontact',
+    database: process.env.DB_NAME     || 'kratos',
     waitForConnections: true,
     connectionLimit: 5,
     timezone: '-05:00',

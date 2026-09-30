@@ -10,7 +10,7 @@ export function useLeadCreated(callback) {
   }, [callback]);
 }
 
-/** Estado del panel «Rotación inteligente»: en KRONO no es una página, es un panel dentro de «Base». */
+/** Estado del panel «Rotación inteligente». */
 const rotBus = new EventTarget();
 let rotAbierta = false;
 export function toggleRotacion(force) {

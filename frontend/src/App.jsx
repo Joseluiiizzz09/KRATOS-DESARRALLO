@@ -1,66 +1,48 @@
-import { useEffect, useState } from 'react';
 import { Navigate, Route, BrowserRouter, Routes } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext.jsx';
-import Login from './pages/Login.jsx';
+import Login from './operaciones/pages/Login.jsx';
 import AsesorLayout from './pages/asesor/AsesorLayout.jsx';
 import BaseLlamadas from './pages/asesor/BaseLlamadas.jsx';
 import Tablero from './pages/asesor/Tablero.jsx';
 import MisVentas from './pages/asesor/MisVentas.jsx';
-import KronoBackoffice from './krono-backoffice/pages/Backoffice.jsx';
-import KronoSeguimiento from './krono-backoffice/pages/Seguimiento.jsx';
-import KronoJefatura from './krono-backoffice/pages/Jefatura.jsx';
-import KronoLogin from './krono-backoffice/pages/Login.jsx';
 import SupervisorLayout from './pages/supervisor/SupervisorLayout.jsx';
 import SupervisorMetricas from './pages/supervisor/Metricas.jsx';
 import SupervisorBaseLlamadas from './pages/supervisor/BaseLlamadas.jsx';
 import SupervisorVentas from './pages/supervisor/Ventas.jsx';
-import { usuarioTieneCargo } from './krono-backoffice/utils/roles.js';
-import { RUTAS as RUTAS_KRONO } from './krono-backoffice/utils/rutas.js';
-import { leerSesionActual, useAuth as useAuthKrono } from './krono-backoffice/hooks/useAuth.js';
+import Backoffice from './operaciones/pages/Backoffice.jsx';
+import Seguimiento from './operaciones/pages/Seguimiento.jsx';
+import Jefatura from './operaciones/pages/Jefatura.jsx';
+import { usuarioTieneCargo } from './operaciones/utils/roles.js';
+import { RUTAS } from './operaciones/utils/rutas.js';
+import { leerSesionActual, useAuth } from './operaciones/hooks/useAuth.js';
 
-const HOME = { asesor: '/asesor', backoffice: '/backoffice', admin: '/backoffice', supervisor: '/supervisor' };
-
-function RutaPrivada({ children, roles }) {
-  const { token, user, loading, loginConKrono } = useAuth();
-  const hayKrono = Boolean(sessionStorage.getItem('nc_token'));
-  const [ssoListo, setSsoListo] = useState(!hayKrono);
-  useEffect(() => {
-    if (ssoListo) return;
-    loginConKrono().catch(() => {}).finally(() => setSsoListo(true));
-  }, []);
-  if (loading || !ssoListo) return <div className="d-flex vh-100 align-items-center justify-content-center">Cargando…</div>;
-  if (!token) return <Navigate to="/login" replace />;
-  if (roles && user && !roles.includes(user.rol)) return <Navigate to="/" replace />;
-  return children;
-}
-
-/** Envía a cada usuario a su portal según el rol. */
-function Inicio() {
-  const { token, user, loading } = useAuth();
-  if (loading) return null;
-  if (!token || !user) return <Navigate to="/login" replace />;
-  return <Navigate to={HOME[user.rol] || '/asesor'} replace />;
-}
-
-/** Puerta propia de KRONO (sessionStorage nc_token), igual que en su App.jsx original: sin sesión, a su login. */
-function RutaKrono({ children, cargo }) {
-  useAuthKrono();
+/** Puerta de cada módulo: sin sesión va al login; con sesión pero sin el cargo, a su propio módulo.
+ *  Jefatura puede entrar a cualquiera. */
+function RutaPrivada({ children, cargo }) {
+  useAuth();
   const sesion = leerSesionActual();
-  if (!sesion) return <Navigate to="/backoffice/login" replace />;
+  if (!sesion) return <Navigate to="/login" replace />;
   const actor = sesion._actorJefatura || sesion;
   const permitido = !cargo || actor.cargo === 'jefatura' || usuarioTieneCargo(sesion, cargo);
-  if (!permitido) return <Navigate to={RUTAS_KRONO[sesion.cargo] || '/backoffice/login'} replace />;
+  if (!permitido) return <Navigate to={RUTAS[sesion.cargo] || '/login'} replace />;
   return children;
+}
+
+/** Envía a cada usuario a su módulo según su cargo. */
+function Inicio() {
+  useAuth();
+  const sesion = leerSesionActual();
+  return <Navigate to={sesion ? RUTAS[sesion.cargo] || '/login' : '/login'} replace />;
 }
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/backoffice/login" element={<Navigate to="/login" replace />} />
       <Route
         path="/asesor"
         element={
-          <RutaPrivada roles={['asesor']}>
+          <RutaPrivada cargo="asesor">
             <AsesorLayout />
           </RutaPrivada>
         }
@@ -73,7 +55,7 @@ function AppRoutes() {
       <Route
         path="/supervisor"
         element={
-          <RutaPrivada roles={['supervisor', 'admin']}>
+          <RutaPrivada cargo="supervisor">
             <SupervisorLayout />
           </RutaPrivada>
         }
@@ -83,31 +65,9 @@ function AppRoutes() {
         <Route path="metricas" element={<SupervisorMetricas />} />
         <Route path="llamadas" element={<SupervisorBaseLlamadas />} />
       </Route>
-      <Route path="/backoffice/login" element={<KronoLogin />} />
-      <Route
-        path="/backoffice"
-        element={
-          <RutaKrono cargo="backoffice">
-            <KronoBackoffice />
-          </RutaKrono>
-        }
-      />
-      <Route
-        path="/seguimiento"
-        element={
-          <RutaKrono cargo="seguimiento">
-            <KronoSeguimiento />
-          </RutaKrono>
-        }
-      />
-      <Route
-        path="/jefatura"
-        element={
-          <RutaKrono cargo="jefatura">
-            <KronoJefatura />
-          </RutaKrono>
-        }
-      />
+      <Route path="/backoffice" element={<RutaPrivada cargo="backoffice"><Backoffice /></RutaPrivada>} />
+      <Route path="/seguimiento" element={<RutaPrivada cargo="seguimiento"><Seguimiento /></RutaPrivada>} />
+      <Route path="/jefatura" element={<RutaPrivada cargo="jefatura"><Jefatura /></RutaPrivada>} />
       <Route path="*" element={<Inicio />} />
     </Routes>
   );
@@ -116,9 +76,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <AppRoutes />
     </BrowserRouter>
   );
 }
