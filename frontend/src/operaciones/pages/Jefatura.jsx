@@ -32,7 +32,6 @@ const CARGOS = [
   { id:'seguimiento',    label:'Seguimiento',       cls:'bc-seguimiento'    },
   { id:'jefatura',       label:'Jefatura',          cls:'bc-jefatura'       },
 ]
-const SALAS = ['SALA 1','SALA 2','SALA 3','SALA 4','SALA CHANCAY','SALA 5','SALA 6']
 const TIPIFICACIONES_ENTREVISTA = ['NO CONTESTA','DESISTE','REPROGRAMA','CORTA LLAMADA','ASISTE','EN CAMINO','FALTA']
 const TURNOS_ENTREVISTA = ['TURNO 1','TURNO 2']
 
@@ -1159,6 +1158,14 @@ export default function Jefatura() {
     if (seccion === 'envio-masivo') cargarMasivo()
   }, [seccion, cargarSeguimiento, cargarReclutados, cargarEntrevistados, cargarEliminaciones, cargarMarketing, cargarMarketingRecl, cargarGastos, cargarGastosRecl, cargarGrabRendimiento, cargarMasivo])
 
+  // Salas que de verdad existen (por usuarios y ventas). Con una sola sala no hay nada que separar.
+  const salasDisponibles = useMemo(() => [...new Set(
+    [...usuarios.map(u => u.sala), ...ventasCache.map(v => v.sala)]
+      .map(x => String(x || '').trim().toUpperCase())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'es', { numeric: true })), [usuarios, ventasCache])
+  const nombreSala = sala => String(sala || '').toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase())
+
   // El dashboard cuenta las ventas ingresadas en el mes seleccionado y las agrupa
   // por su estado actual (los mismos de Seguimiento).
   const cicloDashboardMes = useMemo(() => {
@@ -1193,7 +1200,7 @@ export default function Jefatura() {
     /* Chart 2 — bar salas */
     if (canvasSalas.current) {
       destroy('salas')
-      const salas     = ['SALA 1','SALA 2','SALA 3','SALA 4','SALA CHANCAY','SALA 5','SALA 6']
+      const salas     = salasDisponibles
       // Se agrupa por v.sala (sala atribuida de la venta) y por fecha de ingreso.
       const delMes     = cicloDashboardMes.ventasNuevas
       const instaladas = salas.map(s => delMes.filter(v => String(v.sala||'').toUpperCase() === s && estadoKratos(v) === 'activa').length)
@@ -1213,10 +1220,10 @@ export default function Jefatura() {
       destroy('diario')
       const dias = []
       for (let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); dias.push(d.toISOString().split('T')[0]) }
-      const salas  = ['SALA 1','SALA 2','SALA 3','SALA 4','SALA CHANCAY','SALA 5','SALA 6']
+      const salas  = salasDisponibles
       const colors = ['#3b82f6','#8b5cf6','#22c55e','#f97316','#06b6d4','#f43f5e','#eab308']
       const datasets = salas.map((s,i) =>
-        ({ label:s, data:dias.map(d=>ventasCache.filter(v=>v._fecha===d&&String(v.sala||'').toUpperCase()===s).length), borderColor:colors[i], backgroundColor:colors[i]+'22', fill:true, tension:.4, borderWidth:2, pointRadius:4 })
+        ({ label:s, data:dias.map(d=>ventasCache.filter(v=>v._fecha===d&&String(v.sala||'').toUpperCase()===s).length), borderColor:colors[i%colors.length], backgroundColor:colors[i%colors.length]+'22', fill:true, tension:.4, borderWidth:2, pointRadius:4 })
       )
       chartInst.current.diario = new Chart(canvasDiario.current, {
         type: 'line',
@@ -1226,7 +1233,7 @@ export default function Jefatura() {
     }
 
     return () => { destroy('estados'); destroy('salas'); destroy('diario') }
-  }, [seccion, ventasCache, cicloDashboardMes, usuarios, mesReporte])
+  }, [seccion, ventasCache, cicloDashboardMes, usuarios, mesReporte, salasDisponibles])
 
   /* ── navegación ── */
   function irSeccion(id) {
@@ -1716,6 +1723,11 @@ export default function Jefatura() {
     ], `ventas_generales_${fechaHoy()}.xlsx`)
   }
 
+  useEffect(() => {
+    if (salaReporte !== 'todas' && salasDisponibles.length && !salasDisponibles.includes(salaReporte)) setSalaReporte('todas')
+    if (salasDisponibles.length <= 1 && salaReporte !== 'todas') setSalaReporte('todas')
+  }, [salasDisponibles, salaReporte])
+
   /* ── reportes ── */
   const { reporteData, repKpis } = useMemo(() => {
     const esMesReporte = valor => String(soloFecha(valor) || '').slice(0, 7) === mesReporte
@@ -1799,7 +1811,7 @@ export default function Jefatura() {
     const cargo4 = permisosExtra[2] || ''
     const cargo5 = permisosExtra[3] || ''
     const salaActual = String(u.sala || '').trim()
-    setModForm({ nombre:u.nombre||'', usuario:u.usuario||'', cargo:u.cargo||'', cargo2, cargo3, cargo4, cargo5, sala:salaActual, salaManual:!salaActual || !SALAS.includes(salaActual), pass:'', pass2:'' })
+    setModForm({ nombre:u.nombre||'', usuario:u.usuario||'', cargo:u.cargo||'', cargo2, cargo3, cargo4, cargo5, sala:salaActual, salaManual:!salaActual || !salasDisponibles.includes(String(salaActual).toUpperCase()), pass:'', pass2:'' })
     setModErrores({}); setModalUsu(true)
   }
   function cerrarModalUsu() { setModalUsu(false); setEditandoId(null); setModForm(MOD_FORM_VACIO); setModErrores({}) }
@@ -2886,24 +2898,17 @@ export default function Jefatura() {
                 </div>
               </div>
             </div>
-            <div className="sala-tabs sala-tabs-pro">
-              {[
-                { id:'todas', label:'Todas las salas' },
-                { id:'SALA 1', label:'Sala 1' },
-                { id:'SALA 2', label:'Sala 2' },
-                { id:'SALA 3', label:'Sala 3' },
-                { id:'SALA 4', label:'Sala 4' },
-                { id:'SALA CHANCAY', label:'Sala Chancay' },
-                { id:'SALA 5', label:'Sala 5' },
-                { id:'SALA 6', label:'Sala 6' },
-              ].map(tab => (
-                <button key={tab.id}
-                  className={`sala-tab${salaReporte===tab.id?' active':''}`}
-                  onClick={() => { setSalaReporte(tab.id); try{sessionStorage.setItem(JEF_SALA_REPORTE_KEY,tab.id)}catch{} }}>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            {salasDisponibles.length > 1 && (
+              <div className="sala-tabs sala-tabs-pro">
+                {[{ id:'todas', label:'Todas las salas' }, ...salasDisponibles.map(sala => ({ id:sala, label:nombreSala(sala) }))].map(tab => (
+                  <button key={tab.id}
+                    className={`sala-tab${salaReporte===tab.id?' active':''}`}
+                    onClick={() => { setSalaReporte(tab.id); try{sessionStorage.setItem(JEF_SALA_REPORTE_KEY,tab.id)}catch{} }}>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="kpi-grid reportes-kpis" style={{gridTemplateColumns:'repeat(4,1fr)',margin:'16px 0'}}>
               <div className="kpi-card k-blue"> <div className="kpi-num">{repKpis.total}</div>  <div className="kpi-label">Total ventas</div></div>
               <div className="kpi-card k-green"><div className="kpi-num">{repKpis.inst}</div>   <div className="kpi-label">Activas</div></div>
@@ -3248,7 +3253,7 @@ export default function Jefatura() {
                   else setModForm(f=>({...f,sala:e.target.value,salaManual:false}))
                 }}>
                   <option value="__AGREGAR__">— Agregar sala —</option>
-                  {SALAS.map(s=><option key={s} value={s}>{s}</option>)}
+                  {salasDisponibles.map(s=><option key={s} value={s}>{s}</option>)}
                 </select>
                 {modForm.salaManual && <input
                   value={modForm.sala}
