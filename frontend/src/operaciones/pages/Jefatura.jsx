@@ -3247,20 +3247,21 @@ export default function Jefatura() {
               </div>
               <div className="modal-campo">
                 <label>Sala / Equipo</label>
-                <select value={modForm.salaManual ? '__AGREGAR__' : modForm.sala} onChange={e=>{
-                  if (e.target.value === '__AGREGAR__') setModForm(f=>({...f,sala:'',salaManual:true}))
-                  else setModForm(f=>({...f,sala:e.target.value,salaManual:false}))
-                }}>
-                  <option value="__AGREGAR__">— Agregar sala —</option>
-                  {salasDisponibles.map(s=><option key={s} value={s}>{s}</option>)}
-                </select>
-                {modForm.salaManual && <input
+                {salasDisponibles.length > 0 && (
+                  <select value={modForm.salaManual ? '__AGREGAR__' : modForm.sala} onChange={e=>{
+                    if (e.target.value === '__AGREGAR__') setModForm(f=>({...f,sala:'',salaManual:true}))
+                    else setModForm(f=>({...f,sala:e.target.value,salaManual:false}))
+                  }}>
+                    <option value="__AGREGAR__">— Agregar sala nueva —</option>
+                    {salasDisponibles.map(s=><option key={s} value={s}>{s}</option>)}
+                  </select>
+                )}
+                {(modForm.salaManual || salasDisponibles.length === 0) && <input
                   value={modForm.sala}
-                  onChange={e=>setField('sala',e.target.value.toUpperCase())}
-                  placeholder="Escribir nombre de la sala"
-                  autoFocus
+                  onChange={e=>setModForm(f=>({...f,sala:e.target.value.toUpperCase(),salaManual:true}))}
+                  placeholder={salasDisponibles.length === 0 ? 'Escribe el nombre de la primera sala, por ejemplo: SALA 1' : 'Escribir nombre de la sala'}
                   maxLength={80}
-                  style={{marginTop:'8px'}}
+                  style={salasDisponibles.length > 0 ? {marginTop:'8px'} : undefined}
                 />}
               </div>
               <div className="modal-sep">Contraseña</div>
