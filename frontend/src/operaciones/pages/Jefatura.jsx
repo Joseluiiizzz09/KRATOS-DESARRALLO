@@ -1158,7 +1158,7 @@ export default function Jefatura() {
     if (seccion === 'envio-masivo') cargarMasivo()
   }, [seccion, cargarSeguimiento, cargarReclutados, cargarEntrevistados, cargarEliminaciones, cargarMarketing, cargarMarketingRecl, cargarGastos, cargarGastosRecl, cargarGrabRendimiento, cargarMasivo])
 
-  // Salas que de verdad existen (por usuarios y ventas). Con una sola sala no hay nada que separar.
+  // Salas que de verdad existen (por usuarios y ventas).
   const salasDisponibles = useMemo(() => [...new Set(
     [...usuarios.map(u => u.sala), ...ventasCache.map(v => v.sala)]
       .map(x => String(x || '').trim().toUpperCase())
@@ -1725,7 +1725,6 @@ export default function Jefatura() {
 
   useEffect(() => {
     if (salaReporte !== 'todas' && salasDisponibles.length && !salasDisponibles.includes(salaReporte)) setSalaReporte('todas')
-    if (salasDisponibles.length <= 1 && salaReporte !== 'todas') setSalaReporte('todas')
   }, [salasDisponibles, salaReporte])
 
   /* ── reportes ── */
@@ -2898,7 +2897,7 @@ export default function Jefatura() {
                 </div>
               </div>
             </div>
-            {salasDisponibles.length > 1 && (
+            {salasDisponibles.length > 0 && (
               <div className="sala-tabs sala-tabs-pro">
                 {[{ id:'todas', label:'Todas las salas' }, ...salasDisponibles.map(sala => ({ id:sala, label:nombreSala(sala) }))].map(tab => (
                   <button key={tab.id}
