@@ -883,7 +883,7 @@ body {
 
 /* Ventas generales tiene 8 tarjetas (las 6 de flujo + Instaladas + Exportar) */
 .ventas-generales-kpi-grid {
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .seguimiento-kpi-grid {
