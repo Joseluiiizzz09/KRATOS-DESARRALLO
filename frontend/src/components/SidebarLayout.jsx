@@ -21,7 +21,7 @@ function volverAJefatura() {
 }
 
 /** Menú lateral plegable compartido por el portal del asesor y el de Back Office. */
-export default function SidebarLayout({ items, extra }) {
+export default function SidebarLayout({ items, extra, subtitle = 'Sistema de llamadas' }) {
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const width = collapsed ? 72 : extra ? 300 : 232;
@@ -35,7 +35,7 @@ export default function SidebarLayout({ items, extra }) {
             {!collapsed && (
               <div>
                 <div className="ka-wordmark">KRATOS</div>
-                <div className="text-muted" style={{ fontSize: 11 }}>Sistema de llamadas</div>
+                <div className="text-muted" style={{ fontSize: 11 }}>{subtitle}</div>
               </div>
             )}
           </div>
@@ -88,11 +88,11 @@ export default function SidebarLayout({ items, extra }) {
         <div className="p-3 border-top flex-shrink-0">
           {!collapsed && <div className="small text-muted mb-2">{user?.nombre}</div>}
           {entroDesdeJefatura() && (
-            <button className="btn btn-dark btn-sm w-100 mb-2" onClick={volverAJefatura} title="Volver a Jefatura">
+            <button className="ka-btn w-100 mb-2" onClick={volverAJefatura} title="Volver a Jefatura">
               {collapsed ? '←' : '← Volver a Jefatura'}
             </button>
           )}
-          <button className="btn btn-outline-secondary btn-sm w-100" onClick={logout}>
+          <button className="ka-btn w-100" onClick={logout}>
             {collapsed ? '⏻' : 'Cerrar sesión'}
           </button>
         </div>

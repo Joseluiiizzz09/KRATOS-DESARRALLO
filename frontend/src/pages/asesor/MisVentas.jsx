@@ -1,57 +1,58 @@
-import { useState } from 'react';
 import { useSales } from '../../hooks/useSales';
-import SaleModal from '../../components/SaleModal.jsx';
+import { estadoVenta } from '../../data/catalog.js';
+import './asesor.css';
 
-const STATUS_BADGE = {
-  en_verificacion: 'text-bg-warning',
-  aprobada: 'text-bg-success',
-  auditada: 'text-bg-info',
-  rechazada: 'text-bg-danger',
-};
+/** "2026-09-30" -> "30/09/2026". */
+function fechaCorta(iso) {
+  const [y, m, d] = String(iso || '').split('-');
+  return y && m && d ? `${d}/${m}/${y}` : '—';
+}
+
+const COLUMNAS = ['Estado', 'Fecha de ingreso', 'Hora', 'Nombre', 'DNI', 'N1', 'N2', 'Paquete', 'Monto'];
 
 export default function MisVentas() {
-  const { sales, loading, error, createSale } = useSales();
-  const [showModal, setShowModal] = useState(false);
-  const [modalKey, setModalKey] = useState(0);
+  const { sales, loading, error } = useSales();
 
   if (loading) return <p>Cargando ventas…</p>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="h4 mb-0">Mis ventas</h1>
-        <button className="btn btn-danger" onClick={() => { setModalKey((k) => k + 1); setShowModal(true); }}>+ Nueva venta</button>
+      <div className="ka-head">
+        <h1 className="ka-title">Mis ventas</h1>
       </div>
 
-      {sales.length === 0 ? (
-        <div className="card p-5 text-center text-muted">Todavía no registraste ninguna venta.</div>
-      ) : (
-        <div className="card">
-          <ul className="list-group list-group-flush">
-            {sales.map((sale) => (
-              <li key={sale.id} className="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <div className="fw-semibold">{sale.clientName} <span className="text-muted small">· {sale.clientPhone}</span></div>
-                  <div className="small text-muted">{sale.folio} · {sale.productName}</div>
-                </div>
-                <div className="text-end">
-                  <div className="fw-semibold">S/ {Number(sale.amount).toFixed(2)}</div>
-                  <span className={`badge ${STATUS_BADGE[sale.status] || 'text-bg-secondary'}`}>{sale.status}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+      <div className="ka-card">
+        <div className="ka-scroll">
+          <table className="ka-table ka-table--compact">
+            <thead>
+              <tr>{COLUMNAS.map((c) => <th key={c}>{c}</th>)}</tr>
+            </thead>
+            <tbody>
+              {!sales.length && (
+                <tr><td colSpan={COLUMNAS.length} className="ka-empty"><p>Todavía no registraste ninguna venta.</p></td></tr>
+              )}
+              {sales.map((sale) => {
+                const estado = estadoVenta(sale.status);
+                return (
+                  <tr key={sale.id}>
+                    <td><span className={`badge ${estado.badge}`}>{estado.label}</span></td>
+                    <td>{fechaCorta((sale.createdAt || '').slice(0, 10))}</td>
+                    <td className="ka-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>{(sale.createdAt || '').slice(11, 16) || '—'}</td>
+                    <td>{sale.clientName}</td>
+                    <td>{sale.documentNumber || '—'}</td>
+                    <td>{sale.clientPhone || '—'}</td>
+                    <td>{sale.referencePhone || '—'}</td>
+                    <td>{sale.productName}</td>
+                    <td>S/ {Number(sale.amount).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
-
-      <SaleModal
-        key={modalKey}
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={async (payload) => { await createSale(payload); setShowModal(false); }}
-        prefill={{}}
-      />
+        <div className="ka-foot">{sales.length} {sales.length === 1 ? 'venta' : 'ventas'}</div>
+      </div>
     </div>
   );
 }

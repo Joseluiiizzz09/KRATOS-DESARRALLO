@@ -8,5 +8,5 @@ const NAV_ITEMS = [
 ];
 
 export default function SupervisorLayout() {
-  return <SidebarLayout items={NAV_ITEMS} />;
+  return <SidebarLayout items={NAV_ITEMS} subtitle="Supervisión" />;
 }

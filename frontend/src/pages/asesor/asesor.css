@@ -43,15 +43,18 @@
 
 .ka-search {
   width: 200px;
-  height: 38px;
-  padding: 0 14px;
+  height: 36px;
+  padding: 0 12px;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
   background: #fff;
-  border: 1px solid #e3e6ec;
-  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 9px;
   outline: none;
 }
+.ka-search::placeholder { color: #94a3b8; font-weight: 600; }
 
 .ka-search:focus {
   border-color: #d32f2f;
@@ -61,13 +64,14 @@
 .ka-date {
   display: inline-flex;
   align-items: center;
-  height: 38px;
-  padding: 0 18px;
-  font-size: 13.5px;
-  color: #6b7280;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
   background: #fff;
-  border: 1px solid #e3e6ec;
-  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+  border-radius: 9px;
 }
 
 /* ── Tarjeta con la tabla ── */
@@ -224,8 +228,8 @@
   font-size: 13px;
   color: #111827;
   background: #fff;
-  border: 1px solid #e3e6ec;
-  border-radius: 8px;
+  border: 1px solid #dbe2ea;
+  border-radius: 9px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -304,3 +308,96 @@
   background: #eef0f3;
   color: #111827;
 }
+
+/* Botón secundario: blanco, borde claro, esquinas redondeadas y texto oscuro en negrita. */
+.ka-btn {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid #dbe2ea;
+  border-radius: 9px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ka-btn:hover:not(:disabled) { border-color: #94a3b8; background: #f8fafc; }
+.ka-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+/* Selector de filtros: mismo look que .ka-btn. */
+.ka-select {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 9px;
+  background-color: #fff;
+  color: #111827;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+.ka-select:hover { border-color: #94a3b8; }
+.ka-select:focus { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, .11); }
+.ka-field-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* Tabla compacta: ancho según el contenido, sin desplazamiento horizontal. */
+.ka-table.ka-table--compact {
+  min-width: 0;
+  table-layout: auto;
+}
+.ka-table.ka-table--compact th { width: auto !important; }
+.ka-table.ka-table--compact thead th {
+  padding: 12px 9px;
+  font-size: 10px;
+  letter-spacing: .03em;
+}
+.ka-table.ka-table--compact tbody td {
+  padding: 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Tarjetas de cifras y gráficos: borde claro, esquinas redondeadas, etiquetas pequeñas en mayúscula. */
+.ka-stat,
+.ka-chart {
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 16px 18px;
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  background: #fff;
+}
+.ka-stat-value { margin: 6px 0 2px; font-size: 30px; line-height: 1.1; font-weight: 800; color: #111827; }
+.ka-stat-help { font-size: 12px; color: #64748b; }
+.ka-chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+.ka-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.ka-legend span {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border: 1px solid #dbe2ea; border-radius: 999px;
+  font-size: 11px; font-weight: 700; color: #111827; background: #fff;
+}
+.ka-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.ka-bar-value { margin-bottom: 4px; font-size: 11px; font-weight: 800; color: #111827; }
+.ka-axis { display: flex; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e9ef; }
+.ka-axis > div {
+  flex: 1 1 0; text-align: center;
+  font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #475569;
+}
+
+/* Variante compacta en la base de llamadas: textos largos en dos líneas, teléfono con sus botones en una sola. */
+.ka-table.ka-table--compact .ka-clamp { max-width: 230px; white-space: normal; font-size: 12px; }
+.ka-table.ka-table--compact .ka-phone-cell { flex-wrap: nowrap; }
+.ka-table.ka-table--compact .ka-note { min-width: 150px; font-size: 12px; height: 32px; }
+.ka-table.ka-table--compact .ka-status { height: 30px; font-size: 12px; }

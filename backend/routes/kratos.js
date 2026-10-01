@@ -32,9 +32,11 @@ function estadoDeEtiqueta(texto) {
 }
 
 const SQL_ESTADO_VENTA = `CASE
-  WHEN UPPER(v.estado) IN ('INSTALADO','SERVICIO_ACTIVO','INSTALADO_NO_VALIDADO') THEN 'aprobada'
-  WHEN UPPER(v.estado) IN ('CAIDA','RECHAZO','RECHAZO_CAMPO','RECHAZO_MESA','RECHAZADO') THEN 'rechazada'
-  ELSE 'en_verificacion' END`;
+  WHEN UPPER(v.estado) IN ('ACTIVA','INSTALADO','SERVICIO_ACTIVO') THEN 'activa'
+  WHEN UPPER(v.estado) IN ('CAIDA','RECHAZO','RECHAZO_CAMPO','RECHAZO_MESA','RECHAZADO') THEN 'caida'
+  WHEN UPPER(v.estado) = 'NO_CONTESTA' THEN 'no_contesta'
+  WHEN UPPER(v.estado) = 'PROGRAMADO' THEN 'programado'
+  ELSE 'pendiente' END`;
 
 /* ---------- Mapeos hacia el formato que usa el frontend ---------- */
 function mapLead(row) {
@@ -77,11 +79,14 @@ function mapSale(row) {
     notes: row.observacion,
     leadId: row.lead_id ? String(row.lead_id) : null,
     createdAt: row.creado_fmt,
+    scheduledDate: row.programada_fmt || null,
+    department: row.departamento || '',
+    district: row.distrito || '',
   };
 }
 
 const COLUMNAS_LEAD = `l.*, DATE_FORMAT(l.fecha, '%Y-%m-%d') AS fecha_fmt`;
-const COLUMNAS_VENTA = `v.*, ${SQL_ESTADO_VENTA} AS estado_app, DATE_FORMAT(v.created_at, '%Y-%m-%d %H:%i:%s') AS creado_fmt`;
+const COLUMNAS_VENTA = `v.*, ${SQL_ESTADO_VENTA} AS estado_app, DATE_FORMAT(v.created_at, '%Y-%m-%d %H:%i:%s') AS creado_fmt, DATE_FORMAT(v.fecha_programada, '%Y-%m-%d') AS programada_fmt`;
 
 /* ====================== ASESOR ====================== */
 
@@ -211,8 +216,8 @@ r.get('/supervisor/metrics', SUP, async (req, res) => {
      WHERE COALESCE(l.sin_asignar, 0) = 0 ${filtroSala} GROUP BY l.asesor_id`, params);
   const [saleRows] = await db.query(
     `SELECT v.asesor_id AS id, COUNT(*) AS ventas,
-            SUM(${SQL_ESTADO_VENTA} = 'aprobada') AS aprobadas,
-            SUM(${SQL_ESTADO_VENTA} = 'rechazada') AS rechazadas
+            SUM(${SQL_ESTADO_VENTA} = 'activa') AS aprobadas,
+            SUM(${SQL_ESTADO_VENTA} = 'caida') AS rechazadas
      FROM ventas v JOIN usuarios u ON u.id = v.asesor_id
      WHERE 1 = 1 ${filtroSala} GROUP BY v.asesor_id`, params);
   const leadBy = Object.fromEntries(leadRows.map((r) => [r.id, r]));
@@ -240,8 +245,8 @@ r.get('/supervisor/metrics', SUP, async (req, res) => {
 
   const [[hoy]] = await db.query(
     `SELECT COUNT(*) AS ventas,
-            SUM(${SQL_ESTADO_VENTA} = 'aprobada') AS activas,
-            SUM(${SQL_ESTADO_VENTA} = 'rechazada') AS caidas,
+            SUM(${SQL_ESTADO_VENTA} = 'activa') AS activas,
+            SUM(${SQL_ESTADO_VENTA} = 'caida') AS caidas,
             COUNT(DISTINCT v.asesor_id) AS asesoresActivos
      FROM ventas v JOIN usuarios u ON u.id = v.asesor_id
      WHERE DATE(v.created_at) = CURDATE() ${filtroSala}`, params);
@@ -306,7 +311,7 @@ r.get('/supervisor/sales', SUP, async (req, res) => {
   if (!pageParam) {
     const [rows] = await db.query(
       `SELECT ${COLUMNAS_VENTA}, u.nombre AS advisor_nombre ${desde} ${clause} ORDER BY v.created_at DESC LIMIT 500`, params);
-    return res.json({ sales: rows.map((row) => ({ ...mapSale(row), advisor: row.advisor_nombre })) });
+    return res.json({ sales: rows.map((row) => ({ ...mapSale(row), advisor: row.advisor_nombre, venta: row })) });
   }
 
   const page = Math.max(1, Number(pageParam) || 1);
@@ -317,9 +322,34 @@ r.get('/supervisor/sales', SUP, async (req, res) => {
     [...params, PAGE_SIZE, (page - 1) * PAGE_SIZE]
   );
   res.json({
-    sales: rows.map((row) => ({ ...mapSale(row), advisor: row.advisor_nombre })),
+    sales: rows.map((row) => ({ ...mapSale(row), advisor: row.advisor_nombre, venta: row })),
     total: Number(total), page, pageSize: PAGE_SIZE,
   });
+});
+
+/** Edita los datos que el asesor registró en la venta. Un supervisor solo edita ventas de su sala. */
+r.patch('/supervisor/sales/:id', SUP, async (req, res) => {
+  const id = Number(req.params.id);
+  const { clientName, clientPhone, referencePhone, documentType, documentNumber, saleType, productName, category, amount, notes } = req.body || {};
+
+  const faltan = ['clientName', 'clientPhone', 'documentType', 'documentNumber', 'productName', 'saleType']
+    .filter((campo) => !{ clientName, clientPhone, documentType, documentNumber, productName, saleType }[campo]);
+  if (faltan.length) return res.status(422).json({ error: 'Faltan campos obligatorios.', fields: faltan });
+
+  const [rows] = await db.query(
+    `SELECT v.id, u.sala AS sala_asesor FROM ventas v LEFT JOIN usuarios u ON u.id = v.asesor_id WHERE v.id = ? LIMIT 1`, [id]);
+  if (!rows[0]) return res.status(404).json({ error: 'Venta no encontrada.' });
+  const sala = salaDelSupervisor(req);
+  if (sala && rows[0].sala_asesor !== sala) return res.status(403).json({ error: 'Solo puedes editar ventas de tu sala.' });
+
+  await db.query(
+    `UPDATE ventas SET nombre = ?, telefono1 = ?, telefono2 = ?, tipo_doc = ?, dni = ?, tipo_venta = ?,
+            paquete = ?, categoria = ?, monto = ?, observacion = ? WHERE id = ?`,
+    [clientName, clientPhone, referencePhone || '', documentType, documentNumber, saleType,
+     productName, category || null, Number(amount) || 0, notes || '', id]
+  );
+  const [out] = await db.query(`SELECT ${COLUMNAS_VENTA} FROM ventas v WHERE v.id = ?`, [id]);
+  res.json({ sale: mapSale(out[0]) });
 });
 
 module.exports = router;

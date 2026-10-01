@@ -1,3 +1,4 @@
+import '../styles/visor-archivos.css'
 import { useEffect, useMemo, useState } from 'react'
 import { API, NC_API, ncHeaders, ncHeadersFile } from '../services/api'
 

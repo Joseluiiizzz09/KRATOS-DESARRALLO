@@ -37,7 +37,7 @@ const TURNOS_ENTREVISTA = ['TURNO 1','TURNO 2']
 
 const SEG_MAP = {
   en_ejecucion:'ejecucion',
-  instalado:'instalado',caida:'caida',rechazo_campo:'rechazo',tecnico_casa:'tecnico',
+  instalado:'instalado',activa:'instalado',caida:'caida',rechazo_campo:'rechazo',tecnico_casa:'tecnico',
   levantar_sot:'levantar_sot', tecnicos_camino:'tecnicos_camino',
   instalado_no_validado:'instalado_no_validado', reasignacion:'reasignacion',
   derivado_planta_externa:'derivado_planta_externa', servicio_activo:'servicio_activo',
@@ -193,7 +193,7 @@ function ventaAlcanzoInstalacion(venta) {
   // asi que ambas condiciones ya son equivalentes; se dejan las dos por
   // claridad y por si fecha_instalado no vino en la respuesta.
   const estado = String(venta?.estado || '').trim().toLowerCase().replace(/_/g, ' ')
-  return Boolean(venta?.fecha_instalado) || estado === 'instalado'
+  return Boolean(venta?.fecha_instalado) || estado === 'instalado' || estado === 'activa'
 }
 // OJO: toISOString() usa UTC, no la hora local — como Lima va 5h detrás de
 // UTC, entre las 7pm y medianoche (hora Lima) esto devolvía "mañana" en vez
@@ -218,8 +218,8 @@ function normEstado(v) {
     .replace(/^_+|_+$/g, '')
 }
 const FLUJO_NO_VALIDA = new Set(['venta','corta_llamada','fraude','no_desea','no_contesta','buzon_voz','servicio_activo','no_validado','bloqueado','zona_restringida','caracter_especial','sin_agenda','corregir','mala_oferta'])
-const FLUJO_GRABADA = new Set(['grabado','grabada','aprobado','programado','en_ejecucion','instalado','caida','rechazo_campo','tecnico_casa','levantar_sot','tecnicos_camino','instalado_no_validado','reasignacion','derivado_planta_externa'])
-const FLUJO_SEGUIMIENTO = new Set(['en_ejecucion','instalado','caida','rechazo_campo','tecnico_casa','levantar_sot','tecnicos_camino','instalado_no_validado','reasignacion','derivado_planta_externa','servicio_activo'])
+const FLUJO_GRABADA = new Set(['grabado','grabada','aprobado','programado','en_ejecucion','instalado','activa','caida','rechazo_campo','tecnico_casa','levantar_sot','tecnicos_camino','instalado_no_validado','reasignacion','derivado_planta_externa'])
+const FLUJO_SEGUIMIENTO = new Set(['en_ejecucion','instalado','activa','caida','rechazo_campo','tecnico_casa','levantar_sot','tecnicos_camino','instalado_no_validado','reasignacion','derivado_planta_externa','servicio_activo'])
 function estadoSeguimiento(v) {
   const estado = normEstado(v?.estado || v?.estado_venta)
   if (FLUJO_SEGUIMIENTO.has(estado)) return estado
@@ -1774,7 +1774,7 @@ export default function Jefatura() {
       // INSTALADO_NO_VALIDADO y REASIGNACION ya NO cuentan como instalacion
       // (decision explicita: solo INSTALADO exacto es una instalacion real).
       const estado = String(v.estado || '').trim().toUpperCase().replace(/_/g, ' ')
-      return estado === 'INSTALADO'
+      return estado === 'INSTALADO' || estado === 'ACTIVA'
     }
     const instaladasDelMes = mesReporte
       ? ventasCache.filter(v => esMesReporte(v.fecha_programada) && esInstaladaDelMes(v))

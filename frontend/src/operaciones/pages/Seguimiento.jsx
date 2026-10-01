@@ -12,44 +12,26 @@ import { responseChanged, setVisibleInterval, clearVisibleInterval } from '../ut
 import '../styles/seguimiento.css'
 
 const ESTADOS = [
-  { id: 'ejecucion', label: 'EN EJECUCION',    cls: 'bs-ejec',    fila: 'fila-ejec'    },
-  { id: 'instalado', label: 'INSTALADO',        cls: 'bs-inst',    fila: 'fila-inst'    },
-  { id: 'caida',     label: 'CAIDA',            cls: 'bs-caida',   fila: 'fila-caida'   },
-  { id: 'rechazo',   label: 'RECHAZO EN CAMPO', cls: 'bs-rech',    fila: 'fila-rech'    },
-  { id: 'tecnico',   label: 'TECNICOS EN CASA', cls: 'bs-tecnico', fila: 'fila-tecnico' },
-  { id: 'levantar_sot', label: 'LEVANTAR SOT', cls: 'bs-rech', fila: 'fila-rech' },
-  { id: 'tecnicos_camino', label: 'TECNICOS EN CAMINO', cls: 'bs-tecnico', fila: 'fila-tecnico' },
-  { id: 'instalado_no_validado', label: 'INSTALADO NO VALIDADO', cls: 'bs-inst', fila: 'fila-inst' },
-  { id: 'reasignacion', label: 'REASIGNACION', cls: 'bs-ejec', fila: 'fila-ejec' },
-  { id: 'derivado_planta_externa', label: 'DERIVADO A PLANTA EXTERNA', cls: 'bs-rech', fila: 'fila-rech' },
-  { id: 'servicio_activo', label: 'SERVICIO ACTIVO', cls: 'bs-inst', fila: 'fila-inst' },
-  { id: 'rechazo_programacion', label: 'RECHAZO', cls: 'bs-rech', fila: 'fila-rech' },
-  { id: 'rechazo_mesa', label: 'RECHAZO EN MESA', cls: 'bs-rechazo-mesa', fila: 'fila-rech' },
+  { id: 'caida',       label: 'CAIDA',       cls: 'bs-caida', fila: 'fila-caida', leyenda: 'l-caida' },
+  { id: 'activa',      label: 'ACTIVA',      cls: 'bs-inst',  fila: 'fila-inst',  leyenda: 'l-inst'  },
+  { id: 'no_contesta', label: 'NO CONTESTA', cls: 'bs-rech',  fila: 'fila-rech',  leyenda: 'l-rech'  },
+  { id: 'programado',  label: 'PROGRAMADO',  cls: 'bs-ejec',  fila: 'fila-ejec',  leyenda: 'l-ejec'  },
 ]
+const SIN_ESTADO = { id: '', label: 'PENDIENTE', cls: '', fila: '', leyenda: '' }
 
 const MOTIVOS_CAIDA = ['FRAUDE','EXCESO DE ACOMETIDA','INFRAESTRUCTURA','RED SATURADA','EDIFICIO NO LIBERADO','SERVICIO ACTIVO','RECHAZO POR AUDIO']
-const MOTIVOS_RECH  = ['MALA OFERTA','NO DESEA','FALTA DE CONTACTO','SOT CON ERRORES DE SISTEMA','RED SATURADA','FACILIDADES TECNICAS DEL CLIENTE','MAL INGRESO DIRECCION']
 const TRAMOS        = ['AM','PM','PM 3']
 const RESULTADOS    = ['Contactado -- conforme','Contactado -- con problema','No contesta','Buzon de voz','Numero equivocado','Solicita rellamada','SE LEVANTO','MASIVO ENVIADO','DERIVADO A GRABAR','DERIVADO A AGILIZAR','En Agenda']
 
 const ESTADO_BD_MAP = {
-  ejecucion: 'en_ejecucion',
-  instalado: 'instalado',
-  caida:     'caida',
-  rechazo:   'rechazo_campo',
-  tecnico:   'tecnico_casa',
-  levantar_sot: 'levantar_sot',
-  tecnicos_camino: 'tecnicos_camino',
-  instalado_no_validado: 'instalado_no_validado',
-  reasignacion: 'reasignacion',
-  derivado_planta_externa: 'derivado_planta_externa',
-  servicio_activo: 'servicio_activo',
-  rechazo_programacion: 'pendiente',
-  rechazo_mesa: 'rechazo_mesa',
+  caida:       'caida',
+  activa:      'activa',
+  no_contesta: 'no_contesta',
+  programado:  'programado',
 }
 
 const SEG_FILTRO_KEY = 'nc_seguimiento_filtro'
-const ORD_EST = { caida:0, rechazo:1, rechazo_mesa:1, levantar_sot:2, derivado_planta_externa:3, tecnico:4, tecnicos_camino:5, reasignacion:6, ejecucion:7, instalado_no_validado:8, servicio_activo:9, instalado:10 }
+const ORD_EST = { caida:0, no_contesta:1, programado:2, activa:3 }
 
 function fechaHoy() {
   const a = new Date(), u = a.getTime() + a.getTimezoneOffset() * 60000
@@ -59,7 +41,7 @@ function fechaHoy() {
 function horaAhora() { return new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false }) }
 function formatF(f)   { if (!f) return '--'; const p = f.split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : f }
 
-function estadoObj(id) { return ESTADOS.find(e => e.id === id) || ESTADOS[0] }
+function estadoObj(id) { return ESTADOS.find(e => e.id === id) || SIN_ESTADO }
 
 function motivoBadgeCls(motivo) {
   if (!motivo || motivo === '--') return null
@@ -74,22 +56,13 @@ function motivoBadgeCls(motivo) {
 
 function mapearEstado(e) {
   const est = (e || '').toLowerCase()
-  const nuevos = {
-    levantar_sot:'levantar_sot', tecnicos_camino:'tecnicos_camino',
-    instalado_no_validado:'instalado_no_validado', reasignacion:'reasignacion',
-    derivado_planta_externa:'derivado_planta_externa', servicio_activo:'servicio_activo',
-    rechazo_mesa:'rechazo_mesa',
-  }
-  if (nuevos[est]) return nuevos[est]
-  if (est.includes('tecnico'))   return 'tecnico'
-  if (est.includes('rechazo'))   return 'rechazo'
-  if (est.includes('ejecucion')) return 'ejecucion'
   const m = {
-    aprobado: 'ejecucion', en_ejecucion: 'ejecucion',
-    instalado: 'instalado', caida: 'caida',
-    observado: 'ejecucion', rechazo_campo: 'rechazo', tecnico_casa: 'tecnico',
+    caida: 'caida',
+    activa: 'activa', servicio_activo: 'activa', instalado: 'activa',
+    no_contesta: 'no_contesta',
+    programado: 'programado',
   }
-  return m[est] || 'ejecucion'
+  return m[est] || ''
 }
 
 function Paginacion({ total, pagina, porPagina, onChange }) {
@@ -226,7 +199,7 @@ export default function Seguimiento() {
     if (cargandoVentasRef.current) return  // evita polls solapados (respuestas fuera de orden que causan parpadeo)
     cargandoVentasRef.current = true
     try {
-      const res  = await fetch(`${API}/ventas`, { headers: ncHeaders() })
+      const res  = await fetch(`${API}/ventas?area=seguimiento`, { headers: ncHeaders() })
       const data = await res.json()
       if (data.ok && responseChanged(firmaVentasRef, data.data)) {
         setVentas(data.data
@@ -313,21 +286,16 @@ export default function Seguimiento() {
   const ventasFiltradas = useMemo(() => {
     let base = ventasEnRango.filter(v => filtrarVenta(v, true))
     base.sort((a, b) => {
-      const oa = ORD_EST[a._estadoSeg] ?? 5
-      const ob = ORD_EST[b._estadoSeg] ?? 5
+      const oa = ORD_EST[a._estadoSeg] ?? 9
+      const ob = ORD_EST[b._estadoSeg] ?? 9
       return oa !== ob ? oa - ob : (b.fechaIngreso || '').localeCompare(a.fechaIngreso || '')
     })
     return base
   }, [ventasEnRango, filtrarVenta])
 
   const kpis = useMemo(() => ({
-    total:     ventasEnRango.length,
-    ejecucion: ventasEnRango.filter(v => v._estadoSeg === 'ejecucion').length,
-    instalado: ventasEnRango.filter(v => v._estadoSeg === 'instalado').length,
-    rechazo:   ventasEnRango.filter(v => v._estadoSeg === 'rechazo').length,
-    caida:     ventasEnRango.filter(v => v._estadoSeg === 'caida').length,
-    tecnico:   ventasEnRango.filter(v => v._estadoSeg === 'tecnico').length,
-    adicionales: ESTADOS.slice(5).reduce((acc, e) => ({
+    total: ventasEnRango.length,
+    porEstado: ESTADOS.reduce((acc, e) => ({
       ...acc,
       [e.id]: ventasEnRango.filter(v => v._estadoSeg === e.id).length,
     }), {}),
@@ -357,12 +325,11 @@ export default function Seguimiento() {
     if (!modalEstado) return
     const estadoBD = ESTADO_BD_MAP[estNuevo] || 'aprobado'
     const comentario = estObs.trim() || modalEstado._comentario
-    const motivoAplica = estNuevo === 'caida' || estNuevo === 'rechazo'
+    const motivoAplica = estNuevo === 'caida'
     const body = { estado: estadoBD, obs_seguimiento: comentario, tramo_seguimiento: estTramo }
-    if (estNuevo === 'rechazo_programacion') body.estado_supgrab = 'aprobado'
     if (motivoAplica) body.motivo_seguimiento = estMotivo
     try {
-      const res  = await fetch(`${API}/ventas/${modalEstado.id}`, {
+      const res  = await fetch(`${API}/ventas/${modalEstado.id}?area=seguimiento`, {
         method: 'PATCH', headers: ncHeaders(),
         body: JSON.stringify(body),
       })
@@ -394,7 +361,7 @@ export default function Seguimiento() {
       return
     }
     try {
-      const res = await fetch(`${API}/ventas/${modalProgramacion.id}`, {
+      const res = await fetch(`${API}/ventas/${modalProgramacion.id}?area=seguimiento`, {
         method: 'PATCH',
         headers: ncHeaders(),
         body: JSON.stringify({ sot, fecha_programada: progFecha }),
@@ -413,9 +380,6 @@ export default function Seguimiento() {
       ? { ...v, sot, fecha_programada: progFecha }
       : v
     ))
-    if (estNuevo === 'rechazo_programacion') {
-      setVentas(list => list.filter(x => x.id !== modalEstado.id))
-    }
     setModalProgramacion(null)
   }
 
@@ -425,7 +389,7 @@ export default function Seguimiento() {
     if (!valor) { mostrarToast('Ingresa el número de SOT'); return }
     setSotModal(prev => prev ? { ...prev, guardando: true } : prev)
     try {
-      const res = await fetch(`${API}/ventas/${sotModal.id}`, {
+      const res = await fetch(`${API}/ventas/${sotModal.id}?area=seguimiento`, {
         method: 'PATCH', headers: ncHeaders(),
         body: JSON.stringify({ sot: valor }),
       })
@@ -444,7 +408,7 @@ export default function Seguimiento() {
     if (enviandoWA.has(v.id)) return
     setEnviandoWA(prev => new Set(prev).add(v.id))
     try {
-      const res  = await fetch(`${API}/ventas/${v.id}/enviar-seguimiento-whatsapp`, {
+      const res  = await fetch(`${API}/ventas/${v.id}/enviar-seguimiento-whatsapp?area=seguimiento`, {
         method: 'POST', headers: ncHeaders(),
         body: JSON.stringify({ plantilla }),
       })
@@ -481,7 +445,7 @@ export default function Seguimiento() {
     const nuevoHistorial = [...(modalObs._historial || []), { fecha: fechaHoy(), hora: horaAhora(), user: usuarioActual, resultado, obs }]
     const comentario = obsComentario.trim() || modalObs._comentario
     try {
-      const res  = await fetch(`${API}/ventas/${modalObs.id}`, {
+      const res  = await fetch(`${API}/ventas/${modalObs.id}?area=seguimiento`, {
         method: 'PATCH', headers: ncHeaders(),
         body: JSON.stringify({ obs_seguimiento: comentario }),
       })
@@ -520,7 +484,7 @@ export default function Seguimiento() {
 
   function salir() { logout(); navigate('/login') }
 
-  const motivosParaEstado = estNuevo === 'caida' ? MOTIVOS_CAIDA : estNuevo === 'rechazo' ? MOTIVOS_RECH : []
+  const motivosParaEstado = estNuevo === 'caida' ? MOTIVOS_CAIDA : []
 
   return (
     <div>
@@ -553,13 +517,8 @@ export default function Seguimiento() {
         {/* LEYENDA */}
         <div className="leyenda">
           {[
-            { id: '',          label: 'Todos',            cnt: kpis.total,     cls: 'l-todos'   },
-            { id: 'ejecucion', label: 'EN EJECUCIÓN',     cnt: kpis.ejecucion, cls: 'l-ejec'    },
-            { id: 'instalado', label: 'INSTALADO',        cnt: kpis.instalado, cls: 'l-inst'    },
-            { id: 'rechazo',   label: 'RECHAZO EN CAMPO', cnt: kpis.rechazo,   cls: 'l-rech'    },
-            { id: 'caida',     label: 'CAÍDA',            cnt: kpis.caida,     cls: 'l-caida'   },
-            { id: 'tecnico',   label: 'TÉCNICOS EN CASA', cnt: kpis.tecnico,   cls: 'l-tecnico' },
-            ...ESTADOS.slice(5).map(e => ({ id:e.id, label:e.label, cnt:kpis.adicionales[e.id] || 0, cls:'l-ejec' })),
+            { id: '', label: 'Todos', cnt: kpis.total, cls: 'l-todos' },
+            ...ESTADOS.map(e => ({ id: e.id, label: e.label, cnt: kpis.porEstado[e.id] || 0, cls: e.leyenda })),
           ].map(item => (
             <div
               key={item.id}
@@ -795,7 +754,7 @@ export default function Seguimiento() {
                   {TRAMOS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
-              {(estNuevo === 'caida' || estNuevo === 'rechazo') && (
+              {estNuevo === 'caida' && (
                 <div className="modal-campo" id="motivoWrap">
                   <label>Motivo *</label>
                   <select value={estMotivo} onChange={e => setEstMotivo(e.target.value)}>

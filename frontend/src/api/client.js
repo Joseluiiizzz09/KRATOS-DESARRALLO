@@ -51,4 +51,5 @@ export const api = {
   supMetrics: (token) => request('/supervisor/metrics', { token }),
   supLeads: (token, params) => request(`/supervisor/leads${toQuery(params)}`, { token }),
   supSales: (token, params) => request(`/supervisor/sales${toQuery(params)}`, { token }),
+  supUpdateSale: (token, id, sale) => request(`/supervisor/sales/${id}`, { method: 'PATCH', body: sale, token }),
 };

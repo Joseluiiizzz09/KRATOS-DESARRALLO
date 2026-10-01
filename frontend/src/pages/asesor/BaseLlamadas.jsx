@@ -107,7 +107,7 @@ export default function BaseLlamadas() {
 
       <div className="ka-card">
         <div className="ka-scroll">
-          <table className={`ka-table${sinAsignaciones ? ' ka-table--empty' : ''}`}>
+          <table className={`ka-table ka-table--compact${sinAsignaciones ? ' ka-table--empty' : ''}`}>
             <thead>
               <tr>
                 {COLUMNAS.map(([clave, etiqueta]) => <th key={clave}>{etiqueta}</th>)}

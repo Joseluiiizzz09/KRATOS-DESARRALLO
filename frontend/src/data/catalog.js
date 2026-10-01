@@ -65,3 +65,17 @@ export function statusOptions(current) {
   if (!current || STATUSES.some(([value]) => value === current)) return STATUSES;
   return [...STATUSES, [current, ESTADOS_ANTIGUOS[current] || current]];
 }
+
+/* Estado de una venta: son los mismos de Seguimiento. Mientras nadie le pone uno, queda "pendiente". */
+export const ESTADOS_VENTA = [
+  ['pendiente', 'Pendiente', 'text-bg-secondary'],
+  ['programado', 'Programado', 'text-bg-primary'],
+  ['no_contesta', 'No contesta', 'text-bg-warning'],
+  ['activa', 'Activa', 'text-bg-success'],
+  ['caida', 'Caída', 'text-bg-danger'],
+];
+
+export function estadoVenta(status) {
+  const [, label, badge] = ESTADOS_VENTA.find(([value]) => value === status) || ESTADOS_VENTA[0];
+  return { label, badge };
+}

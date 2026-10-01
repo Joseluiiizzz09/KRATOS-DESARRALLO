@@ -94,12 +94,10 @@ export function MetricCards({ items }) {
     <div className="row g-3 mb-3">
       {items.map(([label, value, help]) => (
         <div className="col-6 col-lg-3" key={label}>
-          <div className="card h-100">
-            <div className="card-body">
-              <div className="text-muted small text-uppercase fw-semibold">{label}</div>
-              <div className="display-6 fw-bold">{value}</div>
-              <div className="small text-muted">{help}</div>
-            </div>
+          <div className="ka-stat">
+            <div className="ka-field-label">{label}</div>
+            <div className="ka-stat-value">{value}</div>
+            <div className="ka-stat-help">{help}</div>
           </div>
         </div>
       ))}
@@ -113,8 +111,8 @@ export function Pager({ total, page, pageSize, onPage }) {
     <div className="ka-foot d-flex justify-content-between align-items-center">
       <span>{total} registros · Página {page} de {pages}</span>
       <div className="d-flex gap-2">
-        <button className="btn btn-outline-secondary btn-sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>← Anterior</button>
-        <button className="btn btn-outline-secondary btn-sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>Siguiente →</button>
+        <button className="ka-btn" disabled={page <= 1} onClick={() => onPage(page - 1)}>← Anterior</button>
+        <button className="ka-btn" disabled={page >= pages} onClick={() => onPage(page + 1)}>Siguiente →</button>
       </div>
     </div>
   );
@@ -126,7 +124,7 @@ export function Filters({ children }) {
 
 export function Field({ label, children, grow }) {
   return (
-    <label className={`small fw-semibold text-muted ${grow ? 'flex-grow-1' : ''}`}>
+    <label className={`ka-field-label ${grow ? 'flex-grow-1' : ''}`}>
       {label}
       <div className="mt-1 fw-normal">{children}</div>
     </label>
