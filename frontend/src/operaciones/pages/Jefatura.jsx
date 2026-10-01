@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import MediaViewer from '../components/MediaViewer'
 import { HistorialVentaModal, ReasignarVentaModal } from '../components/VentaAssignmentModal'
-import { VentaEditarModal } from '../components/VentaEditarModal'
 import { VentaProgramarModal } from '../components/VentaProgramarModal'
 import ObsSeguimientoCell from '../components/ObsSeguimientoCell'
 import ProgramacionInfoCell from '../components/ProgramacionInfoCell'
@@ -17,6 +16,8 @@ import { CAMPANAS } from '../utils/campanas'
 import { responseChanged, setVisibleInterval, clearVisibleInterval } from '../utils/polling'
 import Chart from 'chart.js/auto'
 import * as XLSX from 'xlsx'
+import SaleModal from '../../components/SaleModal.jsx'
+import { api as apiKratos } from '../../api/client'
 import '../styles/jefatura.css'
 
 /* ── constantes ── */
@@ -195,6 +196,27 @@ function ventaAlcanzoInstalacion(venta) {
   const estado = String(venta?.estado || '').trim().toLowerCase().replace(/_/g, ' ')
   return Boolean(venta?.fecha_instalado) || estado === 'instalado' || estado === 'activa'
 }
+/* ── Estados de una venta en KRATOS ──────────────────────────────────────────
+   La venta del asesor entra directo a Seguimiento y solo puede estar en uno de
+   estos estados; mientras nadie le pone uno, queda pendiente. */
+const ESTADOS_KRATOS = [
+  { id:'pendiente',   label:'Pendiente',   color:'#9ca3af', bg:'#f3f4f6', borde:'rgba(156,163,175,.45)', texto:'#4b5563' },
+  { id:'programado',  label:'Programado',  color:'#2563eb', bg:'#eff6ff', borde:'rgba(96,165,250,.45)',  texto:'#1d4ed8' },
+  { id:'no_contesta', label:'No contesta', color:'#f59e0b', bg:'#fffbeb', borde:'rgba(251,191,36,.5)',   texto:'#b45309' },
+  { id:'activa',      label:'Activa',      color:'#16a34a', bg:'#ecfdf5', borde:'rgba(52,211,153,.45)',  texto:'#047857' },
+  { id:'caida',       label:'Caída',       color:'#dc2626', bg:'#fee2e2', borde:'rgba(248,113,113,.45)', texto:'#b91c1c' },
+]
+function estadoKratos(venta) {
+  const e = normEstado(venta?.estado || venta?.estado_venta)
+  if (['activa', 'instalado', 'servicio_activo', 'instalado_no_validado'].includes(e)) return 'activa'
+  if (['caida', 'rechazo', 'rechazo_campo', 'rechazo_mesa', 'rechazado'].includes(e)) return 'caida'
+  if (e === 'no_contesta') return 'no_contesta'
+  if (e === 'programado') return 'programado'
+  return 'pendiente'
+}
+function estadoKratosObj(venta) { return ESTADOS_KRATOS.find(x => x.id === estadoKratos(venta)) }
+function fechaIngresoVenta(v) { return soloFecha(v?._fecha || v?.fecha_ingreso || v?.fecha || v?.created_at) }
+
 // OJO: toISOString() usa UTC, no la hora local — como Lima va 5h detrás de
 // UTC, entre las 7pm y medianoche (hora Lima) esto devolvía "mañana" en vez
 // de "hoy" (reportes con rango de fechas por defecto vacíos toda esa
@@ -1137,22 +1159,12 @@ export default function Jefatura() {
     if (seccion === 'envio-masivo') cargarMasivo()
   }, [seccion, cargarSeguimiento, cargarReclutados, cargarEntrevistados, cargarEliminaciones, cargarMarketing, cargarMarketingRecl, cargarGastos, cargarGastosRecl, cargarGrabRendimiento, cargarMasivo])
 
-  // El dashboard representa el ciclo del mes actual según la fecha real de
-  // cada evento. Una venta puede haberse creado antes y programarse o instalarse
-  // este mes; en ese caso cuenta en la métrica del evento, no en la de altas.
+  // El dashboard cuenta las ventas ingresadas en el mes seleccionado y las agrupa
+  // por su estado actual (los mismos de Seguimiento).
   const cicloDashboardMes = useMemo(() => {
     const mes = mesReporte || mesActual()
-    const esMes = valor => String(soloFecha(valor) || '').slice(0, 7) === mes
-    const ventasNuevas = ventasCache.filter(v => esMes(v._fecha || v.fecha_ingreso || v.fecha || v.created_at))
-    const programaciones = ventasCache.filter(v => esMes(v.fecha_programada))
-    const instalaciones = ventasCache.filter(v => esMes(v.fecha_instalado) && ventaAlcanzoInstalacion(v))
-    const caidasMes = ventasCache.filter(v => esMes(v.fecha_programada) && ['CAIDA', 'RECHAZO_CAMPO'].includes(String(v.estado || '').toUpperCase()))
-    return {
-      ventasNuevas,
-      programaciones,
-      instalaciones,
-      caidasMes,
-    }
+    const ventasNuevas = ventasCache.filter(v => String(fechaIngresoVenta(v) || '').slice(0, 7) === mes)
+    return { ventasNuevas }
   }, [ventasCache, mesReporte])
 
   /* charts — siempre en DOM; solo recrear cuando estamos en dashboard */
@@ -1166,17 +1178,9 @@ export default function Jefatura() {
     /* Chart 1 — doughnut estados */
     if (canvasEstados.current) {
       destroy('estados')
-      const e  = s => (s || '').toLowerCase()
-      const estados = [
-        { label:'Validadas',       val: cicloDashboardMes.ventasNuevas.filter(v=>!['venta','','corta_llamada','fraude','no_desea','no_contesta','servicio_activo','no_validado'].includes(e(v.estado))).length, color:'#7C3AED' },
-        { label:'No validadas',    val: cicloDashboardMes.ventasNuevas.filter(v=>['venta','corta_llamada','fraude','no_desea','no_contesta','servicio_activo','no_validado'].includes(e(v.estado))).length,        color:'#ef4444' },
-        { label:'Grabadas',        val: cicloDashboardMes.ventasNuevas.filter(flujoGrabada).length,   color:'#d97706' },
-        { label:'No grabadas',     val: cicloDashboardMes.ventasNuevas.filter(flujoNoGrabada).length, color:'#9ca3af' },
-        { label:'No programadas',  val: cicloDashboardMes.ventasNuevas.filter(v=>['bloqueado','sin_agenda','caracter_especial','fraude','zona_restringida'].includes(e(v.estado))).length, color:'#6366f1' },
-        { label:'Instaladas',      val: cicloDashboardMes.instalaciones.length, color:'#16a34a' },
-        { label:'Caídas',          val: cicloDashboardMes.ventasNuevas.filter(v=>e(v.estado)==='caida').length,     color:'#dc2626' },
-        { label:'Rechazos',        val: cicloDashboardMes.ventasNuevas.filter(v=>e(v.estado)==='rechazo_campo').length, color:'#f97316' },
-      ].filter(x => x.val > 0)
+      const estados = ESTADOS_KRATOS
+        .map(x => ({ label: x.label, color: x.color, val: cicloDashboardMes.ventasNuevas.filter(v => estadoKratos(v) === x.id).length }))
+        .filter(x => x.val > 0)
       if (estados.length) {
         chartInst.current.estados = new Chart(canvasEstados.current, {
           type: 'doughnut',
@@ -1189,23 +1193,15 @@ export default function Jefatura() {
     /* Chart 2 — bar salas */
     if (canvasSalas.current) {
       destroy('salas')
-      const mesUsar   = mesReporte || mesActual()
-      const esMesSeleccionado = valor => String(soloFecha(valor) || '').slice(0, 7) === mesUsar
       const salas     = ['SALA 1','SALA 2','SALA 3','SALA 4','SALA CHANCAY','SALA 5','SALA 6']
-      // Se agrupa por v.sala (ya resuelve sala_atribucion en el backend), no
-      // por la sala ACTUAL del asesor en usuarios: si no, una venta que un
-      // asesor hizo para otra sala y que luego se movio de sala seguia
-      // contando para su sala nueva en vez de la sala a la que se atribuyo.
-      const instaladas = salas.map(s =>
-        ventasCache.filter(v=>String(v.sala||'').toUpperCase()===s&&esMesSeleccionado(v.fecha_instalado)&&ventaAlcanzoInstalacion(v)).length
-      )
-      const caidas = salas.map(s =>
-        ventasCache.filter(v=>String(v.sala||'').toUpperCase()===s&&esMesSeleccionado(v.fecha_programada)&&(v.estado||'').toLowerCase()==='caida').length
-      )
+      // Se agrupa por v.sala (sala atribuida de la venta) y por fecha de ingreso.
+      const delMes     = cicloDashboardMes.ventasNuevas
+      const instaladas = salas.map(s => delMes.filter(v => String(v.sala||'').toUpperCase() === s && estadoKratos(v) === 'activa').length)
+      const caidas     = salas.map(s => delMes.filter(v => String(v.sala||'').toUpperCase() === s && estadoKratos(v) === 'caida').length)
       chartInst.current.salas = new Chart(canvasSalas.current, {
         type: 'bar',
         data: { labels:salas, datasets:[
-          { label:'Instaladas', data:instaladas, backgroundColor:'#16a34a', borderRadius:6 },
+          { label:'Activas', data:instaladas, backgroundColor:'#16a34a', borderRadius:6 },
           { label:'Caídas',     data:caidas,     backgroundColor:'#ef4444', borderRadius:6 },
         ]},
         options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}}, scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f3f4f6'}},x:{grid:{display:false}}} }
@@ -1241,27 +1237,23 @@ export default function Jefatura() {
 
   /* ── KPIs dashboard ── */
   const kpis = useMemo(() => {
-    const e   = s => (s||'').toLowerCase()
-    const inst  = cicloDashboardMes.instalaciones.length
-    const caida = cicloDashboardMes.caidasMes.length
-    const instM = inst
-    const caidM = caida
-    const efect = (instM+caidM)>0?Math.round(instM/(instM+caidM)*100):0
+    const ventas = cicloDashboardMes.ventasNuevas
+    const cuenta = id => ventas.filter(v => estadoKratos(v) === id).length
+    const activas = cuenta('activa')
+    const caidas  = cuenta('caida')
+    const efect   = (activas + caidas) > 0 ? Math.round(activas / (activas + caidas) * 100) : 0
     return {
-      ventasMes:     cicloDashboardMes.ventasNuevas.length,
-      validadas:     cicloDashboardMes.ventasNuevas.filter(v=>!['venta',''].includes(e(v.estado))).length,
-      noValidadas:   cicloDashboardMes.ventasNuevas.filter(v=>['venta','corta_llamada','fraude','no_desea','no_contesta','servicio_activo','no_validado'].includes(e(v.estado))).length,
-      grabadas:      cicloDashboardMes.ventasNuevas.filter(flujoGrabada).length,
-      noGrabadas:    cicloDashboardMes.ventasNuevas.filter(flujoNoGrabada).length,
-      enEjecucion:   cicloDashboardMes.programaciones.filter(v=>['aprobado','programado','en_ejecucion','tecnico_casa'].includes(e(v.estado))).length,
-      noProgramadas: cicloDashboardMes.ventasNuevas.filter(v=>['bloqueado','sin_agenda','caracter_especial','fraude','zona_restringida'].includes(e(v.estado))).length,
-      instaladas:    inst,
-      caidas:        caida,
-      conv:          efect+'%',
-      totalUs:       usuarios.length,
-      activos:       usuarios.filter(u=>u.activo).length,
-      asesores:      usuarios.filter(u=>usuarioTieneCargo(u,'asesor')&&u.activo).length,
-      supervisores:  usuarios.filter(u=>usuarioTieneCargo(u,'supervisor')&&u.activo).length,
+      ventasMes:    ventas.length,
+      pendientes:   cuenta('pendiente'),
+      programadas:  cuenta('programado'),
+      noContesta:   cuenta('no_contesta'),
+      activas,
+      caidas,
+      conv:         efect + '%',
+      totalUs:      usuarios.length,
+      activos:      usuarios.filter(u=>u.activo).length,
+      asesores:     usuarios.filter(u=>usuarioTieneCargo(u,'asesor')&&u.activo).length,
+      supervisores: usuarios.filter(u=>usuarioTieneCargo(u,'supervisor')&&u.activo).length,
     }
   }, [cicloDashboardMes, usuarios])
 
@@ -1586,32 +1578,19 @@ export default function Jefatura() {
   }, [ventasCache, mesReporte])
 
   const resumenFlujoVentas = useMemo(() => {
-    const mes = mesReporte || mesActual()
-    // A diferencia de "todas" (que agrupa por fecha de INGRESO de la venta,
-    // ventasFlujoMes), esto agrupa por fecha_programada — asi el selector de
-    // mes tambien trae las que se vendieron el mes pasado pero se programaron
-    // (y Seguimiento puede corregir esa fecha) para este mes. Se usa
-    // fecha_programada y no fecha_instalado porque esta ultima es el
-    // timestamp de cuando se dio clic en Guardar, que puede quedar un dia
-    // despues de la instalacion real — fecha_programada es la que Seguimiento
-    // efectivamente corrige para reflejar la fecha real.
-    const instaladasMes = ventasCache.filter(v => {
-      const fecha = soloFecha(v.fecha_programada)
-      return fecha && String(fecha).slice(0, 7) === mes && ventaAlcanzoInstalacion(v)
-    }).length
+    const cuenta = id => ventasFlujoMes.filter(v => estadoKratos(v) === id).length
     return {
       todas: ventasFlujoMes.length,
-      validadas: ventasFlujoMes.filter(flujoValidada).length,
-      noValidadas: ventasFlujoMes.filter(flujoNoValidada).length,
-      grabadas: ventasFlujoMes.filter(flujoGrabada).length,
-      noGrabadas: ventasFlujoMes.filter(flujoNoGrabada).length,
-      seguimiento: ventasFlujoMes.filter(v => Boolean(estadoSeguimiento(v))).length,
-      instaladasMes,
+      pendiente: cuenta('pendiente'),
+      programado: cuenta('programado'),
+      no_contesta: cuenta('no_contesta'),
+      activa: cuenta('activa'),
+      caida: cuenta('caida'),
     }
-  }, [ventasFlujoMes, ventasCache, mesReporte])
+  }, [ventasFlujoMes])
 
   const opcionesFlujo = useMemo(() => ({
-    estados: opcionesUnicas(ventasCache.map(estadoActualFlujo)),
+    estados: ESTADOS_KRATOS.map(x => x.label),
   }), [ventasCache])
 
   // Union de la lista maestra de campañas con lo que realmente aparece en los
@@ -1625,19 +1604,8 @@ export default function Jefatura() {
 
   const ventasFlujoFiltradas = useMemo(() => {
     let lista = fvTipoFecha === 'venta' ? [...ventasFlujoMes] : [...ventasCache]
-    if (filtroFlujoVentas === 'validadas') lista = lista.filter(flujoValidada)
-    if (filtroFlujoVentas === 'noValidadas') lista = lista.filter(flujoNoValidada)
-    if (filtroFlujoVentas === 'grabadas') lista = lista.filter(flujoGrabada)
-    if (filtroFlujoVentas === 'noGrabadas') lista = lista.filter(flujoNoGrabada)
-    if (filtroFlujoVentas === 'seguimiento') {
-      lista = lista.filter(v => Boolean(estadoSeguimiento(v)))
-    }
-    if (fvEstados.length) lista = lista.filter(v =>
-      fvEstados.some(estado => normEstado(estado) === normEstado(estadoActualFlujo(v)))
-    )
-    if (fvValidacion) lista = lista.filter(v => coincideFiltroValidacion(v, fvValidacion))
-    if (fvGrabacion) lista = lista.filter(v => categoriaFiltroGrabacion(v) === fvGrabacion)
-    if (fvCanal) lista = lista.filter(v => String(v.canal || '').toUpperCase() === fvCanal)
+    if (filtroFlujoVentas && filtroFlujoVentas !== 'todas') lista = lista.filter(v => estadoKratos(v) === filtroFlujoVentas)
+    if (fvEstados.length) lista = lista.filter(v => fvEstados.some(estado => normEstado(estado) === estadoKratos(v)))
     if (fvCampana.length) lista = lista.filter(v => fvCampana.some(c => c.toUpperCase() === String(v.campana || '').trim().toUpperCase()))
     if (fvAsesor) lista = lista.filter(v => String(v.asesor_nombre || v.asesor || v.vendedor || '').toLowerCase().includes(fvAsesor.trim().toLowerCase()))
     if (fvSala) lista = lista.filter(v => String(v.sala || '').toLowerCase().includes(fvSala.trim().toLowerCase()))
@@ -1739,16 +1707,12 @@ export default function Jefatura() {
       ['FECHA SUBIDA',      v => formatF(soloFecha(v._fecha || v.fecha_ingreso || v.fecha || v.created_at))],
       ['CLIENTE',           v => v.nombre || v.nombre_apellidos || v.cliente || '-'],
       ['DNI',               v => v.dni || v.documento || '-'],
-      ['SOT',               v => v.sot || '-'],
       ['DISTRITO',          v => v.distrito || '-'],
       ['ASESOR',            v => v.asesor_nombre || v.asesor || v.vendedor || '-'],
       ['SALA',              v => v.sala || '-'],
-      ['VALIDACIÓN',        v => estadoValidacion(v)],
-      ['GRABACIÓN',         v => estadoGrabacion(v)],
-      ['PROGRAMACIÓN',      v => estadoProgramacionFlujo(v).label + (v.usuario_prog ? ` (Por: ${v.usuario_prog})` : '')],
-      ['FECHA PROGRAMACIÓN', v => soloFecha(v.fecha_programada || v.fecha_prog || v.fecha_programado) ? formatF(soloFecha(v.fecha_programada || v.fecha_prog || v.fecha_programado)) : '-'],
-      ['SEGUIMIENTO',       v => estadoSeguimiento(v) ? flujoLabelEstado(estadoSeguimiento(v)) : '-'],
-      ['FECHA DE INSTALACIÓN', v => soloFecha(v.fecha_instalado) ? formatF(soloFecha(v.fecha_instalado)) : '-'],
+      ['PAQUETE',           v => v.paquete || '-'],
+      ['ESTADO',            v => estadoKratosObj(v).label],
+      ['FECHA PROGRAMADA',  v => soloFecha(v.fecha_programada) ? formatF(soloFecha(v.fecha_programada)) : '-'],
     ], `ventas_generales_${fechaHoy()}.xlsx`)
   }
 
@@ -1761,38 +1725,9 @@ export default function Jefatura() {
           return fecha && String(fecha).slice(0, 7) === mesReporte
         })
       : ventasCache
-    // Instaladas pertenecen al mes de fecha_programada (la fecha que
-    // Programacion agenda y que Seguimiento puede corregir desde su propia
-    // columna OBS. PROGRAMACION) — decision explicita: si Seguimiento cambia
-    // esa fecha, el mes de la instalacion debe seguir a ese cambio, no al
-    // timestamp de cuando se dio clic en Guardar (que puede quedar un dia
-    // despues de la instalacion real).
-    // El criterio de "instalada" (solo estado exacto INSTALADO, ya no
-    // instalado_no_validado ni reasignacion) coincide con esVentaInstalada de
-    // Dashboard.jsx y con el ranking de Supervisor.jsx.
-    const esInstaladaDelMes = v => {
-      // INSTALADO_NO_VALIDADO y REASIGNACION ya NO cuentan como instalacion
-      // (decision explicita: solo INSTALADO exacto es una instalacion real).
-      const estado = String(v.estado || '').trim().toUpperCase().replace(/_/g, ' ')
-      return estado === 'INSTALADO' || estado === 'ACTIVA'
-    }
-    const instaladasDelMes = mesReporte
-      ? ventasCache.filter(v => esMesReporte(v.fecha_programada) && esInstaladaDelMes(v))
-      : ventasCache.filter(ventaAlcanzoInstalacion)
-    // Misma logica que arriba pero para caidas: fecha_caida es la fecha REAL
-    // (historial) en que la venta paso a un estado de caida/rechazo, resuelta
-    // por el backend con el mismo set de estados que Dashboard.jsx
-    // (ESTADOS_CAIDA). Antes solo se exigia CAIDA/RECHAZO_CAMPO por fecha
-    // programada, dejando fuera rechazo en mesa, anuladas, servicio activo,
-    // etc. — el mismo asesor salia con muchas menos caidas aqui que en su
-    // propio dashboard.
-    const esCaidaDelMes = v => {
-      const estado = String(v.estado || '').trim().toUpperCase().replace(/_/g, ' ')
-      return ['CAIDA','RECHAZO','RECHAZO CAMPO','RECHAZO MESA','RECHAZADA','RECHAZADO','ANULADA','SERVICIO ACTIVO'].includes(estado)
-    }
-    const caidasDelMes = mesReporte
-      ? ventasCache.filter(v => esMesReporte(v.fecha_caida) && esCaidaDelMes(v))
-      : ventasCache.filter(esCaidaDelMes)
+    // Activas y caídas se cuentan por el estado actual de las ventas ingresadas en el periodo.
+    const instaladasDelMes = ventasDelMes.filter(v => estadoKratos(v) === 'activa')
+    const caidasDelMes     = ventasDelMes.filter(v => estadoKratos(v) === 'caida')
     let asesFilt = usuarios.filter(u=>usuarioTieneCargo(u,'asesor'))
     if (salaReporte !== 'todas') asesFilt = asesFilt.filter(u=>u.sala===salaReporte)
     // Al filtrar por sala, se agrupa por v.sala (sala ATRIBUIDA de la venta,
@@ -1807,7 +1742,7 @@ export default function Jefatura() {
     const caidasFilt       = salaReporte === 'todas' ? caidasDelMes       : caidasDelMes.filter(v=>String(v.sala||'').toUpperCase()===salaReporte)
     const inst   = instaladasFilt.length
     const caidas = caidasFilt.length
-    // Efectividad = Instaladas / (Instaladas + Caídas), igual que en el
+    // Efectividad = Activas / (Activas + Caídas), igual que en el
     // Dashboard del asesor. No se divide entre el total de ventas del mes:
     // eso mezclaba ventas todavía en curso (en ejecución, técnico en casa,
     // etc.) en el denominador y hacía bajar la efectividad artificialmente.
@@ -2063,15 +1998,12 @@ export default function Jefatura() {
 
             <div className="kpi-grid" style={{gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))'}}>
               <div className="kpi-card k-blue">  <div className="kpi-num">{kpis.ventasMes}</div>     <div className="kpi-label">Ventas del mes</div>     <div className="kpi-sub">altas del periodo</div></div>
-              <div className="kpi-card k-purple"><div className="kpi-num">{kpis.validadas}</div>     <div className="kpi-label">Validadas</div>          <div className="kpi-sub">pasaron validación</div></div>
-              <div className="kpi-card k-red">   <div className="kpi-num">{kpis.noValidadas}</div>   <div className="kpi-label">No validadas</div>       <div className="kpi-sub">rechazadas val.</div></div>
-              <div className="kpi-card k-orange"><div className="kpi-num">{kpis.grabadas}</div>      <div className="kpi-label">Grabadas</div>           <div className="kpi-sub">con audio</div></div>
-              <div className="kpi-card k-yellow"><div className="kpi-num">{kpis.noGrabadas}</div>    <div className="kpi-label">No grabadas</div>        <div className="kpi-sub">esperando audio</div></div>
-              <div className="kpi-card k-teal">  <div className="kpi-num">{kpis.enEjecucion}</div>   <div className="kpi-label">En ejecución</div>       <div className="kpi-sub">programadas</div></div>
-              <div className="kpi-card" style={{borderTopColor:'#94a3b8'}}><div className="kpi-num">{kpis.noProgramadas}</div><div className="kpi-label">No programadas</div><div className="kpi-sub">esperando prog.</div></div>
-              <div className="kpi-card k-green"> <div className="kpi-num">{kpis.instaladas}</div>    <div className="kpi-label">Instaladas</div>         <div className="kpi-sub">completadas</div></div>
-              <div className="kpi-card k-red">   <div className="kpi-num">{kpis.caidas}</div>        <div className="kpi-label">Caídas + Rechazos</div>  <div className="kpi-sub">fallidas</div></div>
-              <div className="kpi-card k-purple"><div className="kpi-num">{kpis.conv}</div>          <div className="kpi-label">Efectividad mes</div>    <div className="kpi-sub">inst / (inst+caídas)</div></div>
+              <div className="kpi-card" style={{borderTopColor:'#9ca3af'}}><div className="kpi-num">{kpis.pendientes}</div><div className="kpi-label">Pendientes</div><div className="kpi-sub">sin estado aún</div></div>
+              <div className="kpi-card k-blue">  <div className="kpi-num">{kpis.programadas}</div>    <div className="kpi-label">Programadas</div>        <div className="kpi-sub">con fecha agendada</div></div>
+              <div className="kpi-card k-yellow"><div className="kpi-num">{kpis.noContesta}</div>     <div className="kpi-label">No contesta</div>        <div className="kpi-sub">sin respuesta</div></div>
+              <div className="kpi-card k-green"> <div className="kpi-num">{kpis.activas}</div>        <div className="kpi-label">Activas</div>            <div className="kpi-sub">ventas efectivas</div></div>
+              <div className="kpi-card k-red">   <div className="kpi-num">{kpis.caidas}</div>         <div className="kpi-label">Caídas</div>             <div className="kpi-sub">ventas perdidas</div></div>
+              <div className="kpi-card k-purple"><div className="kpi-num">{kpis.conv}</div>          <div className="kpi-label">Efectividad mes</div>    <div className="kpi-sub">activas / (activas+caídas)</div></div>
               <div className="kpi-card k-teal">  <div className="kpi-num">{kpis.totalUs}</div>       <div className="kpi-label">Usuarios</div>           <div className="kpi-sub">registrados</div></div>
               <div className="kpi-card k-yellow"><div className="kpi-num">{kpis.activos}</div>       <div className="kpi-label">Activos</div>            <div className="kpi-sub">en el sistema</div></div>
               <div className="kpi-card k-blue">  <div className="kpi-num">{kpis.asesores}</div>      <div className="kpi-label">Asesores</div>           <div className="kpi-sub">activos</div></div>
@@ -2084,7 +2016,7 @@ export default function Jefatura() {
               </div>
               <div className="chart-card">
                 <div className="chart-title-row">
-                  <span>Instaladas y Caídas por sala</span>
+                  <span>Activas y caídas por sala</span>
                   <select value={mesReporte} onChange={e=>setMesReporte(e.target.value)}
                     style={{padding:'4px 8px',border:'1px solid #e5e7eb',borderRadius:'7px',fontSize:'11px',fontFamily:'inherit',outline:'none',color:'#374151',cursor:'pointer'}}>
                     {MESES_SALAS.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}
@@ -2705,11 +2637,11 @@ export default function Jefatura() {
             <div className="flujo-kpi-grid ventas-generales-kpi-grid">
               {[
                 { id:'todas', label:'Ventas generales', value:resumenFlujoVentas.todas, cls:'k-magenta' },
-                { id:'validadas', label:'Validadas', value:resumenFlujoVentas.validadas, cls:'k-yellow' },
-                { id:'noValidadas', label:'No validadas', value:resumenFlujoVentas.noValidadas, cls:'k-red' },
-                { id:'grabadas', label:'Grabadas', value:resumenFlujoVentas.grabadas, cls:'k-green' },
-                { id:'noGrabadas', label:'No grabadas', value:resumenFlujoVentas.noGrabadas, cls:'k-blue' },
-                { id:'seguimiento', label:'En seguimiento', value:resumenFlujoVentas.seguimiento, cls:'k-purple' },
+                { id:'pendiente', label:'Pendientes', value:resumenFlujoVentas.pendiente, cls:'k-blue' },
+                { id:'programado', label:'Programadas', value:resumenFlujoVentas.programado, cls:'k-purple' },
+                { id:'no_contesta', label:'No contesta', value:resumenFlujoVentas.no_contesta, cls:'k-yellow' },
+                { id:'activa', label:'Activas', value:resumenFlujoVentas.activa, cls:'k-green' },
+                { id:'caida', label:'Caídas', value:resumenFlujoVentas.caida, cls:'k-red' },
               ].map(card => (
                 <button
                   type="button"
@@ -2721,10 +2653,6 @@ export default function Jefatura() {
                   <div className="kpi-label">{card.label}</div>
                 </button>
               ))}
-              <div className="kpi-card flujo-kpi k-green" title="Instaladas cuya fecha de instalacion cae en el mes seleccionado, aunque la venta se haya ingresado antes">
-                <div className="kpi-num">{resumenFlujoVentas.instaladasMes}</div>
-                <div className="kpi-label">Instaladas</div>
-              </div>
               <button type="button" className="kpi-card flujo-kpi k-green export-kpi-card" onClick={exportarVentasExcel}>
                 <span className="export-kpi-icon" aria-hidden="true">⇩</span>
                 <span className="kpi-label">Exportar Excel</span>
@@ -2733,7 +2661,7 @@ export default function Jefatura() {
 
             <div className="flujo-panel">
               <div>
-                <h3>Vista completa del flujo</h3>
+                <h3>Todas las ventas</h3>
               </div>
               <input
                 className="tabla-search flujo-search"
@@ -2746,9 +2674,6 @@ export default function Jefatura() {
               <div className="filtros-titulo">Filtros avanzados</div>
               <div className="filtros-grid filtros-grid-ventas">
                 <label><span>Estado actual</span><FiltroEstadoMultiple opciones={opcionesFlujo.estados} seleccionados={fvEstados} onChange={setFvEstados} /></label>
-                <label><span>Validación</span><select value={fvValidacion} onChange={e=>setFvValidacion(e.target.value)}><option value="">TODAS</option><option value="validado">VALIDADO</option><option value="no_validado">NO VALIDADO</option><option value="ventas">VENTAS</option></select></label>
-                <label><span>Grabación</span><select value={fvGrabacion} onChange={e=>setFvGrabacion(e.target.value)}><option value="">TODAS</option><option value="GRABADO">GRABADO</option><option value="GRABANDO">GRABANDO</option><option value="NO GRABADO">NO GRABADO</option></select></label>
-                <label><span>Canal</span><select value={fvCanal} onChange={e=>setFvCanal(e.target.value)}><option value="">TODOS</option><option value="NETCONTACT">NETCONTACT</option><option value="KELS">KELS</option></select></label>
                 <label><span>Campaña</span><FiltroEstadoMultiple opciones={campanasFlujoOpciones} seleccionados={fvCampana} onChange={setFvCampana} /></label>
                 <label><span>Asesor</span><input value={fvAsesor} onChange={e=>setFvAsesor(e.target.value)} placeholder="Escribir asesor..."/></label>
                 <label><span>Sala</span><input value={fvSala} onChange={e=>setFvSala(e.target.value)} placeholder="Escribir sala..."/></label>
@@ -2797,24 +2722,16 @@ export default function Jefatura() {
                       <th>DNI</th>
                       <th>Asesor</th>
                       <th>Sala</th>
-                      <th>Canal</th>
-                      <th>Validación</th>
-                      <th>Grabación</th>
-                      <th>Programación</th>
-                      <th>Seguimiento</th>
+                      <th>Estado</th>
+                      <th>Fecha programada</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {ventasFlujoFiltradas.length === 0 ? (
-                      <tr><td colSpan="12" className="tabla-empty">No hay ventas registradas.</td></tr>
+                      <tr><td colSpan="9" className="tabla-empty">No hay ventas registradas.</td></tr>
                     ) : ventasFlujoPagina.map((v, i) => {
-                      const estadoSeg = estadoSeguimiento(v)
-                      const pInfo = estadoProgramacionFlujo(v)
-                      const pSt   = PROG_STYLES[pInfo.key] || PROG_STYLES.PENDIENTE
-                      const fpParts = (v.fecha_prog || '').split(' ')
-                      const fpStr = fpParts[0] ? formatF(fpParts[0]) + (fpParts[1] ? ' ' + fpParts[1].slice(0,5) : '') : ''
-                      const pTip = [v.obs_programacion && `Obs: ${v.obs_programacion}`, fpStr && `Fecha: ${fpStr}`].filter(Boolean).join('\n') || undefined
+                      const est = estadoKratosObj(v)
                       return (
                         <tr key={v.id || `${v.dni || v.documento || 'venta'}-${i}`}>
                           <td>{(paginaFlujo - 1) * porPaginaFlujo + i + 1}</td>
@@ -2823,21 +2740,11 @@ export default function Jefatura() {
                           <td>{v.dni || v.documento || '—'}</td>
                           <td>{String(v.asesor_nombre || v.asesor || v.vendedor || '—').toLocaleUpperCase('es-PE')}</td>
                           <td>{v.sala || '—'}</td>
-                          <td><CanalBadge canal={v.canal} /></td>
-                          <td><span className={flujoValidada(v) ? 'flujo-ok' : 'flujo-warn'}>{estadoValidacion(v)}</span></td>
-                          <td><span className={flujoGrabada(v) ? 'flujo-ok' : 'flujo-warn'}>{estadoGrabacion(v)}</span></td>
-                          <td>
-                            <div title={pTip}>
-                              <span style={{display:'inline-block',padding:'2px 8px',borderRadius:'99px',fontSize:'10px',fontWeight:700,letterSpacing:'.3px',background:pSt.bg,color:pSt.color,border:`1px solid ${pSt.border}`,whiteSpace:'nowrap'}}>{pInfo.label}</span>
-                              {v.usuario_prog && <div style={{fontSize:'10px',color:'#6b7280',marginTop:'2px',whiteSpace:'nowrap'}}>Por: {v.usuario_prog.split(' ').slice(0,2).join(' ').toLocaleUpperCase('es-PE')}</div>}
-                            </div>
-                          </td>
-                          <td>{estadoSeg ? <span className="flujo-info">{flujoLabelEstado(estadoSeg)}</span> : '—'}</td>
+                          <td><span style={{display:'inline-block',padding:'2px 9px',borderRadius:'99px',fontSize:'10px',fontWeight:700,letterSpacing:'.3px',background:est.bg,color:est.texto,border:`1px solid ${est.borde}`,whiteSpace:'nowrap'}}>{est.label.toUpperCase()}</span></td>
+                          <td>{soloFecha(v.fecha_programada) ? formatF(soloFecha(v.fecha_programada)) : '—'}</td>
                           <td>
                             <div className="venta-actions">
-                              <button type="button" className="venta-action-btn" onClick={()=>setMediaVenta(v)}>Archivos</button>
                               <button type="button" className="venta-action-btn" onClick={()=>setVentaEditar(v)}>Editar</button>
-                              <button type="button" className="venta-action-btn" onClick={()=>setVentaProgramar(v)}>Programación</button>
                               <button type="button" className="venta-action-btn reassign" onClick={()=>setVentaReasignar(v)}>Reasignar</button>
                               <button type="button" className="venta-action-btn" onClick={()=>setVentaHistorial(v)}>Historial</button>
                               <button type="button" className="venta-action-btn delete" onClick={()=>eliminarVenta(v)}>Eliminar</button>
@@ -2866,14 +2773,10 @@ export default function Jefatura() {
           {/* ===== USUARIOS ===== */}
           <section className={`section${seccion==='usuarios'?' active':''}`}>
             <div className="sec-header">
-              <div><h2>Usuarios y Planilla</h2><p>Gestiona los accesos y consulta la información de planilla</p></div>
+              <div><h2>Usuarios</h2><p>Gestiona los accesos de tu equipo</p></div>
               <button className="btn-nuevo" onClick={abrirModalNuevo}>+ Nuevo usuario</button>
             </div>
-            <div style={{display:'flex',gap:8,marginBottom:14}}>
-              <button type="button" className={`flujo-clear${usuariosPlanillaVista==='usuarios'?' active':''}`} onClick={()=>setUsuariosPlanillaVista('usuarios')}>Usuarios</button>
-              <button type="button" className={`flujo-clear${usuariosPlanillaVista==='planilla'?' active':''}`} onClick={()=>{ setUsuariosPlanillaVista('planilla'); cargarPlanilla() }}>Planilla</button>
-            </div>
-            <div className="tabla-wrap" style={{display:usuariosPlanillaVista==='usuarios'?'block':'none'}}>
+            <div className="tabla-wrap">
               <div className="tabla-header">
                 <div className="tabla-header-left">
                   <span className="tabla-title">Usuarios</span>
@@ -2963,23 +2866,6 @@ export default function Jefatura() {
                 </tbody>
               </table>
             </div>
-            <div className="tabla-wrap" style={{display:usuariosPlanillaVista==='planilla'?'block':'none'}}>
-              <div className="tabla-header">
-                <div className="tabla-header-left"><span className="tabla-title">Planilla</span><span className="tabla-count">{planillaCarga.cargando?'Cargando...':`${planilla.length} registros`}</span></div>
-                <button type="button" className="btn-edit" onClick={cargarPlanilla}>Actualizar</button>
-              </div>
-              <div style={{overflowX:'auto'}}>
-                <table className="tabla" style={{minWidth:1150}}>
-                  <thead><tr><th>Nombres completos</th><th>Usuario</th><th>Cargo</th><th>Sala</th><th>DNI</th><th>Cumpleaños</th><th>Banco</th><th>Número de cuenta</th></tr></thead>
-                  <tbody>
-                    {planillaCarga.cargando ? <tr><td colSpan="8" className="tabla-empty">Cargando Planilla...</td></tr>
-                    : planillaCarga.error ? <tr><td colSpan="8" className="tabla-empty">{planillaCarga.error}</td></tr>
-                    : planilla.length===0 ? <tr><td colSpan="8" className="tabla-empty">Aún no hay registros de planilla.</td></tr>
-                    : planilla.map(p=><tr key={p.id}><td style={{fontWeight:700}}>{p.nombres_completos}</td><td style={{fontFamily:'monospace'}}>{p.usuario}</td><td>{cargoObj(p.cargo).label}</td><td>{p.sala||'—'}</td><td>{p.dni}</td><td>{formatF(String(p.fecha_nacimiento||'').slice(0,10))}</td><td>{p.banco}</td><td style={{fontFamily:'monospace'}}>{p.numero_cuenta}</td></tr>)}
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </section>
 
           {/* ===== REPORTES ===== */}
@@ -3020,7 +2906,7 @@ export default function Jefatura() {
             </div>
             <div className="kpi-grid reportes-kpis" style={{gridTemplateColumns:'repeat(4,1fr)',margin:'16px 0'}}>
               <div className="kpi-card k-blue"> <div className="kpi-num">{repKpis.total}</div>  <div className="kpi-label">Total ventas</div></div>
-              <div className="kpi-card k-green"><div className="kpi-num">{repKpis.inst}</div>   <div className="kpi-label">Instaladas</div></div>
+              <div className="kpi-card k-green"><div className="kpi-num">{repKpis.inst}</div>   <div className="kpi-label">Activas</div></div>
               <div className="kpi-card k-red">  <div className="kpi-num">{repKpis.caidas}</div> <div className="kpi-label">Caídas</div></div>
               <div className="kpi-card k-purple"><div className="kpi-num">{repKpis.efect}</div> <div className="kpi-label">Efectividad</div></div>
             </div>
@@ -3034,7 +2920,7 @@ export default function Jefatura() {
               </div>
               <div style={{overflowX:'auto'}}>
                 <table className="tabla tabla-ranking-pro">
-                  <thead><tr><th style={{width:'60px'}}>RANK</th><th>ASESOR</th><th>SALA</th><th>VENTAS INSTALADAS</th><th>TOTAL VENTAS</th><th>CAÍDAS</th><th>EFECTIVIDAD</th></tr></thead>
+                  <thead><tr><th style={{width:'60px'}}>RANK</th><th>ASESOR</th><th>SALA</th><th>VENTAS ACTIVAS</th><th>TOTAL VENTAS</th><th>CAÍDAS</th><th>EFECTIVIDAD</th></tr></thead>
                   <tbody>
                     {reporteData.length === 0
                       ? <tr><td colSpan="7" className="tabla-empty">Sin datos.</td></tr>
@@ -3425,10 +3311,24 @@ export default function Jefatura() {
       )}
 
       {ventaEditar && (
-        <VentaEditarModal
-          venta={ventaEditar}
+        <SaleModal
+          key={ventaEditar.id}
+          show
+          title="Editar datos de la venta"
+          submitLabel="Guardar cambios"
+          prefill={{
+            clientName: ventaEditar.nombre || '', documentType: ventaEditar.tipo_doc || '',
+            documentNumber: ventaEditar.dni || '', clientPhone: ventaEditar.telefono1 || '',
+            referencePhone: ventaEditar.telefono2 || '', productName: ventaEditar.paquete || '',
+            saleType: ventaEditar.tipo_venta || '', notes: ventaEditar.observacion || '',
+          }}
           onClose={()=>setVentaEditar(null)}
-          onSuccess={()=>{ setVentaEditar(null); Promise.all([cargarSeguimiento(), cargarVentasCache()]); mostrarToast('Datos actualizados') }}
+          onSubmit={async (payload) => {
+            await apiKratos.supUpdateSale('', ventaEditar.id, payload)
+            setVentaEditar(null)
+            cargarVentasCache()
+            mostrarToast('Datos actualizados')
+          }}
         />
       )}
 
