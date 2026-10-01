@@ -21,8 +21,8 @@ function RutaPrivada({ children, cargo }) {
   useAuth();
   const sesion = leerSesionActual();
   if (!sesion) return <Navigate to="/login" replace />;
-  const actor = sesion._actorJefatura || sesion;
-  const permitido = !cargo || actor.cargo === 'jefatura' || usuarioTieneCargo(sesion, cargo);
+  // Jefatura solo entra a otros módulos desde "Accesos directos" (como ese usuario), no escribiendo la URL.
+  const permitido = !cargo || (sesion.cargo === 'jefatura' ? cargo === 'jefatura' : usuarioTieneCargo(sesion, cargo));
   if (!permitido) return <Navigate to={RUTAS[sesion.cargo] || '/login'} replace />;
   return children;
 }
