@@ -86,7 +86,7 @@ export default function SidebarLayout({ items, extra, subtitle = 'Sistema de lla
         </div>
 
         <div className="p-3 border-top flex-shrink-0">
-          {!collapsed && <div className="small text-muted mb-2">{user?.nombre}</div>}
+          {!collapsed && <div className="mb-2" style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', lineHeight: 1.3, textTransform: 'capitalize' }}>{(user?.nombre || '').toLowerCase()}</div>}
           {entroDesdeJefatura() && (
             <button className="ka-btn w-100 mb-2" onClick={volverAJefatura} title="Volver a Jefatura">
               {collapsed ? '←' : '← Volver a Jefatura'}
