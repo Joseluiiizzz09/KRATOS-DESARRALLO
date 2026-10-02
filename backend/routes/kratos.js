@@ -53,7 +53,7 @@ function mapLead(row) {
     tipificacion: row.tipif_back || null,
     backNotes: row.obs_back || '',
     advisorNote: row.obs_asesor || '',
-    status: estadoDeEtiqueta(row.tipif_vend),
+    status: row.con_venta ? 'venta_cerrada' : estadoDeEtiqueta(row.tipif_vend),
     documentType: null,
     documentNumber: null,
     assignedAt: row.fecha_fmt ? `${row.fecha_fmt} ${row.hora_asig || '00:00'}:00` : null,
@@ -95,10 +95,13 @@ const COLUMNAS_VENTA = `v.*, ${SQL_ESTADO_VENTA} AS estado_app, DATE_FORMAT(v.cr
 /** Contactos asignados al asesor. */
 r.get('/leads', auth(['asesor']), async (req, res) => {
   const [rows] = await db.query(
-    `SELECT ${COLUMNAS_LEAD} FROM leads l
-     WHERE l.asesor_id = ? AND COALESCE(l.sin_asignar, 0) = 0
+    `SELECT ${COLUMNAS_LEAD},
+            EXISTS(SELECT 1 FROM ventas v WHERE v.lead_id = l.id AND v.asesor_id = ?) AS con_venta
+     FROM leads l
+     WHERE (l.asesor_id = ? AND COALESCE(l.sin_asignar, 0) = 0)
+        OR l.id IN (SELECT v.lead_id FROM ventas v WHERE v.asesor_id = ? AND v.lead_id IS NOT NULL)
      ORDER BY l.fecha DESC, l.hora_asig DESC, l.id DESC`,
-    [req.user.id]
+    [req.user.id, req.user.id, req.user.id]
   );
   res.json({ leads: rows.map(mapLead) });
 });
