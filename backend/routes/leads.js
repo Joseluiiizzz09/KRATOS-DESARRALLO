@@ -580,6 +580,23 @@ router.get('/', auth(ROLES_ALL), async (req, res) => {
           ventaMap.set((vv.telefono1 || '').trim(), { ...vv, venta_asesor_id: vv.asesor_id, venta_asesor_nombre: vv.asesor_nombre });
         }
       }
+      // Ventas ligadas directamente al contacto (lead_id): sirven aunque el contacto no tenga N1
+      // (por ejemplo, solo usuario de WhatsApp).
+      const idsLeads = data.map(l => l.id).filter(Boolean);
+      if (idsLeads.length > 0) {
+        const [ventasPorLead] = await db.query(
+          `SELECT v.id, v.lead_id, v.telefono1, v.asesor_id, u.nombre AS asesor_nombre,
+                  v.dni AS venta_documento, v.tipo_doc AS venta_tipo_doc,
+                  v.estado, v.estado_grab, v.motivo_seguimiento, v.created_at AS venta_created_at, v.canal
+             FROM ventas v LEFT JOIN usuarios u ON u.id = v.asesor_id
+            WHERE v.lead_id IN (${idsLeads.map(() => '?').join(',')})
+              AND v.id = (SELECT MAX(v2.id) FROM ventas v2 WHERE v2.lead_id = v.lead_id)`,
+          idsLeads
+        );
+        for (const vv of ventasPorLead) {
+          ventaMap.set(`lead:${vv.lead_id}`, { ...vv, venta_asesor_id: vv.asesor_id, venta_asesor_nombre: vv.asesor_nombre });
+        }
+      }
     }
 
     const resumenNumeroDia = new Map();
@@ -626,7 +643,7 @@ router.get('/', auth(ROLES_ALL), async (req, res) => {
         }
       }
       // Si la venta pertenece a otro contacto (lead_id distinto), no se le atribuye por coincidir el teléfono.
-      let ventaInfo = ventaMap.get((l.n1 || '').trim());
+      let ventaInfo = ventaMap.get(`lead:${l.id}`) || ventaMap.get((l.n1 || '').trim());
       if (ventaInfo?.lead_id && Number(ventaInfo.lead_id) !== Number(l.id)) ventaInfo = null;
       const ventaConfirmada = ventaInfo ? 1 : 0;
       const ventaAsesorId = ventaInfo?.venta_asesor_id ?? null;
