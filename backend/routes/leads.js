@@ -133,6 +133,7 @@ const TIPI_INTERNA_SEGUIMIENTO = new Map([
   ['TECNICOS EN CASA', ['VENTA CERRADA', '#2563eb']],
   ['TECNICO CASA', ['VENTA CERRADA', '#2563eb']],
   ['INSTALADO', ['INSTALADO', '#0369a1']],
+  ['ACTIVA', ['INSTALADO', '#0369a1']],
   ['INSTALADO NO VALIDADO', ['INSTALADO', '#0369a1']],
   ['REASIGNACION', ['INSTALADO', '#0369a1']],
   ['CAIDA', ['VENTA CAIDA', '#a64d79']],
@@ -165,9 +166,9 @@ function tipificacionInternaVenta(venta) {
     });
   };
   const estadoGeneral = normalizarEstadoCRM(venta.estado);
-  const estadoValidacion = venta.estado_validacion || (['VENTA','VALIDADO'].includes(estadoGeneral) ? estadoGeneral : '');
-  agregar(TIPI_INTERNA_VALIDACION, estadoValidacion, venta.fecha_validacion, 'VALIDACION', 1, estadoValidacion);
-  agregar(TIPI_INTERNA_GRABACION, venta.estado_grab, venta.fecha_grabacion, 'GRABACION', 2, venta.estado_grab);
+  // KRATOS no tiene Validación ni Grabación: una venta entra directo a Seguimiento
+  // y solo se considera caída/activa según su estado de Seguimiento.
+  if (['VENTA','VALIDADO'].includes(estadoGeneral)) agregar(TIPI_INTERNA_VALIDACION, estadoGeneral, '', 'VENTA', 1, estadoGeneral);
   agregar(TIPI_INTERNA_SEGUIMIENTO, venta.estado, venta.fecha_seguimiento, 'SEGUIMIENTO', 3, venta.motivo_seguimiento || venta.estado);
   candidatos.sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)) || a.prioridad - b.prioridad);
   return candidatos[candidatos.length - 1] || null;
