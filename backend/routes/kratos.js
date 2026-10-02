@@ -120,6 +120,18 @@ r.patch('/leads/:id', auth(['asesor']), async (req, res) => {
   const cambioTipif = status !== undefined && tipif !== (lead.tipif_vend || '');
   const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
 
+  // Preventa y No califica exigen el DNI; Sin cobertura exige las coordenadas.
+  if (cambioTipif) {
+    const nota = advisorNote !== undefined ? advisorNote : lead.obs_asesor;
+    const coord = coordinates !== undefined ? coordinates : lead.coordenadas;
+    if (['PREVENTA', 'NO CALIFICA'].includes(tipif) && !/(DNI|CE)\s*:\s*\d{8,12}/i.test(String(nota || ''))) {
+      return res.status(422).json({ error: 'Para esta tipificación debes registrar el DNI del cliente.' });
+    }
+    if (tipif === 'SIN COBERTURA' && !String(coord || '').trim()) {
+      return res.status(422).json({ error: 'Para Sin cobertura debes registrar las coordenadas.' });
+    }
+  }
+
   await db.query(
     `UPDATE leads SET tipif_vend = ?, tipif_hora = ?, obs_asesor = ?, coordenadas = ? WHERE id = ? AND asesor_id = ?`,
     [
