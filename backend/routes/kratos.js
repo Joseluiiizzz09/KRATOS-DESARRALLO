@@ -94,36 +94,96 @@ const COLUMNAS_VENTA = `v.*, ${SQL_ESTADO_VENTA} AS estado_app, DATE_FORMAT(v.cr
 
 /* ====================== ASESOR ====================== */
 
-/** Contactos asignados al asesor. */
+/* ----- Contactos del asesor: titular actual + asesores previos (como en KRONO) ----- */
+
+function historialDe(lead) {
+  try { const h = JSON.parse(lead.historial || '[]'); return Array.isArray(h) ? h : []; } catch { return []; }
+}
+
+/** Última rotación en la que este asesor dejó el contacto (guarda su tipificación y su nota de entonces). */
+function entradaDeAsesorPrevio(lead, nombre) {
+  const hist = historialDe(lead);
+  for (let i = hist.length - 1; i >= 0; i--) {
+    if (String(hist[i]?.asesorAnterior || '').trim() === nombre) return { hist, idx: i };
+  }
+  return { hist, idx: -1 };
+}
+
+/** Nombre del asesor tal como figura en el historial de los contactos (el token no lo trae). */
+async function nombreDeAsesor(req) {
+  if (req.user.nombre) return String(req.user.nombre).trim();
+  const [u] = await db.query('SELECT nombre FROM usuarios WHERE id = ? LIMIT 1', [req.user.id]);
+  return String(u[0]?.nombre || '').trim();
+}
+
+const SQL_LEAD_VISTA = `${COLUMNAS_LEAD},
+  EXISTS(SELECT 1 FROM ventas v WHERE v.lead_id = l.id AND v.asesor_id = ?) AS con_venta`;
+
+/** El contacto tal como lo ve este asesor: el titular ve lo suyo; un asesor previo ve lo que dejó al rotarse. */
+function vistaDeLead(row, userId, nombre) {
+  const lead = mapLead(row);
+  const titular = Number(row.asesor_id) === Number(userId) && !Number(row.sin_asignar || 0);
+  if (titular || row.con_venta) return lead;
+  const { hist, idx } = entradaDeAsesorPrevio(row, nombre);
+  if (idx < 0) return lead;
+  return {
+    ...lead,
+    status: estadoDeEtiqueta(hist[idx].tipifVendAntes),
+    advisorNote: hist[idx].obsAsesorAntes || '',
+    previousOwner: true,
+  };
+}
+
+/** Contactos del asesor: los que tiene ahora y los que tuvo y fueron rotados (mientras no exista una venta de otro). */
 r.get('/leads', auth(['asesor']), async (req, res) => {
+  const nombre = await nombreDeAsesor(req);
+  const patronPrevio = nombre ? `%"asesorAnterior":${JSON.stringify(nombre).replace(/[\\%_]/g, '\\$&')}%` : null;
   const [rows] = await db.query(
-    `SELECT ${COLUMNAS_LEAD},
-            EXISTS(SELECT 1 FROM ventas v WHERE v.lead_id = l.id AND v.asesor_id = ?) AS con_venta
+    `SELECT ${SQL_LEAD_VISTA}
      FROM leads l
      WHERE (l.asesor_id = ? AND COALESCE(l.sin_asignar, 0) = 0)
         OR l.id IN (SELECT v.lead_id FROM ventas v WHERE v.asesor_id = ? AND v.lead_id IS NOT NULL)
+        OR (? IS NOT NULL AND l.historial LIKE ? AND COALESCE(l.asesor_id, 0) <> ?
+            AND NOT EXISTS (SELECT 1 FROM ventas v
+                             WHERE v.lead_id = l.id OR (v.lead_id IS NULL AND l.n1 <> '' AND v.telefono1 = l.n1)))
      ORDER BY l.fecha DESC, l.hora_asig DESC, l.id DESC`,
-    [req.user.id, req.user.id, req.user.id]
+    [req.user.id, req.user.id, req.user.id, patronPrevio, patronPrevio, req.user.id]
   );
-  res.json({ leads: rows.map(mapLead) });
+  res.json({ leads: rows.map((row) => vistaDeLead(row, req.user.id, nombre)) });
 });
 
-/** Estado y observación de un contacto propio. */
+/** Estado y observación de un contacto propio (titular) o que el asesor tuvo antes (asesor previo). */
 r.patch('/leads/:id', auth(['asesor']), async (req, res) => {
-  const [rows] = await db.query(
-    'SELECT * FROM leads WHERE id = ? AND asesor_id = ? LIMIT 1', [Number(req.params.id), req.user.id]);
+  const nombre = await nombreDeAsesor(req);
+  const idLead = Number(req.params.id);
+  const [rows] = await db.query('SELECT * FROM leads WHERE id = ? LIMIT 1', [idLead]);
   const lead = rows[0];
-  if (!lead) return res.status(404).json({ error: 'Contacto no encontrado o no asignado a tu usuario.' });
+  const NO_ENCONTRADO = { error: 'Contacto no encontrado o no asignado a tu usuario.' };
+  if (!lead) return res.status(404).json(NO_ENCONTRADO);
+
+  const titular = Number(lead.asesor_id) === Number(req.user.id);
+  let previo = null;
+  if (!titular) {
+    const [ventas] = await db.query(
+      `SELECT 1 FROM ventas v WHERE v.lead_id = ? OR (v.lead_id IS NULL AND ? <> '' AND v.telefono1 = ?) LIMIT 1`,
+      [lead.id, lead.n1 || '', lead.n1 || '']);
+    const { hist, idx } = entradaDeAsesorPrevio(lead, nombre);
+    if (idx < 0 || ventas.length) return res.status(404).json(NO_ENCONTRADO);
+    previo = { hist, idx };
+  }
 
   const { status, advisorNote, coordinates } = req.body || {};
-  const tipif = status !== undefined ? etiquetaDeEstado(status) : lead.tipif_vend || '';
-  const cambioTipif = status !== undefined && tipif !== (lead.tipif_vend || '');
+  const tipifActual = titular ? (lead.tipif_vend || '') : String(previo.hist[previo.idx].tipifVendAntes || '');
+  const notaActual = titular ? lead.obs_asesor : (previo.hist[previo.idx].obsAsesorAntes || '');
+  const coordActual = lead.coordenadas;
+  const tipif = status !== undefined ? etiquetaDeEstado(status) : tipifActual;
+  const cambioTipif = status !== undefined && tipif !== tipifActual;
   const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-  // Preventa y No califica exigen el DNI; Sin cobertura exige las coordenadas.
+  // Preventa y No califica exigen el documento; Sin cobertura exige las coordenadas.
   if (cambioTipif) {
-    const nota = advisorNote !== undefined ? advisorNote : lead.obs_asesor;
-    const coord = coordinates !== undefined ? coordinates : lead.coordenadas;
+    const nota = advisorNote !== undefined ? advisorNote : notaActual;
+    const coord = coordinates !== undefined ? coordinates : coordActual;
     if (['PREVENTA', 'NO CALIFICA'].includes(tipif) && !/(^|[^A-Za-z])(DNI\s*:\s*\d{8}|RUC\s*:\s*\d{11}|CE\s*:\s*\d{9})(?!\d)/i.test(String(nota || ''))) {
       return res.status(422).json({ error: 'Para esta tipificación debes registrar el documento del cliente (DNI de 8, RUC de 11 o CE de 9 dígitos).' });
     }
@@ -132,19 +192,34 @@ r.patch('/leads/:id', auth(['asesor']), async (req, res) => {
     }
   }
 
-  await db.query(
-    `UPDATE leads SET tipif_vend = ?, tipif_hora = ?, obs_asesor = ?, coordenadas = ? WHERE id = ? AND asesor_id = ?`,
-    [
-      tipif,
-      cambioTipif ? (tipif ? hora : '') : lead.tipif_hora,
-      advisorNote !== undefined ? advisorNote : lead.obs_asesor,
-      coordinates !== undefined ? coordinates : lead.coordenadas,
-      lead.id, req.user.id,
-    ]
-  );
+  const hist = titular ? historialDe(lead) : previo.hist;
+  if (cambioTipif) {
+    hist.push({
+      tipo: 'TIPIF_VEND', asesor: nombre, tipif, ts: Date.now(), hora,
+      fecha: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' }),
+    });
+  }
 
-  const [out] = await db.query(`SELECT ${COLUMNAS_LEAD} FROM leads l WHERE l.id = ?`, [lead.id]);
-  res.json({ lead: mapLead(out[0]) });
+  if (titular) {
+    await db.query(
+      `UPDATE leads SET tipif_vend = ?, tipif_hora = ?, obs_asesor = ?, coordenadas = ?, historial = ? WHERE id = ? AND asesor_id = ?`,
+      [
+        tipif,
+        cambioTipif ? (tipif ? hora : '') : lead.tipif_hora,
+        advisorNote !== undefined ? advisorNote : lead.obs_asesor,
+        coordinates !== undefined ? coordinates : lead.coordenadas,
+        JSON.stringify(hist), lead.id, req.user.id,
+      ]
+    );
+  } else {
+    // Asesor previo: se actualiza solo lo suyo dentro del historial; el contacto del titular actual no se toca.
+    if (status !== undefined) hist[previo.idx].tipifVendAntes = tipif;
+    if (advisorNote !== undefined) hist[previo.idx].obsAsesorAntes = advisorNote;
+    await db.query('UPDATE leads SET historial = ? WHERE id = ?', [JSON.stringify(hist), lead.id]);
+  }
+
+  const [out] = await db.query(`SELECT ${SQL_LEAD_VISTA} FROM leads l WHERE l.id = ?`, [req.user.id, lead.id]);
+  res.json({ lead: vistaDeLead(out[0], req.user.id, nombre) });
 });
 
 /** Ventas del asesor. */
