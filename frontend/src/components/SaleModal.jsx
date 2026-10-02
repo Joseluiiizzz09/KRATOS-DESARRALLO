@@ -20,7 +20,7 @@ const inputStyle = {
 const EMPTY = {
   clientName: '', documentType: '', documentNumber: '', clientPhone: '',
   referencePhone: '', productName: '', saleType: '', notes: '',
-  department: '', province: '', district: '',
+  department: '', province: '', district: '', channel: '',
 };
 
 export default function SaleModal({ show, onClose, onSubmit, prefill, title = 'Registrar nueva venta', submitLabel = 'Confirmar venta' }) {
@@ -132,6 +132,13 @@ export default function SaleModal({ show, onClose, onSubmit, prefill, title = 'R
             <select style={inputStyle} value={form.saleType} onChange={(e) => setField('saleType', e.target.value)} required>
               <option value="" disabled>Seleccionar tipo</option>
               {SALE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </Campo>
+
+          <Campo label="Canal">
+            <select style={inputStyle} value={form.channel} onChange={(e) => setField('channel', e.target.value)}>
+              <option value="">Seleccionar canal</option>
+              {['ACD', 'DELIVERY', 'CADENA'].map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </Campo>
 

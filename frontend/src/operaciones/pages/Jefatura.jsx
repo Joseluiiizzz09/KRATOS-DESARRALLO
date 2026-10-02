@@ -3321,7 +3321,7 @@ export default function Jefatura() {
             documentNumber: ventaEditar.dni || '', clientPhone: ventaEditar.telefono1 || '',
             referencePhone: ventaEditar.telefono2 || '', productName: ventaEditar.paquete || '',
             saleType: ventaEditar.tipo_venta || '', notes: ventaEditar.observacion || '',
-            department: ventaEditar.departamento || '', province: ventaEditar.provincia || '', district: ventaEditar.distrito || '',
+            department: ventaEditar.departamento || '', province: ventaEditar.provincia || '', district: ventaEditar.distrito || '', channel: ventaEditar.canal || '',
           }}
           onClose={()=>setVentaEditar(null)}
           onSubmit={async (payload) => {
