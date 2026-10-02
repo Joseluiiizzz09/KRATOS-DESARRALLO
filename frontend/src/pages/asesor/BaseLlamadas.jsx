@@ -73,7 +73,7 @@ export default function BaseLlamadas() {
       return;
     }
     if (status === 'preventa' || status === 'no_califica') {
-      setRequisito({ lead, status, tipo: 'dni', doc: 'DNI', valor: '', error: '', guardando: false });
+      setRequisito({ lead, status, tipo: 'dni', doc: '', valor: '', error: '', guardando: false });
       return;
     }
     if (status === 'sin_cobertura') {
@@ -87,6 +87,10 @@ export default function BaseLlamadas() {
     const { lead, status, tipo } = requisito;
     const valor = requisito.valor.trim();
     const largo = DOCUMENTOS[requisito.doc];
+    if (tipo === 'dni' && !largo) {
+      setRequisito((p) => ({ ...p, error: 'Selecciona el tipo de documento.' }));
+      return;
+    }
     if (tipo === 'dni' && valor.length !== largo) {
       setRequisito((p) => ({ ...p, error: `El ${requisito.doc} debe tener ${largo} dígitos.` }));
       return;
@@ -204,12 +208,13 @@ export default function BaseLlamadas() {
                     value={requisito.doc}
                     onChange={(e) => setRequisito((p) => ({ ...p, doc: e.target.value, valor: '', error: '' }))}
                   >
-                    {Object.entries(DOCUMENTOS).map(([d, n]) => <option key={d} value={d}>{d} ({n} dígitos)</option>)}
+                    <option value="">Seleccionar</option>
+                    {Object.keys(DOCUMENTOS).map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </>
               )}
               <label style={{ fontSize: 10, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                {requisito.tipo === 'dni' ? `${requisito.doc} *` : 'Coordenadas *'}
+                {requisito.tipo === 'dni' ? `${requisito.doc || 'Número de documento'} *` : 'Coordenadas *'}
               </label>
               <input
                 autoFocus
@@ -217,8 +222,9 @@ export default function BaseLlamadas() {
                 style={{ width: '100%', height: 38, marginTop: 4 }}
                 value={requisito.valor}
                 inputMode={requisito.tipo === 'dni' ? 'numeric' : 'text'}
-                maxLength={requisito.tipo === 'dni' ? DOCUMENTOS[requisito.doc] : 60}
-                placeholder={requisito.tipo === 'dni' ? `Ej. ${'75845852000'.slice(0, DOCUMENTOS[requisito.doc])}` : 'Ej. -12.0464, -77.0428'}
+                maxLength={requisito.tipo === 'dni' ? (DOCUMENTOS[requisito.doc] || 11) : 60}
+                disabled={requisito.tipo === 'dni' && !requisito.doc}
+                placeholder={requisito.tipo === 'dni' ? (requisito.doc ? `Ej. ${'75845852000'.slice(0, DOCUMENTOS[requisito.doc])}` : 'Primero elige el tipo de documento') : 'Ej. -12.0464, -77.0428'}
                 onChange={(e) => setRequisito((p) => ({ ...p, valor: requisito.tipo === 'dni' ? e.target.value.replace(/\D/g, '') : e.target.value }))}
                 onKeyDown={(e) => { if (e.key === 'Enter') confirmarRequisito(); }}
               />
