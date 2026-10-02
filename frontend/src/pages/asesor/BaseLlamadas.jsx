@@ -96,7 +96,7 @@ export default function BaseLlamadas() {
     setRequisito((p) => ({ ...p, guardando: true, error: '' }));
     try {
       if (tipo === 'dni') {
-        const nota = (lead.advisorNote || '').replace(/DNI\s*:\s*\d+\s*\|?\s*/i, '').trim();
+        const nota = (lead.advisorNote || '').replace(/DNI\s*:\s*\d+\s*\|?\s*/i, '').trim();
         await updateLead(lead.id, { status, advisorNote: `DNI: ${valor}${nota ? ` | ${nota}` : ''}` });
       } else {
         await updateLead(lead.id, { status, coordinates: valor });
