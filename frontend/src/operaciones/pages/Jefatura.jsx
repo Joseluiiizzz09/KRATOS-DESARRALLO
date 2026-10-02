@@ -2186,13 +2186,11 @@ export default function Jefatura() {
           {/* ===== DASHBOARD DE LEADS PARA MARKETING (SOLO JEFATURA) ===== */}
           <section className={`section${seccion==='marketing-leads'?' active':''}`}>
             <div className="sec-header">
-              <div><h2>Dashboard de Leads por Campaña</h2><p>Información de altas y resultados para las áreas de Marketing y Reclutamiento</p></div>
+              <div><h2>Dashboard de Leads por Campaña</h2><p>Información de altas y resultados para Marketing</p></div>
               <div style={{display:'flex',gap:8}}>
                 {marketingVista==='ventas' && <button className="btn-nuevo" style={{background:'#0f766e'}} onClick={exportarMarketingExcel} disabled={!marketingData.length}>Exportar Excel</button>}
-                {marketingVista==='reclutamiento' && <button className="btn-nuevo" style={{background:'#0f766e'}} onClick={exportarMarketingReclExcel} disabled={!marketingReclData.length}>Exportar Excel</button>}
                 {marketingVista==='costos' && <button className="btn-nuevo" style={{background:'#0f766e'}} onClick={exportarCostosExcel} disabled={!costosPorCampana.filas.length}>Exportar Excel</button>}
                 {marketingVista==='ventas' && <button className="btn-nuevo" onClick={()=>cargarMarketing(marketingFiltros)}>Actualizar</button>}
-                {marketingVista==='reclutamiento' && <button className="btn-nuevo" onClick={()=>cargarMarketingRecl(marketingReclFiltros)}>Actualizar</button>}
                 {marketingVista==='costos' && <button className="btn-nuevo" onClick={()=>{ cargarMarketing(marketingFiltros); cargarGastos(marketingFiltros) }}>Actualizar</button>}
               </div>
             </div>
@@ -2201,9 +2199,6 @@ export default function Jefatura() {
               <button type="button" className={`btn-nuevo${marketingVista==='ventas'?'':' btn-tab-inactivo'}`}
                 style={marketingVista==='ventas'?{}:{background:'#e5e7eb',color:'#374151'}}
                 onClick={()=>setMarketingVista('ventas')}>Ventas</button>
-              <button type="button" className={`btn-nuevo${marketingVista==='reclutamiento'?'':' btn-tab-inactivo'}`}
-                style={marketingVista==='reclutamiento'?{}:{background:'#e5e7eb',color:'#374151'}}
-                onClick={()=>setMarketingVista('reclutamiento')}>Reclutamiento</button>
               <button type="button" className={`btn-nuevo${marketingVista==='costos'?'':' btn-tab-inactivo'}`}
                 style={marketingVista==='costos'?{}:{background:'#e5e7eb',color:'#374151'}}
                 onClick={()=>setMarketingVista('costos')}>Costos</button>
