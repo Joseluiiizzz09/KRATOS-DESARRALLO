@@ -223,7 +223,7 @@ export default function BaseLlamadas() {
                 value={requisito.valor}
                 inputMode={requisito.tipo === 'dni' ? 'numeric' : 'text'}
                 maxLength={requisito.tipo === 'dni' ? (DOCUMENTOS[requisito.doc] || 11) : 60}
-                placeholder={requisito.tipo === 'dni' ? `Ej. ${'75845852000'.slice(0, DOCUMENTOS[requisito.doc] || 8)}` : 'Ej. -12.0464, -77.0428'}
+                placeholder={requisito.tipo === 'dni' ? '' : 'Ej. -12.0464, -77.0428'}
                 onChange={(e) => setRequisito((p) => ({ ...p, valor: requisito.tipo === 'dni' ? e.target.value.replace(/\D/g, '') : e.target.value }))}
                 onKeyDown={(e) => { if (e.key === 'Enter') confirmarRequisito(); }}
               />
