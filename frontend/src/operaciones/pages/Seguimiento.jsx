@@ -674,7 +674,7 @@ export default function Seguimiento() {
                           : <span style={{ color: '#9ca3af' }}>--</span>
                         }
                       </td>
-                      <td title={v.observacion || ''} style={{ fontSize: '10px', minWidth: 240, maxWidth: 320, whiteSpace: 'normal', overflow: 'visible', lineHeight: 1.35 }}>{v.observacion || '--'}</td>
+                      <td title={v.observacion || ''} style={{ fontSize: '10px', maxWidth: 240, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: v.observacion ? 'help' : 'default' }}>{v.observacion || '--'}</td>
                     </tr>
                   )
                 })}
