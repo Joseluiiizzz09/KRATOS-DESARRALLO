@@ -5,7 +5,6 @@ import JefaturaViewControls from '../components/JefaturaViewControls'
 import MediaViewer from '../components/MediaViewer'
 import CambiarAreaMenu from '../components/CambiarAreaMenu'
 import ProgramacionInfoCell from '../components/ProgramacionInfoCell'
-import WhatsappSeguimientoBoton from '../components/WhatsappSeguimientoBoton'
 import CanalBadge from '../components/CanalBadge'
 import { API, ncHeaders } from '../services/api'
 import { responseChanged, setVisibleInterval, clearVisibleInterval } from '../utils/polling'
@@ -663,12 +662,6 @@ export default function Seguimiento() {
                           <button className="btn-acc btn-acc-agenda" onClick={() => abrirModalAgenda(v)} title="Agendar">Agenda</button>
                           <button className="btn-acc btn-acc-hist"   onClick={() => setModalHist(v)}     title="Historial">Hist.</button>
                           <button className="btn-fotos" onClick={() => setMediaVenta(v)} title="Ver fotos y audio">Archivos</button>
-                          <WhatsappSeguimientoBoton
-                            enviando={enviandoWA.has(v.id)}
-                            waFecha={v._waFecha}
-                            waPlantilla={v._waPlantilla}
-                            onEnviar={(plantillaId) => enviarWhatsapp(v, plantillaId)}
-                          />
                         </div>
                       </td>
                       <td style={{ fontWeight: 700, color: '#185FA5', fontSize: '10px' }}>{formatF(v.fechaIngreso)}</td>
