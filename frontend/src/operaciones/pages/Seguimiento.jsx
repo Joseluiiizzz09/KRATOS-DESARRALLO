@@ -614,11 +614,12 @@ export default function Seguimiento() {
                   <th className="th-sot">SEC</th>
                   <th className="th-comment">COMENTARIO</th>
                   <th className="th-motivo">MOTIVO</th>
+                  <th>OBSERVACIONES</th>
                 </tr>
               </thead>
               <tbody>
                 {ventasPag.length === 0 ? (
-                  <tr><td colSpan="17" style={{ textAlign: 'center', color: '#9ca3af', padding: '36px', fontSize: '13px' }}>Sin registros.</td></tr>
+                  <tr><td colSpan="18" style={{ textAlign: 'center', color: '#9ca3af', padding: '36px', fontSize: '13px' }}>Sin registros.</td></tr>
                 ) : ventasPag.map(v => {
                   const est     = estadoObj(v._estadoSeg)
                   const motCls  = motivoBadgeCls(v._motivoRech)
@@ -673,6 +674,7 @@ export default function Seguimiento() {
                           : <span style={{ color: '#9ca3af' }}>--</span>
                         }
                       </td>
+                      <td title={v.observacion || ''} style={{ fontSize: '10px', minWidth: 240, maxWidth: 320, whiteSpace: 'normal', overflow: 'visible', lineHeight: 1.35 }}>{v.observacion || '--'}</td>
                     </tr>
                   )
                 })}
