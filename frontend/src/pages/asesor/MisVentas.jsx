@@ -54,7 +54,7 @@ export default function MisVentas() {
                     <td>{sale.channel || '—'}</td>
                     <td>{sale.saleType || '—'}</td>
                     <td>S/ {Number(sale.amount).toFixed(2)}</td>
-                    <td className="ka-muted" style={{ minWidth: 180, whiteSpace: 'normal' }}>{sale.notes || '—'}</td>
+                    <td className="ka-muted" title={sale.notes || ''} style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sale.notes || '—'}</td>
                   </tr>
                 );
               })}
