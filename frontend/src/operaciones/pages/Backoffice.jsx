@@ -124,6 +124,11 @@ function claseTipifBack(valor) {
   const clave = String(valor || '').trim().toUpperCase().replace(/\s+/g, '-')
   return `bo-sel-compact tipif-back-color tipif-back-${clave || 'VACIA'}`
 }
+// Sin tildes y con los nombres del Back Office: lo que tipifica el asesor (p. ej. "BUZÓN DE VOZ") debe coincidir con las opciones.
+function normTipifVend(v) {
+  const t = String(v || '').trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ')
+  return t === 'DESEA HOGAR' ? 'DESEA MOVIL' : t
+}
 const TIPIF_VEND_OPCIONES = ['VENTA CERRADA','PREVENTA','AGENDADO','EN EJECUCION','INSTALADO','NO CONTESTA','BUZON DE VOZ','CORTA LLAMADA','NO DESEA','NO CALIFICA','SIN COBERTURA','CONTACTO CON TERCEROS','EDIFICIO NO LIBERADO','DESEA MOVIL','SERVICIO ACTIVO','TERNA','NO ROTAR']
 const TIPIF_FILTRO_OPCIONES = [...TIPIF_VEND_OPCIONES, 'INSTALADO', 'VENTA CAIDA']
 // Para rotación sólo existen tres cierres definitivos. Cualquier otra
@@ -1028,7 +1033,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
           horaAsig:   l.hora_asig || '',
           sinAsignar: !!l.sin_asignar,
           rotaciones: cantidadRotaciones(l),
-          _tipifVend: l.tipif_vend || '',
+          _tipifVend: normTipifVend(l.tipif_vend),
           _tipifHora: l.tipif_hora || '',
           venta_confirmada: Number(l.venta_confirmada || 0),
           ventaDocumento: l.venta_documento || '',
@@ -1379,7 +1384,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
         historial:  Array.isArray(data.historial) ? data.historial : reg.historial,
         asesor:     data.asesor || '',
         sinAsignar: !data.asesor,
-        _tipifVend: data.tipif_vend ?? '',
+        _tipifVend: normTipifVend(data.tipif_vend),
         rotaciones: Number(data.rotaciones ?? 0),
       })
       mostrarToast('Asignación eliminada')
@@ -1398,7 +1403,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
         const res = await fetch(`${API}/leads/${reg._backendId}/tipif`, { method:'PATCH', headers:ncHeaders(), body:JSON.stringify({ tipif_vend:valor }) })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
-          updateReg(id, { _tipifVend:data.tipif_vend || reg._tipifVend || '', _tipifHora:reg._tipifHora || '' })
+          updateReg(id, { _tipifVend:normTipifVend(data.tipif_vend) || reg._tipifVend || '', _tipifHora:reg._tipifHora || '' })
           throw new Error(data.mensaje || 'No se pudo guardar la tipificaciÃ³n')
         }
       } catch (e) { mostrarToast(e.message || 'Error al guardar la tipificaciÃ³n') }
@@ -1656,7 +1661,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
       const mismoAsesor = servidor && Number(servidor.asesor_id || 0) === Number(local._asesorId || 0)
       const mismasRotaciones = servidor && cantidadRotaciones(servidor) === cantidadRotaciones(local)
       const mismaTipificacion = servidor
-        && String(servidor.tipif_vend || '').trim().toUpperCase() === String(local._tipifVend || '').trim().toUpperCase()
+        && normTipifVend(servidor.tipif_vend) === normTipifVend(local._tipifVend)
       if (servidor && mismoAsesor && mismasRotaciones && mismaTipificacion) {
         vigentes[lead.id] = true
       } else {
