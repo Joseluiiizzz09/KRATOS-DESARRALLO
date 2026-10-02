@@ -252,9 +252,11 @@ export default function BaseLlamadas() {
 /** Teléfono con sus tres acciones: llamar, abrir WhatsApp y copiar el número. */
 function TelefonoConAcciones({ numero }) {
   const [copiado, setCopiado] = useState(false);
+  const [menuWa, setMenuWa] = useState(null); // { x, y } del menu de WhatsApp
   if (!numero) return <span className="ka-muted">—</span>;
 
   const digitos = numero.replace(/\D/g, '');
+  const numeroWa = digitos.length === 9 ? `51${digitos}` : digitos;
 
   async function copiar() {
     if (await copiarAlPortapapeles(numero)) {
@@ -269,16 +271,44 @@ function TelefonoConAcciones({ numero }) {
       <a className="ka-ibtn" href={`tel:${digitos}`} title="Llamar" aria-label={`Llamar a ${numero}`}>
         <PhoneIcon />
       </a>
-      <a
+      <button
+        type="button"
         className="ka-ibtn ka-ibtn--wa"
-        href={`https://wa.me/${digitos}`}
-        target="_blank"
-        rel="noreferrer"
         title="Abrir WhatsApp"
         aria-label={`Abrir WhatsApp de ${numero}`}
+        aria-haspopup="menu"
+        aria-expanded={Boolean(menuWa)}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setMenuWa(menuWa ? null : { x: r.left, y: r.bottom + 6 });
+        }}
       >
         <WhatsAppIcon />
-      </a>
+      </button>
+      {menuWa && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1000 }} onClick={() => setMenuWa(null)} />
+          <div
+            role="menu"
+            style={{
+              position: 'fixed', left: menuWa.x, top: menuWa.y, zIndex: 1001, width: 250, padding: 8,
+              background: '#fff', border: '1px solid #e5e9ef', borderRadius: 14, boxShadow: '0 12px 32px rgba(15,23,42,.18)',
+            }}
+          >
+            <div style={{ padding: '6px 10px', fontSize: 10, fontWeight: 800, letterSpacing: '.06em', color: '#94a3b8', textTransform: 'uppercase' }}>
+              Abrir en WhatsApp
+            </div>
+            <a role="menuitem" className="ka-wa-opt" href={`https://web.whatsapp.com/send?phone=${numeroWa}`} target="_blank" rel="noreferrer" onClick={() => setMenuWa(null)}>
+              <strong>WhatsApp Web</strong>
+              <small>En el navegador</small>
+            </a>
+            <a role="menuitem" className="ka-wa-opt" href={`whatsapp://send?phone=${numeroWa}`} onClick={() => setMenuWa(null)}>
+              <strong>App de Windows</strong>
+              <small>Microsoft Store</small>
+            </a>
+          </div>
+        </>
+      )}
       <button type="button" className="ka-ibtn" onClick={copiar} title="Copiar número" aria-label={`Copiar ${numero}`}>
         {copiado ? <CheckIcon /> : <CopyIcon />}
       </button>
