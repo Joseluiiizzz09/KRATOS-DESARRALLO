@@ -210,6 +210,13 @@ function tuvoSinCoberturaAlgunaVez(reg, hist) {
     .some(v => String(v || '').trim().toUpperCase() === 'SIN COBERTURA'))
 }
 
+// Igual que SIN COBERTURA: SERVICIO ACTIVO se mantiene fijo si el lead pasó por esa tipificación.
+function tuvoServicioActivoAlgunaVez(reg, hist) {
+  if (String(reg?._tipifVend || '').trim().toUpperCase() === 'SERVICIO ACTIVO') return true
+  return (hist || []).some(h => [h?.tipif, h?.tipif_vend, h?.tipifVendAntes]
+    .some(v => String(v || '').trim().toUpperCase() === 'SERVICIO ACTIVO'))
+}
+
 function grupoPrioridadLead(reg) {
   const tipif = String(tipifEfectiva(reg) || '').trim().toUpperCase()
   if (tipif === 'VENTA CERRADA') return 2
@@ -288,6 +295,8 @@ function tipifEfectiva(reg) {
   // actual lo siga trabajando con otra tipificacion en su propia base --
   // solo una venta real (arriba) lo libera.
   if (tuvoSinCoberturaAlgunaVez(reg, hist)) return 'SIN COBERTURA'
+  // SERVICIO ACTIVO sigue la misma lógica: queda fijo hasta que exista una venta real.
+  if (tuvoServicioActivoAlgunaVez(reg, hist)) return 'SERVICIO ACTIVO'
   // Mientras no exista venta, la tipificación cronológica más reciente gana,
   // incluso si la dejó un asesor que ya no es el titular actual.
   if (eventos.length) {
@@ -1615,6 +1624,8 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
         // (asesor 1 = rotación 1, asesor 2 = rotación 2). Rotación manual no
         // tiene este límite.
         if (tipifActual === 'SIN COBERTURA' && cantidadRotaciones(reg) >= 2) return
+        // SERVICIO ACTIVO igual: solo puede pasar por 2 asesores en total.
+        if (tipifActual === 'SERVICIO ACTIVO' && cantidadRotaciones(reg) >= 2) return
         if (TIPIF_EXCLUIDAS_ROTACION.has(tipifActual) || esLeadProhibido(reg)) return
         const nNorm = normalizarNumero(reg.n1)
         // Protección VERDE/CELESTE/ROJO/AMARILLO: cualquier lead con venta activa/rechazada → no rota
