@@ -180,7 +180,7 @@ export default function Seguimiento() {
   const [modalHist, setModalHist]           = useState(null)
   const [mediaVenta, setMediaVenta]         = useState(null)
 
-  // Modal SOT
+  // Modal SEC
   const [sotModal, setSotModal] = useState(null) // { id, valor, guardando }
 
   const [toastMsg, setToastMsg] = useState('')
@@ -357,7 +357,7 @@ export default function Seguimiento() {
     if (!modalProgramacion) return
     const sot = progSot.trim()
     if (!sot || !progFecha) {
-      mostrarToast('Ingrese la SOT y la fecha programada')
+      mostrarToast('Ingrese la SEC y la fecha programada')
       return
     }
     try {
@@ -386,7 +386,7 @@ export default function Seguimiento() {
   async function guardarSot() {
     if (!sotModal || sotModal.guardando) return
     const valor = String(sotModal.valor || '').trim()
-    if (!valor) { mostrarToast('Ingresa el número de SOT'); return }
+    if (!valor) { mostrarToast('Ingresa el número de SEC'); return }
     setSotModal(prev => prev ? { ...prev, guardando: true } : prev)
     try {
       const res = await fetch(`${API}/ventas/${sotModal.id}?area=seguimiento`, {
@@ -395,11 +395,11 @@ export default function Seguimiento() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok || data.ok === false) {
-        mostrarToast(data.mensaje || 'No se pudo actualizar la SOT')
+        mostrarToast(data.mensaje || 'No se pudo actualizar la SEC')
         setSotModal(prev => prev ? { ...prev, guardando: false } : prev)
         return
       }
-    } catch (e) { console.error(e); mostrarToast('No se pudo actualizar la SOT'); setSotModal(prev => prev ? { ...prev, guardando: false } : prev); return }
+    } catch (e) { console.error(e); mostrarToast('No se pudo actualizar la SEC'); setSotModal(prev => prev ? { ...prev, guardando: false } : prev); return }
     setVentas(list => list.map(v => v.id === sotModal.id ? { ...v, sot: valor } : v))
     setSotModal(null)
   }
@@ -589,7 +589,7 @@ export default function Seguimiento() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input type="text" className="tabla-search" value={busqueda}
                 onChange={e => { setBusqueda(e.target.value); setPagina(1) }}
-                placeholder="Buscar nombre, DNI, vendedor o SOT..." />
+                placeholder="Buscar nombre, DNI, vendedor o SEC..." />
               <div className="pag-size">
                 <select value={porPagina} onChange={e => { setPorPagina(parseInt(e.target.value) || 18); setPagina(1) }}>
                   <option value="18">18 / pág.</option>
@@ -632,7 +632,7 @@ export default function Seguimiento() {
                   <th className="th-obs">OBS. PROGRAMACIÓN</th>
                   <th className="th-est">ESTADO</th>
                   <th className="th-canal">CANAL</th>
-                  <th className="th-sot">SOT</th>
+                  <th className="th-sot">SEC</th>
                   <th className="th-tramo">TRAMO</th>
                   <th className="th-comment">COMENTARIO</th>
                   <th className="th-cliente">NOMBRE Y APELLIDOS</th>
@@ -689,7 +689,7 @@ export default function Seguimiento() {
                       <td style={{ textAlign:'center' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:4, justifyContent:'center' }}>
                           <span style={{ fontFamily:'monospace', fontSize:11, fontWeight:700, color:'#374151' }}>{v.sot || '—'}</span>
-                          <button type="button" title="Editar SOT"
+                          <button type="button" title="Editar SEC"
                             onClick={() => setSotModal({ id:v.id, valor:v.sot||'', guardando:false })}
                             style={{ border:'none', background:'transparent', cursor:'pointer', padding:2, color:'#64748b', lineHeight:1, flexShrink:0 }}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11"><path d="M4 20h4l11-11a2.1 2.1 0 0 0-3-3L5 17l-1 3z" strokeLinejoin="round"/><path d="m14.5 7.5 3 3"/></svg>
@@ -786,8 +786,8 @@ export default function Seguimiento() {
             <div className="modal-sub">Cliente: <strong>{modalProgramacion.nombreApellidos || '--'}</strong></div>
             <div className="modal-grid">
               <div className="modal-campo">
-                <label>SOT *</label>
-                <input value={progSot} onChange={e => setProgSot(e.target.value)} placeholder="Número de SOT" />
+                <label>SEC *</label>
+                <input value={progSot} onChange={e => setProgSot(e.target.value)} placeholder="Número de SEC" />
               </div>
               <div className="modal-campo">
                 <label>Fecha programada *</label>
@@ -870,18 +870,18 @@ export default function Seguimiento() {
         </div>
       )}
 
-      {/* MODAL SOT */}
+      {/* MODAL SEC */}
       {sotModal && (
         <div className="modal-bg open" onClick={e => { if (e.target === e.currentTarget && !sotModal.guardando) setSotModal(null) }}>
           <div className="modal-box" style={{ maxWidth: '380px' }}>
-            <div className="modal-title">Editar SOT</div>
+            <div className="modal-title">Editar SEC</div>
             <div className="modal-grid">
               <div className="modal-campo">
-                <label>Número de SOT *</label>
+                <label>Número de SEC *</label>
                 <input autoFocus value={sotModal.valor} maxLength={100}
                   onChange={e => setSotModal(p => ({ ...p, valor: e.target.value }))}
                   onKeyDown={e => { if (e.key === 'Enter') guardarSot(); if (e.key === 'Escape' && !sotModal.guardando) setSotModal(null) }}
-                  placeholder="Número de SOT" />
+                  placeholder="Número de SEC" />
               </div>
             </div>
             <div className="modal-btns">

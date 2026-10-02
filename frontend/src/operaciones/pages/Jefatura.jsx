@@ -1550,7 +1550,7 @@ export default function Jefatura() {
     const columnas = [
       ['ESTADO',           v => (SEG_BADGES[v._seg] || SEG_BADGES.ejecucion).label],
       ['OBS. SEGUIMIENTO', v => v.obs_seguimiento || '-'],
-      ['OBS. PROGRAMACIÓN', v => `SOT: ${v.sot || '-'} | Fecha programada: ${formatF(v.fecha_programada)}`],
+      ['OBS. PROGRAMACIÓN', v => `SEC: ${v.sot || '-'} | Fecha programada: ${formatF(v.fecha_programada)}`],
       ['FECHA',            v => formatF(v._fecha)],
       ['CLIENTE',          v => v.nombre || '-'],
       ['DNI',              v => v.dni || '-'],

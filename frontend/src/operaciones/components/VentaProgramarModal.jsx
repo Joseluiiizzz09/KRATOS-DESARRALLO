@@ -27,7 +27,7 @@ export function VentaProgramarModal({ venta, onClose, onSuccess }) {
     if (guardando) return
     if (!estadoNuevo) { setError('Selecciona el nuevo estado de programación.'); return }
     if (estadoNuevo === 'PROGRAMADO' && (!sot.trim() || !fecha)) {
-      setError('Para marcar como PROGRAMADO debe ingresar el SOT y la fecha programada.')
+      setError('Para marcar como PROGRAMADO debe ingresar el SEC y la fecha programada.')
       return
     }
     setGuardando(true)
@@ -95,8 +95,8 @@ export function VentaProgramarModal({ venta, onClose, onSuccess }) {
 
           {estadoNuevo === 'PROGRAMADO' && (
             <>
-              <label className="va-label" style={{ marginTop: 14 }}>SOT</label>
-              <input className="va-select" type="text" maxLength={100} value={sot} onChange={e => { setSot(e.target.value); setError('') }} placeholder="Ingrese SOT" />
+              <label className="va-label" style={{ marginTop: 14 }}>SEC</label>
+              <input className="va-select" type="text" maxLength={100} value={sot} onChange={e => { setSot(e.target.value); setError('') }} placeholder="Ingrese SEC" />
               <label className="va-label" style={{ marginTop: 14 }}>Fecha programada</label>
               <input className="va-select" type="date" value={fecha} onChange={e => { setFecha(e.target.value); setError('') }} />
             </>

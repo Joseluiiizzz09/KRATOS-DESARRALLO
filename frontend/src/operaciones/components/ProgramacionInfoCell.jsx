@@ -10,12 +10,12 @@ export default function ProgramacionInfoCell({ sot, fecha, soloFecha = false, so
   const contenido = soloFecha
     ? (fechaFormateada ? <><strong>{soloFechaLabel}</strong> {fechaFormateada}</> : '—')
     : (sot || fechaFormateada
-        ? <><div><strong>SOT:</strong> {sot || '—'}</div><div><strong>Fecha programada:</strong> {fechaFormateada || '—'}</div></>
+        ? <><div><strong>SEC:</strong> {sot || '—'}</div><div><strong>Fecha programada:</strong> {fechaFormateada || '—'}</div></>
         : '—')
   const style = { minWidth: soloFecha ? 150 : 175, fontSize: 10, lineHeight: 1.5, color: '#475569', textAlign: 'left' }
 
   return onEdit ? (
-    <button type="button" onClick={onEdit} title="Editar SOT y fecha programada"
+    <button type="button" onClick={onEdit} title="Editar SEC y fecha programada"
       style={{ ...style, width: '100%', padding: '5px 7px', border: '1px solid #cbd5e1', borderRadius: 7, background: '#f8fafc', cursor: 'pointer', fontFamily: 'inherit' }}>
       {contenido}
     </button>
