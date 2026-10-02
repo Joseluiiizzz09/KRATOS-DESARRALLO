@@ -27,7 +27,7 @@ export default function MisVentas() {
 
       <div className="ka-card">
         <div className="ka-scroll">
-          <table className="ka-table ka-table--compact">
+          <table className="ka-table ka-table--ventas">
             <thead>
               <tr>{COLUMNAS.map((c) => <th key={c}>{c}</th>)}</tr>
             </thead>
@@ -39,22 +39,22 @@ export default function MisVentas() {
                 const estado = estadoVenta(sale.status);
                 return (
                   <tr key={sale.id}>
-                    <td><span className={`badge ${estado.badge}`}>{estado.label}</span></td>
+                    <td><span className={`ka-pill ka-pill--${sale.status || 'pendiente'}`}>{estado.label}</span></td>
                     <td>{fechaCorta(sale.scheduledDate)}</td>
                     <td>{fechaCorta((sale.createdAt || '').slice(0, 10))}</td>
                     <td className="ka-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>{(sale.createdAt || '').slice(11, 16) || '—'}</td>
-                    <td>{sale.clientName}</td>
+                    <td className="ka-cut" title={sale.clientName}>{sale.clientName}</td>
                     <td>{sale.documentNumber || '—'}</td>
-                    <td>{sale.clientPhone || '—'}</td>
+                    <td className="ka-num">{sale.clientPhone || '—'}</td>
                     <td>{sale.referencePhone || '—'}</td>
                     <td>{sale.department || '—'}</td>
                     <td>{sale.province || '—'}</td>
                     <td>{sale.district || '—'}</td>
-                    <td>{sale.productName}</td>
+                    <td className="ka-cut" title={sale.productName}>{sale.productName}</td>
                     <td>{sale.channel || '—'}</td>
                     <td>{sale.saleType || '—'}</td>
                     <td>S/ {Number(sale.amount).toFixed(2)}</td>
-                    <td className="ka-muted" title={sale.notes || ''} style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sale.notes || '—'}</td>
+                    <td className="ka-muted" title={sale.notes || ''} style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{sale.notes || '—'}</td>
                   </tr>
                 );
               })}

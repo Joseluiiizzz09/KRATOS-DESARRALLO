@@ -403,3 +403,20 @@
 .ka-table.ka-table--compact .ka-status { height: 30px; font-size: 12px; }
 
 .badge.ka-badge-celeste { background: #0ea5e9 !important; color: #fff !important; }
+
+/* Mis ventas: tabla ancha y aireada, con desplazamiento horizontal y celdas largas recortadas. */
+.ka-table.ka-table--ventas { min-width: max-content; table-layout: auto; }
+.ka-table.ka-table--ventas th { width: auto !important; }
+.ka-table.ka-table--ventas thead th { padding: 16px 22px; font-size: 10.5px; letter-spacing: .06em; }
+.ka-table.ka-table--ventas tbody td { padding: 16px 22px; font-size: 13px; white-space: nowrap; }
+.ka-table.ka-table--ventas .ka-cut { max-width: 190px; overflow: hidden; text-overflow: ellipsis; }
+.ka-table.ka-table--ventas .ka-num { font-variant-numeric: tabular-nums; color: #1d4ed8; font-weight: 600; }
+.ka-pill {
+  display: inline-block; padding: 5px 14px; border-radius: 999px;
+  font-size: 11px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; border: 1px solid transparent;
+}
+.ka-pill--pendiente   { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+.ka-pill--programado  { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+.ka-pill--no_contesta { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+.ka-pill--activa      { background: #dcfce7; color: #15803d; border-color: #86efac; }
+.ka-pill--caida       { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
