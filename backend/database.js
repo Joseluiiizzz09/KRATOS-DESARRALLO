@@ -20,6 +20,9 @@ const pool = mysql.createPool({
   dateStrings: true,  // DATE/DATETIME se entregan sin conversión ISO/UTC
 });
 
+// El servidor está en horario de Madrid: cada conexión trabaja en hora de Perú para que NOW() y las fechas coincidan.
+pool.pool.on('connection', (conn) => conn.query("SET time_zone = '-05:00'"));
+
 /* â”€â”€ CREAR TABLAS â”€â”€ */
 async function initDB() {
   const conn = await pool.getConnection();

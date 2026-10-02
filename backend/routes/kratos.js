@@ -178,7 +178,7 @@ r.patch('/leads/:id', auth(['asesor']), async (req, res) => {
   const coordActual = lead.coordenadas;
   const tipif = status !== undefined ? etiquetaDeEstado(status) : tipifActual;
   const cambioTipif = status !== undefined && tipif !== tipifActual;
-  const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const hora = new Date().toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: false });
 
   // Preventa y No califica exigen el documento; Sin cobertura exige las coordenadas.
   if (cambioTipif) {
@@ -264,7 +264,7 @@ r.post('/sales', auth(['asesor']), async (req, res) => {
   await db.query('UPDATE ventas SET folio = ? WHERE id = ?', [`KRT-${new Date().getFullYear()}-${String(ins.insertId).padStart(6, '0')}`, ins.insertId]);
 
   if (lead) {
-    const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const hora = new Date().toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: false });
     await db.query(`UPDATE leads SET tipif_vend = 'VENTA CERRADA', tipif_hora = ? WHERE id = ?`, [hora, lead.id]);
   }
 
