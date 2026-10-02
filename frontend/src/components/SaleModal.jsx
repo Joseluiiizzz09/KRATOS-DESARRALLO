@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DOCUMENT_TYPES, PRODUCTS_CATALOG, SALE_TYPES } from '../data/catalog';
+import { UBIGEO } from '../operaciones/services/ubigeo';
 import '../operaciones/styles/venta-assignment.css';
 
 function Campo({ label, children, ancho }) {
@@ -19,6 +20,7 @@ const inputStyle = {
 const EMPTY = {
   clientName: '', documentType: '', documentNumber: '', clientPhone: '',
   referencePhone: '', productName: '', saleType: '', notes: '',
+  department: '', province: '', district: '',
 };
 
 export default function SaleModal({ show, onClose, onSubmit, prefill, title = 'Registrar nueva venta', submitLabel = 'Confirmar venta' }) {
@@ -97,6 +99,25 @@ export default function SaleModal({ show, onClose, onSubmit, prefill, title = 'R
           </Campo>
           <Campo label="Teléfono de referencia">
             <input style={inputStyle} value={form.referencePhone} onChange={(e) => setField('referencePhone', e.target.value)} placeholder="Opcional" />
+          </Campo>
+
+          <Campo label="Departamento">
+            <select style={inputStyle} value={form.department} onChange={(e) => setForm((c) => ({ ...c, department: e.target.value, province: '', district: '' }))}>
+              <option value="">Seleccionar</option>
+              {Object.keys(UBIGEO).map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </Campo>
+          <Campo label="Provincia">
+            <select style={inputStyle} value={form.province} disabled={!form.department} onChange={(e) => setForm((c) => ({ ...c, province: e.target.value, district: '' }))}>
+              <option value="">Seleccionar</option>
+              {Object.keys(UBIGEO[form.department] || {}).map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </Campo>
+          <Campo label="Distrito">
+            <select style={inputStyle} value={form.district} disabled={!form.province} onChange={(e) => setField('district', e.target.value)}>
+              <option value="">Seleccionar</option>
+              {(UBIGEO[form.department]?.[form.province] || []).map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
           </Campo>
 
           <Campo label="Plan contratado">

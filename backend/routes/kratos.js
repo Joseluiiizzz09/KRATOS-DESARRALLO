@@ -81,6 +81,7 @@ function mapSale(row) {
     createdAt: row.creado_fmt,
     scheduledDate: row.programada_fmt || null,
     department: row.departamento || '',
+    province: row.provincia || '',
     district: row.distrito || '',
   };
 }
@@ -139,7 +140,7 @@ r.get('/sales', auth(['asesor']), async (req, res) => {
 r.post('/sales', auth(['asesor']), async (req, res) => {
   const {
     clientName, clientPhone, referencePhone, documentType, documentNumber,
-    saleType, productName, category, amount, notes, leadId,
+    saleType, productName, category, amount, notes, leadId, department, province, district,
   } = req.body || {};
 
   const faltan = ['clientName', 'clientPhone', 'documentType', 'documentNumber', 'productName', 'saleType']
@@ -160,10 +161,10 @@ r.post('/sales', auth(['asesor']), async (req, res) => {
        (asesor_id, asesor_nombre, tipo_doc, dni, nombre, telefono1, telefono2, departamento, provincia, distrito,
         direccion, coordenadas, paquete, categoria, tipo_venta, monto, estado, observacion,
         estado_supgrab, seguimiento_ingresado_at, sala_atribucion, lead_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, '', '', ?, ?, ?, ?, ?, ?, ?, 'VENTA', ?, 'conforme', NOW(), ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'VENTA', ?, 'conforme', NOW(), ?, ?)`,
     [
       req.user.id, req.user.nombre || req.user.usuario, documentType, documentNumber, clientName, clientPhone,
-      referencePhone || '', lead?.distrito || '', lead?.direccion || '', lead?.coordenadas || '',
+      referencePhone || '', department || '', province || '', district || lead?.distrito || '', lead?.direccion || '', lead?.coordenadas || '',
       productName, category || null, saleType, Number(amount) || 0, notes || '', req.user.sala || null, idLead,
     ]
   );
@@ -330,7 +331,7 @@ r.get('/supervisor/sales', SUP, async (req, res) => {
 /** Edita los datos que el asesor registró en la venta. Un supervisor solo edita ventas de su sala. */
 r.patch('/supervisor/sales/:id', SUP, async (req, res) => {
   const id = Number(req.params.id);
-  const { clientName, clientPhone, referencePhone, documentType, documentNumber, saleType, productName, category, amount, notes } = req.body || {};
+  const { clientName, clientPhone, referencePhone, documentType, documentNumber, saleType, productName, category, amount, notes, department, province, district } = req.body || {};
 
   const faltan = ['clientName', 'clientPhone', 'documentType', 'documentNumber', 'productName', 'saleType']
     .filter((campo) => !{ clientName, clientPhone, documentType, documentNumber, productName, saleType }[campo]);
@@ -344,9 +345,9 @@ r.patch('/supervisor/sales/:id', SUP, async (req, res) => {
 
   await db.query(
     `UPDATE ventas SET nombre = ?, telefono1 = ?, telefono2 = ?, tipo_doc = ?, dni = ?, tipo_venta = ?,
-            paquete = ?, categoria = ?, monto = ?, observacion = ? WHERE id = ?`,
+            paquete = ?, categoria = ?, monto = ?, observacion = ?, departamento = ?, provincia = ?, distrito = ? WHERE id = ?`,
     [clientName, clientPhone, referencePhone || '', documentType, documentNumber, saleType,
-     productName, category || null, Number(amount) || 0, notes || '', id]
+     productName, category || null, Number(amount) || 0, notes || '', department || '', province || '', district || '', id]
   );
   const [out] = await db.query(`SELECT ${COLUMNAS_VENTA} FROM ventas v WHERE v.id = ?`, [id]);
   res.json({ sale: mapSale(out[0]) });

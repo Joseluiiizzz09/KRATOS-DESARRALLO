@@ -111,7 +111,7 @@ export default function Ventas() {
             clientName: editando.clientName || '', documentType: editando.documentType || '',
             documentNumber: editando.documentNumber || '', clientPhone: editando.clientPhone || '',
             referencePhone: editando.referencePhone || '', productName: editando.productName || '',
-            saleType: editando.saleType || '', notes: editando.notes || '', leadId: editando.leadId,
+            saleType: editando.saleType || '', notes: editando.notes || '', department: editando.department || '', province: editando.province || '', district: editando.district || '', leadId: editando.leadId,
           }}
           onClose={() => setEditando(null)}
           onSubmit={async (payload) => { await api.supUpdateSale(token, editando.id, payload); setEditando(null); load(); }}
