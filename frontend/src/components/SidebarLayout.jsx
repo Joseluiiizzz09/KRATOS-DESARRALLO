@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import CambiarAreaMenu from '../operaciones/components/CambiarAreaMenu.jsx';
 import logo from '../assets/kratos-logo.webp';
 import '../pages/asesor/asesor.css';
 
@@ -87,6 +88,7 @@ export default function SidebarLayout({ items, extra, subtitle = 'Sistema de lla
 
         <div className="p-3 border-top flex-shrink-0">
           {!collapsed && <div className="mb-2" style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', lineHeight: 1.3, textTransform: 'capitalize' }}>{(user?.nombre || '').toLowerCase()}</div>}
+          {!collapsed && <div className="mb-2"><CambiarAreaMenu className="ka-select w-100" /></div>}
           {entroDesdeJefatura() && (
             <button className="ka-btn w-100 mb-2" onClick={volverAJefatura} title="Volver a Jefatura">
               {collapsed ? '←' : '← Volver a Jefatura'}

@@ -8,7 +8,7 @@ import { RUTAS, CARGO_LABELS } from '../utils/rutas'
 // solo navega entre rutas que el backend ya autoriza para este usuario
 // (auth() en el backend valida por cargo O permisos, ver middleware/auth.js).
 // Usuarios de un solo cargo no ven nada — el componente no renderiza.
-export default function CambiarAreaMenu() {
+export default function CambiarAreaMenu({ className }) {
   const { sesion } = useAuth()
   const navigate = useNavigate()
   const cargos = cargosDeUsuario(sesion).filter((c) => RUTAS[c])
@@ -19,7 +19,8 @@ export default function CambiarAreaMenu() {
       value=""
       onChange={(e) => { if (e.target.value) navigate(RUTAS[e.target.value]) }}
       title="Cambiar área"
-      style={{
+      className={className}
+      style={className ? undefined : {
         fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8,
         border: '1px solid #e5e7eb', background: '#fff', color: '#374151',
         cursor: 'pointer', fontFamily: 'inherit', outline: 'none',
