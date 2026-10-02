@@ -4,5 +4,6 @@
 // Se usa en el formulario de registro individual y en la carga masiva.
 export const CAMPANAS = [
   'MOV 1',
+  'MOV 2',
   'LEAD CRM',
 ]
