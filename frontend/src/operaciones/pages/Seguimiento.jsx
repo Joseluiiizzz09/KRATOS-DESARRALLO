@@ -604,53 +604,45 @@ export default function Seguimiento() {
             <table className="tabla seguimiento-ventas-tabla">
               <colgroup>
                 <col style={{ width: 325 }} />
-                <col style={{ width: 115 }} />
-                <col style={{ width: 210 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 130 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 75 }} />
-                <col style={{ width: 360 }} />
-                <col style={{ width: 220 }} />
-                <col style={{ width: 100 }} />
-                <col style={{ width: 150 }} />
-                <col style={{ width: 300 }} />
-                <col style={{ width: 220 }} />
-                <col style={{ width: 170 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 140 }} />
-                <col style={{ width: 100 }} />
-                <col style={{ width: 200 }} />
                 <col style={{ width: 120 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: 120 }} />
+                <col style={{ width: 240 }} />
+                <col style={{ width: 100 }} />
+                <col style={{ width: 110 }} />
+                <col style={{ width: 110 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: 220 }} />
+                <col style={{ width: 200 }} />
+                <col style={{ width: 90 }} />
+                <col style={{ width: 130 }} />
+                <col style={{ width: 300 }} />
                 <col style={{ width: 260 }} />
               </colgroup>
               <thead>
                 <tr>
                   <th className="th-acc">ACCIÓN</th>
-                  <th className="th-fecha">FECHA PREVENTA</th>
-                  <th className="th-obs">OBS. PROGRAMACIÓN</th>
                   <th className="th-est">ESTADO</th>
-                  <th className="th-canal">CANAL</th>
-                  <th className="th-sot">SEC</th>
-                  <th className="th-tramo">TRAMO</th>
-                  <th className="th-comment">COMENTARIO</th>
-                  <th className="th-cliente">NOMBRE Y APELLIDOS</th>
+                  <th className="th-obs">FECHA PROGRAMADA</th>
+                  <th className="th-fecha">FECHA DE INGRESO</th>
+                  <th className="th-cliente">NOMBRE</th>
                   <th className="th-dni">DNI</th>
+                  <th>N1</th>
+                  <th>N2</th>
+                  <th>DEPARTAMENTO</th>
                   <th className="th-dist">DISTRITO</th>
-                  <th className="th-dir">DIRECCIÓN</th>
-                  <th className="th-coord">COORDENADAS</th>
-                  <th className="th-vend">VENDEDOR</th>
+                  <th className="th-plan">PAQUETE</th>
+                  <th className="th-vend">ASESOR</th>
                   <th className="th-sala">SALA</th>
-                  <th className="th-hogar">CLARO HOGAR</th>
-                  <th className="th-olt">OLT</th>
-                  <th className="th-plan">PLAN</th>
-                  <th className="th-codigo">TEL. CONT.</th>
+                  <th className="th-sot">SEC</th>
+                  <th className="th-comment">COMENTARIO</th>
                   <th className="th-motivo">MOTIVO</th>
                 </tr>
               </thead>
               <tbody>
                 {ventasPag.length === 0 ? (
-                  <tr><td colSpan="20" style={{ textAlign: 'center', color: '#9ca3af', padding: '36px', fontSize: '13px' }}>Sin registros.</td></tr>
+                  <tr><td colSpan="16" style={{ textAlign: 'center', color: '#9ca3af', padding: '36px', fontSize: '13px' }}>Sin registros.</td></tr>
                 ) : ventasPag.map(v => {
                   const est     = estadoObj(v._estadoSeg)
                   const motCls  = motivoBadgeCls(v._motivoRech)
@@ -664,7 +656,11 @@ export default function Seguimiento() {
                           <button className="btn-fotos" onClick={() => setMediaVenta(v)} title="Ver fotos y audio">Archivos</button>
                         </div>
                       </td>
-                      <td style={{ fontWeight: 700, color: '#185FA5', fontSize: '10px' }}>{formatF(v.fechaIngreso)}</td>
+                      <td className="td-estado">
+                        <span className={`badge-seg ${est.cls}`} onClick={() => abrirModalEstado(v)} style={{ cursor: 'pointer' }} title="Click para cambiar estado">
+                          {est.label}
+                        </span>
+                      </td>
                       <td>
                         <ProgramacionInfoCell
                           fecha={v.fecha_programada}
@@ -673,12 +669,16 @@ export default function Seguimiento() {
                           onEdit={() => abrirModalProgramacion(v)}
                         />
                       </td>
-                      <td className="td-estado">
-                        <span className={`badge-seg ${est.cls}`} onClick={() => abrirModalEstado(v)} style={{ cursor: 'pointer' }} title="Click para cambiar estado">
-                          {est.label}
-                        </span>
-                      </td>
-                      <td style={{ textAlign:'center' }}><CanalBadge canal={v.canal} /></td>
+                      <td style={{ fontWeight: 700, color: '#185FA5', fontSize: '10px' }}>{formatF(v.fechaIngreso)}</td>
+                      <td style={{ fontWeight: 600 }}>{v.nombreApellidos || '--'}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: '10px' }}>{v.dni || '--'}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: '10px' }}>{v.telefono1 || '--'}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: '10px' }}>{v.telefono2 || '--'}</td>
+                      <td style={{ fontSize: '10px' }}>{v.departamento || '--'}</td>
+                      <td style={{ fontSize: '10px' }}>{v.distrito || '--'}</td>
+                      <td className="td-wrap" style={{ fontSize: '10px' }}>{v.paquete || '--'}</td>
+                      <td style={{ fontWeight: 600, color: '#7C3AED', fontSize: '10px' }}>{v.asesor_nombre || v.vendedor || '--'}</td>
+                      <td style={{ fontWeight: 600, fontSize: '10px' }}>{v.sala || '--'}</td>
                       <td style={{ textAlign:'center' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:4, justifyContent:'center' }}>
                           <span style={{ fontFamily:'monospace', fontSize:11, fontWeight:700, color:'#374151' }}>{v.sot || '—'}</span>
@@ -689,21 +689,7 @@ export default function Seguimiento() {
                           </button>
                         </div>
                       </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {v._tramo ? <span className="badge-tramo">{v._tramo}</span> : '--'}
-                      </td>
                       <td className="td-wrap td-comentario" style={{ fontSize: '10px', background: 'rgba(255,255,200,.4)' }}>{v._comentario || '--'}</td>
-                      <td style={{ fontWeight: 600 }}>{v.nombreApellidos || '--'}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '10px' }}>{v.dni || '--'}</td>
-                      <td style={{ fontSize: '10px' }}>{v.distrito || '--'}</td>
-                      <td className="td-wrap" style={{ fontSize: '10px' }}>{v.direccion || '--'}</td>
-                      <td style={{ fontSize: '9px', color: '#6b7280' }}>{v.coordenadas || '--'}</td>
-                      <td style={{ fontWeight: 600, color: '#7C3AED', fontSize: '10px' }}>{v.asesor_nombre || v.vendedor || '--'}</td>
-                      <td style={{ fontWeight: 600, fontSize: '10px' }}>{v.sala || '--'}</td>
-                      <td style={{ fontSize: '10px' }}>{v.claro_hogar || '--'}</td>
-                      <td style={{ fontSize: '10px' }}>{v.tecnologia || '--'}</td>
-                      <td className="td-wrap" style={{ fontSize: '10px' }}>{v.paquete || '--'}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '10px' }}>{v.telefonoContacto || '--'}</td>
                       <td className="td-motivo">
                         {motCls
                           ? <span className={`badge-motivo ${motCls}`}>{v._motivoRech}</span>
