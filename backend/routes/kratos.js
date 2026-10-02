@@ -16,7 +16,8 @@ const r = { get: ruta('get'), post: ruta('post'), patch: ruta('patch') };
 const PAGE_SIZE = 20;
 
 /* ---------- Estados ---------- */
-const ETIQUETAS_ESPECIALES = { buzon_de_voz: 'BUZÓN DE VOZ' };
+// Mismo texto que usa la tipificación del Back Office, para que ambos lados coincidan.
+const ETIQUETAS_ESPECIALES = { buzon_de_voz: 'BUZON DE VOZ', desea_hogar: 'DESEA MOVIL' };
 
 /** "no_contesta" -> "NO CONTESTA" (texto que guarda la tipificación del asesor). */
 function etiquetaDeEstado(status) {
@@ -28,7 +29,8 @@ function etiquetaDeEstado(status) {
 function estadoDeEtiqueta(texto) {
   const limpio = String(texto || '').trim();
   if (!limpio) return 'pendiente';
-  return limpio.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, '_');
+  const id = limpio.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, '_');
+  return id === 'desea_movil' ? 'desea_hogar' : id;
 }
 
 const SQL_ESTADO_VENTA = `CASE
