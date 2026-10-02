@@ -18,7 +18,7 @@ const ESTADOS = [
 ]
 const SIN_ESTADO = { id: '', label: 'PENDIENTE', cls: '', fila: '', leyenda: '' }
 
-const MOTIVOS_CAIDA = ['FRAUDE','EXCESO DE ACOMETIDA','INFRAESTRUCTURA','RED SATURADA','EDIFICIO NO LIBERADO','SERVICIO ACTIVO','RECHAZO POR AUDIO']
+const MOTIVOS_CAIDA = ['NO CONTESTA','NO PASA HUELLA DACTILAR','NO TIENE DNI FISICO','NO TIENE 1 SOL PARA EL PAGO DEL CHIP','RECIBO VENCIDO']
 const TRAMOS        = ['AM','PM','PM 3']
 const RESULTADOS    = ['Contactado -- conforme','Contactado -- con problema','No contesta','Buzon de voz','Numero equivocado','Solicita rellamada','SE LEVANTO','MASIVO ENVIADO','DERIVADO A GRABAR','DERIVADO A AGILIZAR','En Agenda']
 
