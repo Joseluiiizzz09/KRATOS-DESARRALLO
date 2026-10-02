@@ -766,3 +766,10 @@ body{
 .badge-canal-netcontact{background:#eef2ff;color:#4338ca;}
 .badge-canal-kels{background:#fdf4ff;color:#a21caf;}
 .badge-canal-sin{background:#f3f4f6;color:#6b7280;}
+
+/* Tabla de Seguimiento ocupa todo el ancho disponible */
+.seguimiento-ventas-tabla { width: 100% !important; min-width: 0 !important; table-layout: auto !important; }
+.seguimiento-ventas-tabla th[class^="th-"]:not(.th-acc) { width: auto !important; }
+.seguimiento-ventas-tabla td, .seguimiento-ventas-tabla th { white-space: nowrap; }
+.seguimiento-ventas-tabla .td-comentario, .seguimiento-ventas-tabla .td-motivo { white-space: normal !important; min-width: 140px; }
+.tabla-scroll { padding-right: 0 !important; }

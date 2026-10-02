@@ -602,24 +602,6 @@ export default function Seguimiento() {
 
           <div className="tabla-scroll">
             <table className="tabla seguimiento-ventas-tabla">
-              <colgroup>
-                <col style={{ width: 325 }} />
-                <col style={{ width: 120 }} />
-                <col style={{ width: 150 }} />
-                <col style={{ width: 120 }} />
-                <col style={{ width: 240 }} />
-                <col style={{ width: 100 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 150 }} />
-                <col style={{ width: 150 }} />
-                <col style={{ width: 220 }} />
-                <col style={{ width: 200 }} />
-                <col style={{ width: 90 }} />
-                <col style={{ width: 130 }} />
-                <col style={{ width: 300 }} />
-                <col style={{ width: 260 }} />
-              </colgroup>
               <thead>
                 <tr>
                   <th className="th-acc">ACCIÓN</th>
