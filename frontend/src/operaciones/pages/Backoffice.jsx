@@ -1245,8 +1245,9 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
     const n1 = form.n1.replace(/\D/g, '')   // formato único: solo dígitos (999999999)
     const usuarioWhatsapp = form.usuarioWhatsapp.trim().replace(/^@+/, '')
     if (!n1 && !usuarioWhatsapp) { setN1Error(true); mostrarToast('Ingresa un N1 o un usuario de WhatsApp'); return }
+    if (!form.campana.trim()) { mostrarToast('Selecciona la campaña antes de agregar el número'); return }
     setN1Error(false)
-    const campana  = form.campana.trim() || '—'
+    const campana  = form.campana.trim()
     const distrito = form.distrito || '—'
     const n2       = form.n2.replace(/\D/g, '')
     const tipo_contacto = form.tipoContacto || 'LLAMADA'
@@ -1825,6 +1826,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
     if (cargandoMasiva) return
     const lista = (inclDup ? masivaFilas : masivaFilas.filter(f=>!f.dup)).map(f=>f.n1)
     if (!lista.length) { mostrarToast('No hay numeros para cargar'); return }
+    if (!masivaCamp.trim()) { mostrarToast('Selecciona la campaña antes de cargar los números'); return }
     setCargandoMasiva(true)
     setImportResult(null)
     const campana = masivaCamp.trim() || '—'
@@ -1922,6 +1924,8 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
 
   async function ejecutarCargaArchivo() {
     if (!archivoRows.length || cargandoMasiva) { if(!archivoRows.length) mostrarToast('No hay datos'); return }
+    const sinCamp = archivoRows.filter(x => !x.camp || x.camp === '—').length
+    if (sinCamp) { mostrarToast(`Hay ${sinCamp} número(s) sin campaña en el archivo. Completa la columna Campaña.`); return }
     setCargandoMasiva(true)
     setImportResult(null)
     const fecha = fechaActiva
@@ -2595,7 +2599,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
           <button className={`bo-nav${seccion==='avance'?' active':''}`} onClick={()=>irSeccion('avance')}><BoNavIcon tipo="avance" /> <span>Avance Asesores</span></button>
           <div className="bo-sidebar-registro">
             <div className="sidebar-sep">Agregar registro</div>
-            <div className="bo-input-group"><label>Campaña</label><CampanaSelect value={form.campana} onChange={v=>setForm(p=>({...p,campana:v}))} plain sinOtro /></div>
+            <div className="bo-input-group"><label>Campaña *</label><CampanaSelect value={form.campana} onChange={v=>setForm(p=>({...p,campana:v}))} plain sinOtro /></div>
             <div className="bo-input-group"><label>N1</label><input className={`form-control${n1Error?' obligatorio-error':''}`} value={form.n1} onChange={e=>{ setN1Error(false); setForm(p=>({...p,n1:e.target.value})) }} placeholder="Número principal" inputMode="numeric" /></div>
             <div className="bo-input-group"><label>N2 (opcional)</label><input className="form-control" value={form.n2} onChange={e=>setForm(p=>({...p,n2:e.target.value}))} placeholder="Número secundario" inputMode="numeric" /></div>
             <div className="bo-input-group"><label>Usuario WhatsApp</label><input className="form-control" value={form.usuarioWhatsapp} onChange={e=>{ setN1Error(false); setForm(p=>({...p,usuarioWhatsapp:e.target.value})) }} placeholder="Ej. usuario_cliente" maxLength={100} /></div>
@@ -3205,7 +3209,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
                       <textarea value={masivaNums} onChange={e=>setMasivaNums(e.target.value)} rows={8} placeholder={'987654321\n976543210\n965432109'} />
                     </div>
                     <div style={{display:'flex',flexDirection:'column',gap:8,minWidth:160}}>
-                      <div className="bo-input-group" style={{margin:0}}><label>Campaña</label><CampanaSelect value={masivaCamp} onChange={setMasivaCamp} plain /></div>
+                      <div className="bo-input-group" style={{margin:0}}><label>Campaña *</label><CampanaSelect value={masivaCamp} onChange={setMasivaCamp} plain /></div>
                       <div className="bo-input-group" style={{margin:0}}><label>Asesor (opcional)</label>
                         <AsesorBuscador value={masivaAsesor} asesores={asesores}
                           onChange={v=>setMasivaAsesor(v)}
