@@ -700,7 +700,7 @@ export default function Seguimiento() {
                 <label>Nuevo estado *</label>
                 <select value={estNuevo} onChange={e => { setEstNuevo(e.target.value); setEstMotivo('') }}>
                   <option value="">-- Estado --</option>
-                  {ESTADOS.map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
+                  {ESTADOS.filter(e => e.id !== 'no_contesta' || estNuevo === 'no_contesta').map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
                 </select>
               </div>
               {estNuevo === 'caida' && (
