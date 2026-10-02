@@ -69,7 +69,7 @@ export function statusOptions(current) {
 /* Estado de una venta: son los mismos de Seguimiento. Mientras nadie le pone uno, queda "pendiente". */
 export const ESTADOS_VENTA = [
   ['pendiente', 'Pendiente', 'text-bg-secondary'],
-  ['programado', 'Programado', 'text-bg-primary'],
+  ['programado', 'Programado', 'ka-badge-celeste'],
   ['no_contesta', 'No contesta', 'text-bg-warning'],
   ['activa', 'Activa', 'text-bg-success'],
   ['caida', 'Caída', 'text-bg-danger'],

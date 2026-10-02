@@ -401,3 +401,5 @@
 .ka-table.ka-table--compact .ka-phone-cell { flex-wrap: nowrap; }
 .ka-table.ka-table--compact .ka-note { min-width: 150px; font-size: 12px; height: 32px; }
 .ka-table.ka-table--compact .ka-status { height: 30px; font-size: 12px; }
+
+.badge.ka-badge-celeste { background: #0ea5e9 !important; color: #fff !important; }

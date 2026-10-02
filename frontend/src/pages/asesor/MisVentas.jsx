@@ -8,7 +8,10 @@ function fechaCorta(iso) {
   return y && m && d ? `${d}/${m}/${y}` : '—';
 }
 
-const COLUMNAS = ['Estado', 'Fecha de ingreso', 'Hora', 'Nombre', 'DNI', 'N1', 'N2', 'Paquete', 'Monto'];
+const COLUMNAS = [
+  'Estado', 'Fecha de entrega', 'Fecha de ingreso', 'Hora', 'Nombre', 'DNI', 'N1', 'N2',
+  'Departamento', 'Provincia', 'Distrito', 'Paquete', 'Canal', 'Tipo de operación', 'Monto', 'Observaciones',
+];
 
 export default function MisVentas() {
   const { sales, loading, error } = useSales();
@@ -37,14 +40,21 @@ export default function MisVentas() {
                 return (
                   <tr key={sale.id}>
                     <td><span className={`badge ${estado.badge}`}>{estado.label}</span></td>
+                    <td>{fechaCorta(sale.scheduledDate)}</td>
                     <td>{fechaCorta((sale.createdAt || '').slice(0, 10))}</td>
                     <td className="ka-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>{(sale.createdAt || '').slice(11, 16) || '—'}</td>
                     <td>{sale.clientName}</td>
                     <td>{sale.documentNumber || '—'}</td>
                     <td>{sale.clientPhone || '—'}</td>
                     <td>{sale.referencePhone || '—'}</td>
+                    <td>{sale.department || '—'}</td>
+                    <td>{sale.province || '—'}</td>
+                    <td>{sale.district || '—'}</td>
                     <td>{sale.productName}</td>
+                    <td>{sale.channel || '—'}</td>
+                    <td>{sale.saleType || '—'}</td>
                     <td>S/ {Number(sale.amount).toFixed(2)}</td>
+                    <td className="ka-muted" style={{ minWidth: 180, whiteSpace: 'normal' }}>{sale.notes || '—'}</td>
                   </tr>
                 );
               })}
