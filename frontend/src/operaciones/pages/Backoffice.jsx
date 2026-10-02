@@ -217,6 +217,7 @@ function grupoPrioridadLead(reg) {
   if (tipif === 'INSTALADO') return 4
   if (tipif === 'SIN COBERTURA') return 1
   if (tipif === 'TERNA') return 5
+  if (tipif === 'SERVICIO ACTIVO') return 6
   return 0
 }
 function resaltadoPorVenta(venta) {
@@ -2228,6 +2229,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
   }, new Map())
   const gruposProtegidos = {
     sin_cobertura: registrosBusquedaGlobal.filter(r => String(tipifEfectiva(r)||'').trim().toUpperCase() === 'SIN COBERTURA'),
+    servicio_activo: registrosBusquedaGlobal.filter(r => String(tipifEfectiva(r)||'').trim().toUpperCase() === 'SERVICIO ACTIVO'),
     no_tocar: registrosBusquedaGlobal.filter(r => ['NO TOCAR','SH NO TOCAR','NO ROTAR','SH NO ROTAR'].includes(String(tipifEfectiva(r)||'').trim().toUpperCase())),
     venta_cerrada: registrosBusquedaGlobal.filter(r => String(tipifEfectiva(r)||'').trim().toUpperCase() === 'VENTA CERRADA'),
     venta_caida: registrosBusquedaGlobal.filter(r => String(tipifEfectiva(r)||'').trim().toUpperCase() === 'VENTA CAIDA'),
@@ -3146,6 +3148,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                   {[
                     ['sin_cobertura','SIN COBERTURA',gruposProtegidos.sin_cobertura.length,'#dc2626'],
+                    ['servicio_activo','SERVICIO ACTIVO',gruposProtegidos.servicio_activo.length,'#374151'],
                     ['no_tocar','NO TOCAR',gruposProtegidos.no_tocar.length,'#9f1239'],
                     ['venta_cerrada','VENTA CERRADA',gruposProtegidos.venta_cerrada.length,'#16a34a'],
                     ['venta_caida','VENTA CAIDA',gruposProtegidos.venta_caida.length,'#a64d79'],
