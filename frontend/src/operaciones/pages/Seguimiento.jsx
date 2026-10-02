@@ -608,6 +608,7 @@ export default function Seguimiento() {
                   <th>DEPARTAMENTO</th>
                   <th className="th-dist">DISTRITO</th>
                   <th className="th-plan">PAQUETE</th>
+                  <th>CANAL</th>
                   <th className="th-vend">ASESOR</th>
                   <th className="th-sala">SALA</th>
                   <th className="th-sot">SEC</th>
@@ -617,7 +618,7 @@ export default function Seguimiento() {
               </thead>
               <tbody>
                 {ventasPag.length === 0 ? (
-                  <tr><td colSpan="16" style={{ textAlign: 'center', color: '#9ca3af', padding: '36px', fontSize: '13px' }}>Sin registros.</td></tr>
+                  <tr><td colSpan="17" style={{ textAlign: 'center', color: '#9ca3af', padding: '36px', fontSize: '13px' }}>Sin registros.</td></tr>
                 ) : ventasPag.map(v => {
                   const est     = estadoObj(v._estadoSeg)
                   const motCls  = motivoBadgeCls(v._motivoRech)
@@ -652,6 +653,7 @@ export default function Seguimiento() {
                       <td style={{ fontSize: '10px' }}>{v.departamento || '--'}</td>
                       <td style={{ fontSize: '10px' }}>{v.distrito || '--'}</td>
                       <td className="td-wrap" style={{ fontSize: '10px' }}>{v.paquete || '--'}</td>
+                      <td style={{ fontWeight: 700, fontSize: '10px' }}>{v.canal || '--'}</td>
                       <td style={{ fontWeight: 600, color: '#7C3AED', fontSize: '10px' }}>{v.asesor_nombre || v.vendedor || '--'}</td>
                       <td style={{ fontWeight: 600, fontSize: '10px' }}>{v.sala || '--'}</td>
                       <td style={{ textAlign:'center' }}>
