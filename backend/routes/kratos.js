@@ -124,8 +124,8 @@ r.patch('/leads/:id', auth(['asesor']), async (req, res) => {
   if (cambioTipif) {
     const nota = advisorNote !== undefined ? advisorNote : lead.obs_asesor;
     const coord = coordinates !== undefined ? coordinates : lead.coordenadas;
-    if (['PREVENTA', 'NO CALIFICA'].includes(tipif) && !/(DNI|CE)\s*:\s*\d{8,12}/i.test(String(nota || ''))) {
-      return res.status(422).json({ error: 'Para esta tipificación debes registrar el DNI del cliente.' });
+    if (['PREVENTA', 'NO CALIFICA'].includes(tipif) && !/(^|[^A-Za-z])(DNI\s*:\s*\d{8}|RUC\s*:\s*\d{11}|CE\s*:\s*\d{9})(?!\d)/i.test(String(nota || ''))) {
+      return res.status(422).json({ error: 'Para esta tipificación debes registrar el documento del cliente (DNI de 8, RUC de 11 o CE de 9 dígitos).' });
     }
     if (tipif === 'SIN COBERTURA' && !String(coord || '').trim()) {
       return res.status(422).json({ error: 'Para Sin cobertura debes registrar las coordenadas.' });

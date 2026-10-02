@@ -55,6 +55,7 @@ export default function BaseLlamadas() {
   const { createSale } = useSales();
   const [search, setSearch] = useState('');
   const [saleLead, setSaleLead] = useState(null);
+  const DOCUMENTOS = { DNI: 8, RUC: 11, CE: 9 }; // tipo de documento: cantidad exacta de digitos
   const [requisito, setRequisito] = useState(null); // { lead, status, tipo: 'dni' | 'coordenadas', valor, error, guardando }
 
   const filtered = useMemo(() => {
@@ -72,7 +73,7 @@ export default function BaseLlamadas() {
       return;
     }
     if (status === 'preventa' || status === 'no_califica') {
-      setRequisito({ lead, status, tipo: 'dni', valor: '', error: '', guardando: false });
+      setRequisito({ lead, status, tipo: 'dni', doc: 'DNI', valor: '', error: '', guardando: false });
       return;
     }
     if (status === 'sin_cobertura') {
@@ -85,8 +86,9 @@ export default function BaseLlamadas() {
   async function confirmarRequisito() {
     const { lead, status, tipo } = requisito;
     const valor = requisito.valor.trim();
-    if (tipo === 'dni' && !/^\d{8,12}$/.test(valor)) {
-      setRequisito((p) => ({ ...p, error: 'Escribe un DNI válido (8 dígitos).' }));
+    const largo = DOCUMENTOS[requisito.doc];
+    if (tipo === 'dni' && valor.length !== largo) {
+      setRequisito((p) => ({ ...p, error: `El ${requisito.doc} debe tener ${largo} dígitos.` }));
       return;
     }
     if (tipo === 'coordenadas' && !/-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?/.test(valor)) {
@@ -96,8 +98,8 @@ export default function BaseLlamadas() {
     setRequisito((p) => ({ ...p, guardando: true, error: '' }));
     try {
       if (tipo === 'dni') {
-        const nota = (lead.advisorNote || '').replace(/DNI\s*:\s*\d+\s*\|?\s*/i, '').trim();
-        await updateLead(lead.id, { status, advisorNote: `DNI: ${valor}${nota ? ` | ${nota}` : ''}` });
+        const nota = (lead.advisorNote || '').replace(/(DNI|RUC|CE)\s*:\s*\d+\s*\|?\s*/i, '').trim();
+        await updateLead(lead.id, { status, advisorNote: `${requisito.doc}: ${valor}${nota ? ` | ${nota}` : ''}` });
       } else {
         await updateLead(lead.id, { status, coordinates: valor });
       }
@@ -186,15 +188,28 @@ export default function BaseLlamadas() {
           <div className="va-modal" style={{ width: 'min(460px,100%)' }} role="dialog" aria-modal="true">
             <header className="va-header">
               <div>
-                <h3>{requisito.tipo === 'dni' ? 'Ingresa el DNI del cliente' : 'Ingresa las coordenadas'}</h3>
+                <h3>{requisito.tipo === 'dni' ? 'Ingresa el documento del cliente' : 'Ingresa las coordenadas'}</h3>
                 <p>{requisito.lead.phone} · {statusOptions(requisito.status).find(([v]) => v === requisito.status)?.[1]}</p>
               </div>
               <button type="button" className="va-close" onClick={() => setRequisito(null)} aria-label="Cerrar">×</button>
             </header>
             <div className="va-body">
               {requisito.error && <div className="va-alert error" style={{ marginTop: 0 }}>{requisito.error}</div>}
+              {requisito.tipo === 'dni' && (
+                <>
+                  <label style={{ fontSize: 10, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '.04em' }}>Tipo de documento *</label>
+                  <select
+                    className="ka-select w-100"
+                    style={{ marginTop: 4, marginBottom: 12 }}
+                    value={requisito.doc}
+                    onChange={(e) => setRequisito((p) => ({ ...p, doc: e.target.value, valor: '', error: '' }))}
+                  >
+                    {Object.entries(DOCUMENTOS).map(([d, n]) => <option key={d} value={d}>{d} ({n} dígitos)</option>)}
+                  </select>
+                </>
+              )}
               <label style={{ fontSize: 10, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                {requisito.tipo === 'dni' ? 'DNI *' : 'Coordenadas *'}
+                {requisito.tipo === 'dni' ? `${requisito.doc} *` : 'Coordenadas *'}
               </label>
               <input
                 autoFocus
@@ -202,8 +217,8 @@ export default function BaseLlamadas() {
                 style={{ width: '100%', height: 38, marginTop: 4 }}
                 value={requisito.valor}
                 inputMode={requisito.tipo === 'dni' ? 'numeric' : 'text'}
-                maxLength={requisito.tipo === 'dni' ? 12 : 60}
-                placeholder={requisito.tipo === 'dni' ? 'Ej. 12345678' : 'Ej. -12.0464, -77.0428'}
+                maxLength={requisito.tipo === 'dni' ? DOCUMENTOS[requisito.doc] : 60}
+                placeholder={requisito.tipo === 'dni' ? `Ej. ${'75845852000'.slice(0, DOCUMENTOS[requisito.doc])}` : 'Ej. -12.0464, -77.0428'}
                 onChange={(e) => setRequisito((p) => ({ ...p, valor: requisito.tipo === 'dni' ? e.target.value.replace(/\D/g, '') : e.target.value }))}
                 onKeyDown={(e) => { if (e.key === 'Enter') confirmarRequisito(); }}
               />
