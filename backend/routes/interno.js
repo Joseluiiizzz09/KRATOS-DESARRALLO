@@ -26,7 +26,7 @@ router.post('/lead-prizma', verificarClaveInternaPrizma, async (req, res) => {
     const n1 = normalizarN1(req.body?.n1);
     if (!n1) return res.status(400).json({ ok: false, mensaje: 'Falta el numero (n1)' });
 
-    const campana  = String(req.body?.campana || 'YOPI').trim() || 'YOPI';
+    const campana  = String(req.body?.campana || 'MOV 1').trim() || 'MOV 1';
     const fechaHoy = fechaPeruHoy();
 
     const [existentes] = await db.query(`
