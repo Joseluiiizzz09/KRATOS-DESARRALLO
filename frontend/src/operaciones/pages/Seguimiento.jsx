@@ -549,13 +549,6 @@ export default function Seguimiento() {
               <label>Distrito</label>
               <input value={fDistrito} onChange={e => { setFDistrito(e.target.value); setPagina(1) }} placeholder="Buscar distrito..." />
             </div>
-            <div className="fg">
-              <label>Tramo</label>
-              <select value={fTramo} onChange={e => { setFTramo(e.target.value); setPagina(1) }}>
-                <option value="">Todos</option>
-                {TRAMOS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
             <div className="fg fg-tipo-fecha">
               <label>Filtrar por</label>
               <select value={fTipoFecha} onChange={e => { setFTipoFecha(e.target.value); setPagina(1) }}>
@@ -706,13 +699,6 @@ export default function Seguimiento() {
                 <select value={estNuevo} onChange={e => { setEstNuevo(e.target.value); setEstMotivo('') }}>
                   <option value="">-- Estado --</option>
                   {ESTADOS.map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
-                </select>
-              </div>
-              <div className="modal-campo">
-                <label>Tramo</label>
-                <select value={estTramo} onChange={e => setEstTramo(e.target.value)}>
-                  <option value="">Todos</option>
-                  {TRAMOS.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               {estNuevo === 'caida' && (
