@@ -552,7 +552,7 @@ router.get('/', auth(ROLES_ALL), async (req, res) => {
       if (phones.length > 0) {
         const placeholders = phones.map(() => '?').join(',');
         const [ventas] = await db.query(
-          `SELECT v.id, v.telefono1, v.asesor_id, u.nombre AS asesor_nombre,
+          `SELECT v.id, v.lead_id, v.telefono1, v.asesor_id, u.nombre AS asesor_nombre,
                   v.dni AS venta_documento, v.tipo_doc AS venta_tipo_doc,
                   v.estado, v.estado_grab, v.motivo_seguimiento, v.created_at AS venta_created_at, v.canal
              FROM ventas v LEFT JOIN usuarios u ON u.id = v.asesor_id
@@ -625,7 +625,9 @@ router.get('/', auth(ROLES_ALL), async (req, res) => {
             : obsAsesor.replace(documentoEnObs, '').replace(/^\s*\|\s*|\s*\|\s*$/g, '').trim();
         }
       }
-      const ventaInfo = ventaMap.get((l.n1 || '').trim());
+      // Si la venta pertenece a otro contacto (lead_id distinto), no se le atribuye por coincidir el teléfono.
+      let ventaInfo = ventaMap.get((l.n1 || '').trim());
+      if (ventaInfo?.lead_id && Number(ventaInfo.lead_id) !== Number(l.id)) ventaInfo = null;
       const ventaConfirmada = ventaInfo ? 1 : 0;
       const ventaAsesorId = ventaInfo?.venta_asesor_id ?? null;
       const ventaAsesorNombre = ventaInfo?.venta_asesor_nombre ?? null;
@@ -847,7 +849,7 @@ router.get('/marketing-resumen', auth(['jefatura','marketing']), async (req, res
       if (phones.length) {
         const placeholders = phones.map(() => '?').join(',');
         const [ventas] = await db.query(
-          `SELECT v.id, v.telefono1, v.estado, v.estado_grab, v.motivo_seguimiento, v.created_at AS venta_created_at
+          `SELECT v.id, v.lead_id, v.telefono1, v.estado, v.estado_grab, v.motivo_seguimiento, v.created_at AS venta_created_at
              FROM ventas v
             WHERE v.telefono1 IN (${placeholders})
               AND v.id = (SELECT MAX(v2.id) FROM ventas v2 WHERE v2.telefono1 = v.telefono1)`,
@@ -877,7 +879,8 @@ router.get('/marketing-resumen', auth(['jefatura','marketing']), async (req, res
     const campanasSet = new Set();
     const tipificacionesSet = new Set(['INSTALADO', 'VENTA CAIDA']);
     for (const l of leadsRows) {
-      const ventaInfo = ventaMap.get((l.n1 || '').trim());
+      let ventaInfo = ventaMap.get((l.n1 || '').trim());
+      if (ventaInfo?.lead_id && Number(ventaInfo.lead_id) !== Number(l.id)) ventaInfo = null;
       const tipifInterna = tipificacionInternaVenta(ventaInfo);
       const tipificacionFila = tipifInterna?.tipificacion
         || [l.tipif_vend, l.tipif_back_2, l.tipif_back].map(v => String(v || '').trim()).find(Boolean)
