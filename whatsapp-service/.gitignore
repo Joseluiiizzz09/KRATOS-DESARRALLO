@@ -1,0 +1,5 @@
+node_modules/
+.env
+# Estado en vivo del servicio (sesiones de WhatsApp, chats, media, cuentas, usuarios): nunca al repo
+data/*
+!data/quick-replies.json

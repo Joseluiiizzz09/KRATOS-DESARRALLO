@@ -1,0 +1,33 @@
+[
+  {
+    "id": "claro-bienvenida",
+    "title": "Bienvenida Claro Hogar",
+    "text": "Hola! 👋 Bienvenido(a) Claro Hogar Internet 🚀\n\nPara poder brindarte una mejor atención y verificar la cobertura en tu zona, compártenos por favor:\n\n📍 Distrito\n📱 Número de teléfono\n\nAsí podremos validar si tu servicio está disponible y un asesor se estará comunicando contigo a la brevedad.",
+    "autoNuevos": true
+  },
+  {
+    "id": "1",
+    "title": "Bienvenida",
+    "text": "Hola, bienvenido a nuestro canal de atención. ¿En qué podemos ayudarte hoy?"
+  },
+  {
+    "id": "2",
+    "title": "Catálogo de Servicios",
+    "text": "Con gusto te compartimos la información detallada y promociones vigentes. ¿Te interesa algún servicio en específico?"
+  },
+  {
+    "id": "3",
+    "title": "Métodos de Pago",
+    "text": "Aceptamos transferencias bancarias (BCP, BBVA, Interbank), Yape, Plin y tarjetas de crédito o débito."
+  },
+  {
+    "id": "4",
+    "title": "Un momento por favor",
+    "text": "Estamos revisando tu consulta en el sistema, danos un instante por favor."
+  },
+  {
+    "id": "5",
+    "title": "Despedida",
+    "text": "Ha sido un placer atenderte. Si tienes alguna otra consulta estamos a tu disposición. Que tengas un buen día."
+  }
+]
