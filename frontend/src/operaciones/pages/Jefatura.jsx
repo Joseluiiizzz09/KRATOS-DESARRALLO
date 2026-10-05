@@ -8,6 +8,7 @@ import { VentaProgramarModal } from '../components/VentaProgramarModal'
 import ObsSeguimientoCell from '../components/ObsSeguimientoCell'
 import ProgramacionInfoCell from '../components/ProgramacionInfoCell'
 import CambiarAreaMenu from '../components/CambiarAreaMenu'
+import MovilesBandeja from '../components/MovilesBandeja'
 import CanalBadge from '../components/CanalBadge'
 import RangoFechasPicker from '../components/RangoFechasPicker'
 import { API, ncHeaders } from '../services/api'
@@ -2037,6 +2038,7 @@ export default function Jefatura() {
               </span>
             )}
           </button>
+          <button className={`nav-btn${seccion==='moviles'?' active':''}`} onClick={()=>irSeccion('moviles')}><span className="nav-dot"></span> WhatsApp MÓVILES</button>
           <div className="sidebar-sep">Gestión</div>
           <button className={`nav-btn${seccion==='usuarios'?'   active':''}`} onClick={()=>irSeccion('usuarios')}><span className="nav-dot"></span> Usuarios</button>
           <button className={`nav-btn${seccion==='reportes'?'   active':''}`} onClick={()=>irSeccion('reportes')}><span className="nav-dot"></span> Reportes</button>
@@ -2069,6 +2071,11 @@ export default function Jefatura() {
             </div>
           )}
 
+
+          {/* ===== WHATSAPP MÓVILES ===== */}
+          <section className={`section${seccion==='moviles'?' active':''}`}>
+            {seccion==='moviles' && <MovilesBandeja />}
+          </section>
 
           {/* ===== WHATSAPP ===== */}
           <section className={`section${seccion==='whatsapp'?' active':''}`}>

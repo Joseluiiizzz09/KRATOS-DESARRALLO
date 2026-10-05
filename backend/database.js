@@ -343,6 +343,15 @@ async function initDB() {
       await conn.query(`CREATE INDEX idx_vr_dni ON ventas_reclutamiento(dni)`);
     }
 
+    // Interesados de MÓVILES (CRM de WhatsApp) que ya pasaron a la Base, para no repetirlos.
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS moviles_leads_sync (
+        lead_crm_id    INT NOT NULL PRIMARY KEY,
+        lead_kratos_id INT NULL,
+        created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
     // Auditoría persistente de eliminaciones visibles desde Jefatura.
     await conn.query(`
       CREATE TABLE IF NOT EXISTS eliminaciones (

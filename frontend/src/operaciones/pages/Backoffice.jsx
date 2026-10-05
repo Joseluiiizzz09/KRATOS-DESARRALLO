@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import JefaturaViewControls from '../components/JefaturaViewControls'
 import CambiarAreaMenu from '../components/CambiarAreaMenu'
 import SalasFlotantes from '../components/SalasFlotantes'
+import MovilesBandeja from '../components/MovilesBandeja'
 import { API, ncHeaders } from '../services/api'
 import { responseChanged, setVisibleInterval, clearVisibleInterval } from '../utils/polling'
 import { UBIGEO } from '../services/ubigeo'
@@ -57,7 +58,7 @@ function CampanaSelect({ value, onChange, plain, sinOtro }) {
 // ── Utilities ────────────────────────────────────────────────────────────
 const COLORES_AV = ['#3b82f6','#8b5cf6','#22c55e','#f97316','#ef4444','#06b6d4','#ec4899']
 const DOT_COLORS  = ['#185FA5','#0F6E56','#854F0B','#7C3AED','#DC2626']
-const BO_SECCIONES = ['base', 'carga-masiva', 'rendimiento', 'avance', 'whatsapp']
+const BO_SECCIONES = ['base', 'carga-masiva', 'rendimiento', 'avance', 'whatsapp', 'moviles']
 
 const PERU_TIME_ZONE = 'America/Lima'
 const PERU_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
@@ -2670,6 +2671,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
           <button className={`bo-nav${seccion==='avance'?' active':''}`} onClick={()=>irSeccion('avance')}><BoNavIcon tipo="avance" /> <span>Avance Asesores</span></button>
           <div className="sidebar-sep">Comunicación</div>
           <button className={`bo-nav${seccion==='whatsapp'?' active':''}`} onClick={()=>irSeccion('whatsapp')}><BoNavIcon tipo="whatsapp" /> <span>WhatsApp</span></button>
+          <button className={`bo-nav${seccion==='moviles'?' active':''}`} onClick={()=>irSeccion('moviles')}><BoNavIcon tipo="whatsapp" /> <span>WhatsApp MÓVILES</span></button>
           <div className="bo-sidebar-registro">
             <div className="sidebar-sep">Agregar registro</div>
             <div className="bo-input-group"><label>Campaña *</label><CampanaSelect value={form.campana} onChange={v=>setForm(p=>({...p,campana:v}))} plain sinOtro /></div>
@@ -3766,6 +3768,13 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
               />
             )}
           </section>
+
+          {/* ══ SECCIÓN: MÓVILES (CRM de WhatsApp) ═════════════════════════════ */}
+          {seccion==='moviles' && (
+            <section className="bo-seccion">
+              <MovilesBandeja />
+            </section>
+          )}
 
           {/* ══ SECCIÓN: AVANCE DE ASESORES ═══════════════════════════════════ */}
           <section className={`bo-seccion${seccion==='avance'?'':' hidden'}`}>

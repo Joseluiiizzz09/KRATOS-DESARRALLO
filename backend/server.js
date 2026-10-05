@@ -64,6 +64,8 @@ app.use('/api/ventas-reclutamiento', require('./routes/ventas-reclutamiento'));
 app.use('/api/eliminaciones', require('./routes/eliminaciones'));
 app.use('/api/interno', require('./routes/interno'));
 app.use('/api/kr', require('./routes/kratos'));
+const movilesRouter = require('./routes/moviles');
+app.use('/api/moviles', movilesRouter);
 
 const db = require('./database');
 app.get('/api/health', auth([]), async (req, res) => {
@@ -87,3 +89,4 @@ process.on('unhandledRejection',   (r)   => console.error('[UNHANDLED]', r));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => console.log('KRATOS API puerto ' + PORT));
+movilesRouter.iniciarSincronizacion();
