@@ -343,6 +343,38 @@ async function initDB() {
       await conn.query(`CREATE INDEX idx_vr_dni ON ventas_reclutamiento(dni)`);
     }
 
+    // Bandeja de conversaciones de WhatsApp (se vincula con las cuentas más adelante).
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS wa_conversaciones (
+        id             INT AUTO_INCREMENT PRIMARY KEY,
+        clave          VARCHAR(80)  NOT NULL,
+        telefono       VARCHAR(30)  DEFAULT '',
+        usuario        VARCHAR(80)  DEFAULT '',
+        nombre         VARCHAR(150) DEFAULT '',
+        sala           VARCHAR(80)  DEFAULT '',
+        campana        VARCHAR(100) DEFAULT '',
+        asesor         VARCHAR(150) DEFAULT '',
+        estado         VARCHAR(20)  NOT NULL DEFAULT 'NUEVO',
+        ultimo_mensaje TEXT,
+        ultimo_at      DATETIME NULL,
+        sin_leer       INT NOT NULL DEFAULT 0,
+        created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_wa_conv_clave (clave),
+        INDEX idx_wa_conv_estado (estado, ultimo_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS wa_mensajes (
+        id              INT AUTO_INCREMENT PRIMARY KEY,
+        conversacion_id INT NOT NULL,
+        direccion       VARCHAR(10) NOT NULL,
+        texto           TEXT,
+        estado_envio    VARCHAR(20) DEFAULT '',
+        created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_wa_msg_conv (conversacion_id, id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
     // Auditoría persistente de eliminaciones visibles desde Jefatura.
     await conn.query(`
       CREATE TABLE IF NOT EXISTS eliminaciones (
