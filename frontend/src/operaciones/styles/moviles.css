@@ -79,3 +79,8 @@
   .mv-col { display: flex; flex-direction: column; min-height: 0; }
   .mv-col-list { flex: 1; max-height: none; min-height: 0; }
 }
+
+/* Campaña como en el CRM: MOV 1 rojo, MOV 2 naranja, BASE MASIVO azul */
+.mv-tag--mov1 { background: #c8102e; color: #fff; }
+.mv-tag--mov2 { background: #f59e0b; color: #fff; }
+.mv-tag--base { background: #e0e7ff; color: #3730a3; }

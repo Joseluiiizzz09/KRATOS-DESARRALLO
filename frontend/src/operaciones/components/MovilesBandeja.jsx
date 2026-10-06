@@ -44,11 +44,13 @@ function hora(fecha) {
   const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(d)
   return dia === hoy ? f({ hour: '2-digit', minute: '2-digit', hour12: false }) : f({ day: '2-digit', month: '2-digit', year: 'numeric' })
 }
+// Igual que el CRM: base cargada a mano o "masivo" = BASE MASIVO; anuncio de Meta = MOV 1,
+// salvo el anuncio "Adquiere todo ilimitado", que es MOV 2.
 function campana(l) {
-  const c = String(l.campana || '').trim()
-  if (/mov\s*-?\s*2/i.test(c)) return 'MOV 2'
-  if (/mov/i.test(c) || !c) return 'MOV 1'
-  return c.toUpperCase()
+  const c = String(l.campana || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
+  if (c.startsWith('base') || c === 'masivo') return { texto: 'BASE MASIVO', clase: 'base' }
+  if (/mov\s*-?\s*2/.test(c) || c.includes('ilimitado')) return { texto: 'MOV 2', clase: 'mov2' }
+  return { texto: 'MOV 1', clase: 'mov1' }
 }
 const actividad = (l) => new Date(l.ultimo_mensaje_ts || l.fecha_ultima_actividad || 0).getTime() || 0
 
@@ -74,7 +76,7 @@ function Tarjeta({ l, onAbrir }) {
         {mensaje && <span className="mv-card-msg">{l.ultimo_mensaje_dir === 'saliente' ? 'Tú: ' : ''}{mensaje}</span>}
         <span className="mv-card-tags">
           <span className={`mv-tag mv-tag--${et.clase}`}>{et.texto}</span>
-          <span className="mv-tag mv-tag--camp"><i />{campana(l)}</span>
+          <span className={`mv-tag mv-tag--${campana(l).clase}`}>{campana(l).texto}</span>
         </span>
       </span>
       {Number(l.no_leidos) > 0 && <span className="mv-unread">{l.no_leidos > 99 ? '99+' : l.no_leidos}</span>}
@@ -143,7 +145,7 @@ function Chat({ lead, onCerrar, onCambio }) {
         <span className="mv-avatar" style={{ background: colorDe(nombre) }}>{iniciales(nombre)}</span>
         <div className="mv-chat-id">
           <strong>{nombre}</strong>
-          <small>{telefonoVisible(lead)} · {campana(lead)}</small>
+          <small>{telefonoVisible(lead)} · {campana(lead).texto}</small>
         </div>
         <button type="button" className="mv-x" onClick={onCerrar} aria-label="Cerrar">×</button>
       </header>

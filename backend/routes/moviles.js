@@ -191,7 +191,8 @@ function horaPeruAhora() {
   return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
 }
 function campanaDe(lead) {
-  return /mov\s*-?\s*2/i.test(String(lead.campana || '')) ? 'MOV 2' : 'MOV 1';
+  const c = String(lead.campana || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  return /mov\s*-?\s*2/.test(c) || c.includes('ilimitado') ? 'MOV 2' : 'MOV 1';
 }
 
 async function pasarInteresadosALaBase() {
