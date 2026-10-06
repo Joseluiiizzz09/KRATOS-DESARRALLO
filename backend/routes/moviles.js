@@ -125,19 +125,61 @@ router.get('/estado', auth(ROLES), async (req, res) => {
   }
 });
 
-/** Bandeja completa: contadores + las cuatro columnas, solo de MÓVILES. */
+/* Origen del contacto, igual que el CRM: campaña que empieza con "base" o es "masivo" = envío masivo propio. */
+const esDeBaseMasivo = (l) => {
+  const c = normalizar(l.campana).toLowerCase();
+  return c.startsWith('base') || c === 'masivo';
+};
+/* Un contacto de base masiva "ya respondió" cuando el último mensaje del chat es suyo (entrante). */
+const yaRespondio = (l) => String(l.ultimo_mensaje_dir || '').toLowerCase() === 'entrante';
+
+/** Bandeja de MÓVILES en cuatro columnas:
+ *  - base:       base masiva a la que se le envió y todavía no responde,
+ *  - nuevos:     chats sin atender (anuncios, interesados y base masiva que ya respondió),
+ *  - atendidos:  chats ya respondidos por el equipo,
+ *  - blacklist:  no desean información.
+ *  Cada contacto aparece en UNA sola columna, según su estado real. */
 router.get('/bandeja', auth(ROLES), async (req, res) => {
   try {
     const q = String(req.query.q || '').trim().slice(0, 100);
     const antiguedad = ['7', '14', 'todos'].includes(req.query.antiguedad) ? req.query.antiguedad : '14';
-    const base = `antiguedad=${antiguedad}&limit=40${q ? `&q=${encodeURIComponent(q)}` : ''}`;
-    const [resumen, ...columnas] = await Promise.all([
+    const filtro = `antiguedad=${antiguedad}${q ? `&q=${encodeURIComponent(q)}` : ''}`;
+    const [resumen, resumenMasivo, nuevosAnuncio, nuevosMasivo, interesados, atendidos, descartados] = await Promise.all([
       crm(`/leads/resumen?antiguedad=${antiguedad}`),
-      ...COLUMNAS.map((col) => crm(`/leads?columna=${col}&${base}`)),
+      crm(`/leads/resumen?antiguedad=${antiguedad}&origen=masivo`),
+      crm(`/leads?columna=nuevos&origen=anuncio&limit=40&${filtro}`),
+      crm(`/leads?columna=nuevos&origen=masivo&limit=80&${filtro}`),
+      crm(`/leads?columna=interesados&limit=40&${filtro}`),
+      crm(`/leads?columna=atendidos&limit=40&${filtro}`),
+      crm(`/leads?columna=descartados&limit=40&${filtro}`),
     ]);
-    const salida = {};
-    COLUMNAS.forEach((col, i) => { salida[col] = (columnas[i].leads || []).filter(esDeMoviles); });
-    res.json({ ok: true, configurado: true, cuenta: sesion.cuentaNombre, resumen: resumen.resumen || {}, columnas: salida });
+
+    const vistos = new Set();
+    const columnas = { base: [], nuevos: [], atendidos: [], blacklist: [] };
+    const todos = [nuevosAnuncio, nuevosMasivo, interesados, atendidos, descartados].flatMap((d) => d.leads || []);
+    for (const l of todos) {
+      if (!esDeMoviles(l) || vistos.has(l.id)) continue;
+      vistos.add(l.id);
+      if (l.estado === 'atendido') columnas.atendidos.push(l);
+      else if (l.estado === 'descartado') columnas.blacklist.push(l);
+      else if (['nuevo', 'contactado'].includes(l.estado) && esDeBaseMasivo(l) && !yaRespondio(l)) columnas.base.push(l);
+      else columnas.nuevos.push(l);
+    }
+    const reciente = (l) => new Date(l.ultimo_mensaje_ts || l.fecha_ultima_actividad || 0).getTime() || 0;
+    Object.values(columnas).forEach((lista) => lista.sort((a, b) => reciente(b) - reciente(a)));
+
+    const r = resumen.resumen || {};
+    const rm = resumenMasivo.resumen || {};
+    const respondieronBase = columnas.nuevos.filter((l) => esDeBaseMasivo(l) && ['nuevo', 'contactado'].includes(l.estado)).length;
+    const base = Math.max(0, Number(rm.nuevos || 0) - respondieronBase);
+    const conteos = {
+      base,
+      nuevos: Math.max(0, Number(r.nuevos || 0) + Number(r.interesados || 0) - base),
+      atendidos: Number(r.atendidos || 0),
+      blacklist: Number(r.descartados || 0),
+      no_leidos: Number(r.no_leidos_total || 0),
+    };
+    res.json({ ok: true, configurado: true, cuenta: sesion.cuentaNombre, conteos, columnas });
   } catch (e) { responderError(res, e); }
 });
 

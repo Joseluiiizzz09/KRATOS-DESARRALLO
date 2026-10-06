@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { API, ncHeaders } from '../services/api'
 import { setVisibleInterval, clearVisibleInterval } from '../utils/polling'
 import '../styles/moviles.css'
 
 /* Bandeja de la cuenta MÓVILES (CRM de WhatsApp) con la lógica y el aspecto de la bandeja de KRONO:
-   - Nuevos / Sin responder: chats que nadie atendió todavía (nuevos, contactados e interesados).
+   - Base masivo: números de envío masivo que todavía no responden; cuando responden pasan a Nuevos.
+   - Nuevos / Sin responder: chats que nadie atendió todavía (anuncios, interesados y base que respondió).
    - Atendidos: chats ya respondidos por el equipo.
    - Black List: contactos que no desean información.
    Responder un chat lo pasa a Atendidos; desde el chat también se puede mandar a Black List
@@ -52,7 +53,6 @@ function campana(l) {
   if (/mov\s*-?\s*2/.test(c) || c.includes('ilimitado')) return { texto: 'MOV 2', clase: 'mov2' }
   return { texto: 'MOV 1', clase: 'mov1' }
 }
-const actividad = (l) => new Date(l.ultimo_mensaje_ts || l.fecha_ultima_actividad || 0).getTime() || 0
 
 async function pedir(ruta, opciones = {}) {
   const res = await fetch(`${API}/moviles${ruta}`, { headers: ncHeaders(), ...opciones })
@@ -177,7 +177,7 @@ function Chat({ lead, onCerrar, onCambio }) {
 
 export default function MovilesBandeja() {
   const [estado, setEstado] = useState(null)
-  const [datos, setDatos] = useState({ resumen: {}, columnas: { nuevos: [], interesados: [], descartados: [], atendidos: [] } })
+  const [datos, setDatos] = useState({ conteos: {}, columnas: { base: [], nuevos: [], atendidos: [], blacklist: [] } })
   const [busqueda, setBusqueda] = useState('')
   const [antiguedad, setAntiguedad] = useState('14')
   const [abierto, setAbierto] = useState(null)
@@ -218,14 +218,9 @@ export default function MovilesBandeja() {
     return () => clearVisibleInterval(t)
   }, [cargar])
 
-  const r = datos.resumen || {}
+  const k = datos.conteos || {}
   const c = datos.columnas || {}
-  const nuevos = useMemo(
-    () => [...(c.nuevos || []), ...(c.interesados || [])].sort((a, b) => actividad(b) - actividad(a)),
-    [c.nuevos, c.interesados],
-  )
-  const sinResponder = Number(r.nuevos || 0) + Number(r.interesados || 0)
-
+  const sinResponder = Number(k.nuevos || 0)
   if (estado && estado.configurado === false) {
     return (
       <div className="mv-root">
@@ -257,7 +252,7 @@ export default function MovilesBandeja() {
           <span className="mv-sin-responder">Sin responder <b>{sinResponder.toLocaleString('es-PE')}</b></span>
           <span className="mv-bell" title="Mensajes sin leer">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6" /><path d="M10 19a2 2 0 0 0 4 0" /></svg>
-            {Number(r.no_leidos_total) > 0 && <i>{r.no_leidos_total > 99 ? '99+' : r.no_leidos_total}</i>}
+            {Number(k.no_leidos) > 0 && <i>{k.no_leidos > 99 ? '99+' : k.no_leidos}</i>}
           </span>
         </div>
       </div>
@@ -265,11 +260,13 @@ export default function MovilesBandeja() {
       {error && <div className="mv-error mv-error--page">{error}</div>}
 
       <div className="mv-cols" ref={colsRef}>
-        <Columna titulo="Atendidos" total={r.atendidos} tono="naranja" items={c.atendidos || []}
-          vacio={cargando ? 'Cargando…' : 'Sin contactos atendidos'} onAbrir={setAbierto} />
-        <Columna titulo="Nuevos / Sin responder" total={sinResponder} tono="rojo" items={nuevos}
+        <Columna titulo="Base masivo" total={k.base} tono="azul" items={c.base || []}
+          vacio={cargando ? 'Cargando…' : 'Sin envíos pendientes de respuesta'} onAbrir={setAbierto} />
+        <Columna titulo="Nuevos / Sin responder" total={k.nuevos} tono="rojo" items={c.nuevos || []}
           vacio={cargando ? 'Cargando…' : 'Sin contactos pendientes'} onAbrir={setAbierto} />
-        <Columna titulo="Black List / No desea" total={r.descartados} tono="gris" items={c.descartados || []}
+        <Columna titulo="Atendidos" total={k.atendidos} tono="naranja" items={c.atendidos || []}
+          vacio={cargando ? 'Cargando…' : 'Sin contactos atendidos'} onAbrir={setAbierto} />
+        <Columna titulo="Black List / No desea" total={k.blacklist} tono="gris" items={c.blacklist || []}
           vacio={cargando ? 'Cargando…' : 'Sin contactos en la Black List'} onAbrir={setAbierto} />
       </div>
 
