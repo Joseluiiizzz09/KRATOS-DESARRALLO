@@ -267,7 +267,7 @@ export default function MovilesBandeja() {
           vacio={cargando ? 'Cargando…' : 'Sin contactos atendidos'} onAbrir={setAbierto} />
         <Columna titulo="Nuevos / Sin responder" total={sinResponder} tono="rojo" items={nuevos}
           vacio={cargando ? 'Cargando…' : 'Sin contactos pendientes'} onAbrir={setAbierto} />
-        <Columna titulo="Black List" total={r.descartados} tono="gris" items={c.descartados || []}
+        <Columna titulo="Black List / No desea" total={r.descartados} tono="gris" items={c.descartados || []}
           vacio={cargando ? 'Cargando…' : 'Sin contactos en la Black List'} onAbrir={setAbierto} />
       </div>
 
