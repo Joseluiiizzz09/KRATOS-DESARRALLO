@@ -240,10 +240,20 @@ function campanaEnviadaPorKratos(lead) {
   return CAMPANAS_KRATOS.find((x) => x.replace(/\s+/g, '') === c.replace(/\s+/g, '')) || null;
 }
 
+/* Solo las plantillas de MÓVILES (la cuenta también tiene plantillas de reclutamiento, seguimiento, etc.).
+   Se puede cambiar con MOVILES_PLANTILLAS=nombre1,nombre2 en backend/.env. */
+const claveP = (t) => normalizar(t).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+const plantillasPermitidas = () => String(process.env.MOVILES_PLANTILLAS || 'plantilla_thiago,moviles')
+  .split(',').map(claveP).filter(Boolean);
+const esPlantillaDeMoviles = (t) => {
+  const ok = plantillasPermitidas();
+  return ok.includes(claveP(t.nombre_meta)) || ok.includes(claveP(t.nombre_visible || ''));
+};
+
 router.get('/plantillas', auth(ROLES), async (req, res) => {
   try {
     const data = await crm('/plantillas');
-    const plantillas = (data.plantillas || []).map((t) => ({
+    const plantillas = (data.plantillas || []).filter(esPlantillaDeMoviles).map((t) => ({
       nombre_meta: t.nombre_meta,
       nombre: t.nombre_visible || t.nombre_meta,
       texto: t.texto_cuerpo || '',
@@ -263,6 +273,10 @@ router.post('/enviar', auth(ROLES), async (req, res) => {
     const campana = String(req.body?.campana || '').trim().toUpperCase();
     const numeros = String(req.body?.numeros || '').slice(0, 200000);
     if (!plantilla) return res.status(400).json({ ok: false, mensaje: 'Elige una plantilla' });
+    const lista = (await crm('/plantillas')).plantillas || [];
+    if (!lista.some((t) => t.nombre_meta === plantilla && esPlantillaDeMoviles(t))) {
+      return res.status(400).json({ ok: false, mensaje: 'Esa plantilla no es de MÓVILES' });
+    }
     if (!CAMPANAS_KRATOS.includes(campana)) return res.status(400).json({ ok: false, mensaje: 'Elige la campaña' });
     if (!numeros.trim()) return res.status(400).json({ ok: false, mensaje: 'Pega al menos un número' });
     const data = await crm('/leads/cargar-texto', {
