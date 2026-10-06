@@ -615,6 +615,7 @@ export default function Backoffice() {
   const [asesores,      setAsesores]      = useState([])
   const [baseData,      setBaseData]      = useState({})
   const [ventasPorNumero, setVentasPorNumero] = useState({})
+  const [ventasLista, setVentasLista] = useState([])
   const [fechaPestanas, setFechaPestanas] = useState([fechaHoy()])
   const [fechaCantidades,setFechaCantidades]= useState({})
   const [fechaActiva,   setFechaActiva]   = useState(fechaHoy())
@@ -971,6 +972,7 @@ export default function Backoffice() {
         if (numero && !porNumero[numero]) porNumero[numero] = venta
       })
       setVentasPorNumero(porNumero)
+      setVentasLista(data.data)
     } catch(e) { console.error('Error cargando estados de ventas:', e) }
   }, [])
 
@@ -2423,18 +2425,20 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
     }
     const todosReg = Object.entries(baseData).flatMap(([fecha,regs])=>(regs||[]).map(r=>({...r,_rendFechaBase:fecha})))
       .filter(r => String(r.campana||'').toUpperCase().replace(/[\s-]+/g,'') !== 'ASCW')
-    // Cada lead del periodo tipificado como venta se acredita al asesor que lo
-    // tipificó (último TIPIF_VEND con venta); si no hay evento, al asesor actual.
-    const ventasBase = todosReg
-      .filter(r => fechaIncluida(r._rendFechaBase))
-      .map(r => ({ r, tipif: String(tipifEfectiva(r)||'').trim().toUpperCase() }))
-      .filter(({ tipif }) => TIPIF_FAMILIA_VENTA.includes(tipif))
-      .map(({ r, tipif }) => {
-        const evento = (Array.isArray(r.historial) ? r.historial : [])
-          .filter(h => h?.tipo === 'TIPIF_VEND' && h.asesor && TIPIF_FAMILIA_VENTA.includes(String(h.tipif||'').trim().toUpperCase()))
-          .sort((x, y) => Number(y.ts||0) - Number(x.ts||0))[0]
-        return { tipif, asesor: String(evento?.asesor || r.asesor || '').trim().toUpperCase() }
+    // Ventas reales registradas (tabla de ventas), por la fecha en que se subió
+    // la venta. Se clasifican en cerrada / caída / instalada según su estado.
+    const estadosCaidos = new Set(['CAIDA','RECHAZO','RECHAZO_CAMPO','RECHAZO CAMPO','RECHAZO_MESA','RECHAZO MESA','RECHAZADA','RECHAZADO','ANULADA','NO CONTESTA','NO_CONTESTA'])
+    const ventasBase = ventasLista
+      .filter(v => fechaIncluida(v.created_at))
+      .map(v => {
+        const estado = String(v.estado||'').trim().toUpperCase()
+        const tipif = estado === 'INSTALADO' || estado === 'ACTIVA' ? 'INSTALADO' : (estadosCaidos.has(estado) ? 'VENTA CAIDA' : 'VENTA CERRADA')
+        return { tipif, asesorId: Number(v.asesor_id)||0, asesor: String(v.asesor_nombre||'').trim().toUpperCase() }
       })
+    // La venta guarda a veces el nombre y a veces el usuario del asesor: se
+    // reconoce por id, nombre o usuario.
+    const esDelAsesor = (v, a) => (v.asesorId && v.asesorId === Number(a.id))
+      || (v.asesor && (v.asesor === String(a.nombre||'').trim().toUpperCase() || v.asesor === String(a.usuario||'').trim().toUpperCase()))
     const asesoresFiltrados = asesores.filter(a => {
       if (rendFiltroSala && String(a.sala || '').trim() !== rendFiltroSala) return false
       if (rendFiltroAsesor && String(a.nombre || '').trim() !== rendFiltroAsesor) return false
@@ -2464,7 +2468,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
       }).length
       // Ventas: la misma regla que el contador "VENTAS" de arriba (tipificación
       // de la base: venta cerrada + venta caída + instalado), del periodo elegido.
-      const ventasAsesor = ventasBase.filter(v => v.asesor === nombreNorm)
+      const ventasAsesor = ventasBase.filter(v => esDelAsesor(v, a))
       const cuenta = tipif => ventasAsesor.filter(v => v.tipif === tipif).length
       const cerradas = cuenta('VENTA CERRADA')
       const caidas = cuenta('VENTA CAIDA')
@@ -2476,8 +2480,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
     // Ventas cuyo asesor ya no está activo: se muestran aparte para que el
     // total siga coincidiendo con el contador de arriba.
     if (!rendFiltroSala && !rendFiltroAsesor) {
-      const conocidos = new Set(asesoresFiltrados.map(a => String(a.nombre||'').trim().toUpperCase()))
-      const otras = ventasBase.filter(v => !conocidos.has(v.asesor))
+      const otras = ventasBase.filter(v => !asesoresFiltrados.some(a => esDelAsesor(v, a)))
       if (otras.length) data.push({
         nombre:'OTROS / SIN ASESOR', usuario:'', sala:'', leads:0, ventas:otras.length,
         cerradas:otras.filter(v=>v.tipif==='VENTA CERRADA').length,
@@ -2489,7 +2492,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
       ? b.leads-a.leads || b.ventas-a.ventas || a.nombre.localeCompare(b.nombre,'es')
       : b.ventas-a.ventas || b.leads-a.leads || a.nombre.localeCompare(b.nombre,'es'))
     return data
-  }, [baseData, ventasPorNumero, asesores, rendFiltroTipo, rendFiltroFecha, rendDesde, rendHasta, rendFiltroAsesor, rendFiltroSala, rendOrden])
+  }, [baseData, ventasLista, asesores, rendFiltroTipo, rendFiltroFecha, rendDesde, rendHasta, rendFiltroAsesor, rendFiltroSala, rendOrden])
 
   const rendSalas = [...new Set(asesores.map(a=>String(a.sala||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))
   const rendAsesoresDisponibles = asesores
