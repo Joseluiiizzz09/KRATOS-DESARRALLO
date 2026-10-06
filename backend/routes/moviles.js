@@ -100,9 +100,13 @@ async function crm(ruta, { method = 'GET', body } = {}, reintento = true) {
 const esDeMoviles = (lead) => lead && Number(lead.cuenta_whatsapp_id) === Number(sesion.cuentaId);
 
 /** Comprueba que el chat sea de MÓVILES antes de tocarlo. */
-async function exigirChatDeMoviles(id) {
+// Chats ya comprobados como de MÓVILES: se recuerdan 10 minutos para no repetir la consulta en cada envío.
+const chatsVerificados = new Map();
+async function exigirChatDeMoviles(id, { usarCache = false } = {}) {
+  if (usarCache && (chatsVerificados.get(id) || 0) > Date.now()) return null;
   const data = await crm(`/leads/${id}/mensajes`);
   if (!esDeMoviles(data.lead)) throw Object.assign(new Error('Ese chat no es de la cuenta MÓVILES'), { prohibido: true });
+  chatsVerificados.set(id, Date.now() + 10 * 60 * 1000);
   return data;
 }
 
@@ -195,9 +199,13 @@ router.post('/leads/:id/responder', auth(ROLES), async (req, res) => {
     const id = Number(req.params.id);
     const mensaje = String(req.body?.mensaje || '').trim();
     if (!mensaje) return res.status(400).json({ ok: false, mensaje: 'Escribe un mensaje' });
-    await exigirChatDeMoviles(id);
+    await exigirChatDeMoviles(id, { usarCache: true });
     await crm(`/leads/${id}/responder`, { method: 'POST', body: { mensaje } });
     res.json({ ok: true });
+    // Responder deja el chat en Atendidos (como en KRONO); se hace después de contestar para no demorar el envío.
+    if (req.body?.marcarAtendido) {
+      crm(`/leads/${id}/marcar-atendido`, { method: 'PATCH', body: {} }).catch((e) => console.error('[moviles] marcar atendido:', e.message));
+    }
   } catch (e) { responderError(res, e); }
 });
 

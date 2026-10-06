@@ -126,14 +126,20 @@ function Chat({ lead, onCerrar, onCambio }) {
     e.preventDefault()
     const m = texto.trim()
     if (!m || enviando) return
-    setEnviando(true); setError('')
-    const { res, data } = await pedir(`/leads/${lead.id}/responder`, { method: 'POST', body: JSON.stringify({ mensaje: m }) })
-    if (res.ok && data.ok && lead.estado !== 'atendido') {
-      await pedir(`/leads/${lead.id}/marcar-atendido`, { method: 'PATCH', body: '{}' })
-    }
+    // Se muestra al instante (como en WhatsApp) mientras el CRM lo envía.
+    const temporal = { id: `tmp-${Date.now()}`, direccion: 'saliente', contenido: m, timestamp: new Date().toISOString(), pendiente: true }
+    setMensajes((lista) => [...lista, temporal])
+    setTexto(''); setEnviando(true); setError('')
+    const { res, data } = await pedir(`/leads/${lead.id}/responder`, {
+      method: 'POST', body: JSON.stringify({ mensaje: m, marcarAtendido: lead.estado !== 'atendido' }),
+    })
     setEnviando(false)
-    if (!res.ok || !data.ok) { setError(data.mensaje || 'No se pudo enviar el mensaje'); return }
-    setTexto('')
+    if (!res.ok || !data.ok) {
+      setMensajes((lista) => lista.filter((x) => x.id !== temporal.id))
+      setTexto(m)
+      setError(data.mensaje || 'No se pudo enviar el mensaje')
+      return
+    }
     cargar(); onCambio()
   }
   async function mover(estado) {
@@ -162,7 +168,7 @@ function Chat({ lead, onCerrar, onCambio }) {
         {mensajes.map((m) => (
           <div key={m.id} className={`mv-burbuja mv-burbuja--${m.direccion === 'saliente' ? 'out' : 'in'}`}>
             <span>{m.contenido || (m.tipo ? `(${m.tipo})` : '')}</span>
-            <small>{hora(m.timestamp)}{m.estado_envio === 'fallido' ? ' · no se envió' : ''}</small>
+            <small>{hora(m.timestamp)}{m.pendiente ? ' · enviando…' : m.estado_envio === 'fallido' ? ' · no se envió' : ''}</small>
           </div>
         ))}
         <div ref={fin} />
@@ -171,7 +177,7 @@ function Chat({ lead, onCerrar, onCambio }) {
         {error && <div className="mv-error">{error}</div>}
         <div className="mv-chat-fila">
           <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escribe un mensaje…" maxLength={4000} />
-          <button type="submit" className="mv-enviar" disabled={enviando || !texto.trim()}>Enviar</button>
+          <button type="submit" className="mv-enviar" disabled={!texto.trim()}>Enviar</button>
         </div>
       </form>
     </aside>
