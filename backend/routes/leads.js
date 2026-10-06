@@ -1970,6 +1970,18 @@ router.patch('/:id/tipif', auth(ROLES_ALL), async (req, res) => {
     const tipifNormalizada = normalizarTipifVendLegacy(tipif_vend).trim().toUpperCase();
     if (tipif_vend && String(tipif_vend).length > 200)
       return res.status(400).json({ ok: false, mensaje: 'tipif_vend no puede superar 200 caracteres' });
+    // En KRATOS una VENTA CERRADA solo existe si se registró la venta (formulario del asesor);
+    // tipificarla a mano no crea la venta y no llegaría a Seguimiento.
+    if (tipifNormalizada === 'VENTA CERRADA') {
+      const [[leadVc]] = await db.query('SELECT id, n1 FROM leads WHERE id = ? LIMIT 1', [req.params.id]);
+      const n1Vc = String(leadVc?.n1 || '').trim();
+      const [conVenta] = await db.query(
+        `SELECT 1 FROM ventas WHERE lead_id = ? OR (? <> '' AND TRIM(telefono1) = ?) LIMIT 1`,
+        [req.params.id, n1Vc, n1Vc]);
+      if (!conVenta.length) {
+        return res.status(409).json({ ok: false, mensaje: 'VENTA CERRADA se registra desde el formulario de venta del asesor (Base de llamadas → Venta cerrada). Así llega a Seguimiento.' });
+      }
+    }
     let documentoTexto = '';
     if (tipifNormalizada === 'PREVENTA') {
       const tipoDoc = String(tipo_doc || '').trim().toUpperCase();

@@ -2960,7 +2960,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
                                   : <select className="bo-sel-compact sel-tipif-vend" value={tipifEfectiva(r)} onChange={e=>guardarTipif(r.id,e.target.value)}
                                       style={estiloTipifVend(tipifEfectiva(r))}>
                                       <option value="" style={{background:'#fff',color:'#111827',fontWeight:400}}>— Pendiente —</option>
-                                      {TIPIF_VEND_OPCIONES.map(t=><option key={t} value={t} style={{background:'#fff',color:'#111827',fontWeight:400}}>{t}</option>)}
+                                      {TIPIF_VEND_OPCIONES.filter(t=>t!=='VENTA CERRADA'||tipifEfectiva(r)==='VENTA CERRADA').map(t=><option key={t} value={t} disabled={t==='VENTA CERRADA'} style={{background:'#fff',color:'#111827',fontWeight:400}}>{t}</option>)}
                                     </select>}
                                 {documentoVenta(r)&&(
                                   <button type="button" className="btn-dni-cuaderno"
