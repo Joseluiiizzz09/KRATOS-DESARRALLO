@@ -458,55 +458,6 @@ export default function Jefatura() {
   const [seccion, setSeccion] = useState(() => {
     try { return sessionStorage.getItem(JEF_APARTADO_KEY) || 'dashboard' } catch { return 'dashboard' }
   })
-  // El panel de WhatsApp se monta en la primera visita y queda montado (oculto) para no recargarlo cada vez
-  const [waMontado, setWaMontado] = useState(() => seccion === 'whatsapp')
-  useEffect(() => { if (seccion === 'whatsapp') setWaMontado(true) }, [seccion])
-  // Alerta: lineas de WhatsApp que se desvincularon solas (se consulta cada minuto, aunque no se abra WhatsApp)
-  const [waDesvinculadas, setWaDesvinculadas] = useState([])
-  const [waAlertaOculta, setWaAlertaOculta] = useState(() => {
-    try { return sessionStorage.getItem('jef_wa_alerta_oculta') || '' } catch { return '' }
-  })
-  useEffect(() => {
-    let vivo = true
-    const consultar = async () => {
-      try {
-        const token = sessionStorage.getItem('nc_token')
-        if (!token) return
-        const r = await fetch('/wa/api/alertas', { headers: { Authorization: `Bearer ${token}` } })
-        if (!r.ok) return
-        const d = await r.json()
-        if (vivo && d?.ok) setWaDesvinculadas(Array.isArray(d.desvinculadas) ? d.desvinculadas : [])
-      } catch { /* el servicio de WhatsApp no responde: no se muestra nada */ }
-    }
-    consultar()
-    const t = setInterval(consultar, 60000)
-    return () => { vivo = false; clearInterval(t) }
-  }, [])
-  const waFirmaAlerta = waDesvinculadas.map(a => `${a.id}|${a.at}`).join(',')
-  // El marco de WhatsApp ocupa TODA la zona de contenido: cancela el relleno de la zona (margenes
-  // negativos) y toma su alto visible, asi llega de borde a borde y de arriba a abajo sin scroll
-  const waFrameRef = useRef(null)
-  useEffect(() => {
-    if (seccion !== 'whatsapp') return
-    const ajustar = () => {
-      const el = waFrameRef.current
-      if (!el) return
-      const cont = el.closest('.main, .bo-main')
-      if (!cont) return
-      const cs = window.getComputedStyle(cont)
-      const arriba = parseFloat(cs.paddingTop) || 0
-      const derecha = parseFloat(cs.paddingRight) || 0
-      const abajo = parseFloat(cs.paddingBottom) || 0
-      const izquierda = parseFloat(cs.paddingLeft) || 0
-      el.style.margin = `${-arriba}px ${-derecha}px ${-abajo}px ${-izquierda}px`
-      el.style.width = `calc(100% + ${izquierda + derecha}px)`
-      el.style.height = Math.max(480, cont.clientHeight) + 'px'
-    }
-    ajustar()
-    const t = setTimeout(ajustar, 300)
-    window.addEventListener('resize', ajustar)
-    return () => { clearTimeout(t); window.removeEventListener('resize', ajustar) }
-  }, [seccion, waMontado])
 
 
   /* data */
@@ -2030,14 +1981,6 @@ export default function Jefatura() {
           <button className={`nav-btn${seccion==='envio-masivo'?' active':''}`} onClick={()=>irSeccion('envio-masivo')}><span className="nav-dot"></span> Envío masivo</button>
           <button className={`nav-btn${seccion==='ventas-flujo'?' active':''}`} onClick={()=>irSeccion('ventas-flujo')}><span className="nav-dot"></span> Ventas generales</button>
           <div className="sidebar-sep">Comunicación</div>
-          <button className={`nav-btn${seccion==='whatsapp'?' active':''}`} onClick={()=>irSeccion('whatsapp')}><span className="nav-dot"></span> WhatsApp
-            {waDesvinculadas.length > 0 && (
-              <span title={`${waDesvinculadas.length} línea(s) desvinculada(s)`}
-                style={{marginLeft:'auto',minWidth:18,height:18,padding:'0 5px',borderRadius:9,background:'#dc2626',color:'#fff',fontSize:11,fontWeight:700,display:'inline-flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>
-                {waDesvinculadas.length}
-              </span>
-            )}
-          </button>
           <button className={`nav-btn${seccion==='moviles'?' active':''}`} onClick={()=>irSeccion('moviles')}><span className="nav-dot"></span> WhatsApp MÓVILES</button>
           <div className="sidebar-sep">Gestión</div>
           <button className={`nav-btn${seccion==='usuarios'?'   active':''}`} onClick={()=>irSeccion('usuarios')}><span className="nav-dot"></span> Usuarios</button>
@@ -2057,36 +2000,9 @@ export default function Jefatura() {
 
         <main className="main" ref={mainRef}>
 
-          {waDesvinculadas.length > 0 && seccion !== 'whatsapp' && waAlertaOculta !== waFirmaAlerta && (
-            <div role="alert" style={{display:'flex',alignItems:'center',gap:12,margin:'0 0 14px',padding:'10px 14px',borderRadius:10,background:'#fef2f2',border:'1px solid #fca5a5',color:'#991b1b',fontSize:13}}>
-              <div style={{flex:1,minWidth:0}}>
-                <strong>{waDesvinculadas.length === 1 ? 'Se desvinculó una línea de WhatsApp: ' : `Se desvincularon ${waDesvinculadas.length} líneas de WhatsApp: `}</strong>
-                {waDesvinculadas.map(a => a.title || a.id).join(', ')}. No recibe ni envía mensajes hasta volver a vincularla.
-              </div>
-              <button type="button" onClick={()=>irSeccion('whatsapp')}
-                style={{border:0,borderRadius:8,background:'#e53e3e',color:'#fff',fontWeight:600,fontSize:12.5,padding:'7px 12px',cursor:'pointer',fontFamily:'inherit'}}>Ver WhatsApp</button>
-              <button type="button" aria-label="Ocultar aviso" title="Ocultar hasta que haya otra desvinculación"
-                onClick={()=>{ setWaAlertaOculta(waFirmaAlerta); try { sessionStorage.setItem('jef_wa_alerta_oculta', waFirmaAlerta) } catch {} }}
-                style={{border:0,background:'transparent',color:'#991b1b',fontSize:18,lineHeight:1,cursor:'pointer',padding:'0 4px'}}>×</button>
-            </div>
-          )}
-
-
           {/* ===== WHATSAPP MÓVILES ===== */}
           <section className={`section${seccion==='moviles'?' active':''}`}>
             {seccion==='moviles' && <MovilesBandeja />}
-          </section>
-
-          {/* ===== WHATSAPP ===== */}
-          <section className={`section${seccion==='whatsapp'?' active':''}`}>
-            {waMontado && (
-              <iframe
-                ref={waFrameRef}
-                title="WhatsApp"
-                src="/wa/"
-                style={{display:'block',width:'100%',height:'calc(100vh - 150px)',minHeight:480,border:0,background:'transparent'}}
-              />
-            )}
           </section>
 
           {/* ===== DASHBOARD ===== */}

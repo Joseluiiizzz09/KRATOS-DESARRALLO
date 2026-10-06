@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import JefaturaViewControls from '../components/JefaturaViewControls'
 import CambiarAreaMenu from '../components/CambiarAreaMenu'
-import SalasFlotantes from '../components/SalasFlotantes'
 import MovilesBandeja from '../components/MovilesBandeja'
 import { API, ncHeaders } from '../services/api'
 import { responseChanged, setVisibleInterval, clearVisibleInterval } from '../utils/polling'
@@ -58,7 +57,7 @@ function CampanaSelect({ value, onChange, plain, sinOtro }) {
 // ── Utilities ────────────────────────────────────────────────────────────
 const COLORES_AV = ['#3b82f6','#8b5cf6','#22c55e','#f97316','#ef4444','#06b6d4','#ec4899']
 const DOT_COLORS  = ['#185FA5','#0F6E56','#854F0B','#7C3AED','#DC2626']
-const BO_SECCIONES = ['base', 'carga-masiva', 'rendimiento', 'avance', 'whatsapp', 'moviles']
+const BO_SECCIONES = ['base', 'carga-masiva', 'rendimiento', 'avance', 'moviles']
 
 const PERU_TIME_ZONE = 'America/Lima'
 const PERU_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
@@ -611,54 +610,6 @@ export default function Backoffice() {
     return BO_SECCIONES.includes(guardada) ? guardada : 'base'
   })
   const [sidebarAbierto, setSidebarAbierto] = useState(() => sessionStorage.getItem('nc_backoffice_sidebar') !== 'cerrado')
-  const [waMontado, setWaMontado] = useState(() => seccion === 'whatsapp')
-  useEffect(() => { if (seccion === 'whatsapp') setWaMontado(true) }, [seccion])
-  // Alerta: lineas de WhatsApp que se desvincularon solas (se consulta cada minuto, aunque no se abra WhatsApp)
-  const [waDesvinculadas, setWaDesvinculadas] = useState([])
-  const [waAlertaOculta, setWaAlertaOculta] = useState(() => {
-    try { return sessionStorage.getItem('bo_wa_alerta_oculta') || '' } catch { return '' }
-  })
-  useEffect(() => {
-    let vivo = true
-    const consultar = async () => {
-      try {
-        const token = sessionStorage.getItem('nc_token')
-        if (!token) return
-        const r = await fetch('/wa/api/alertas', { headers: { Authorization: `Bearer ${token}` } })
-        if (!r.ok) return
-        const d = await r.json()
-        if (vivo && d?.ok) setWaDesvinculadas(Array.isArray(d.desvinculadas) ? d.desvinculadas : [])
-      } catch { /* el servicio de WhatsApp no responde: no se muestra nada */ }
-    }
-    consultar()
-    const t = setInterval(consultar, 60000)
-    return () => { vivo = false; clearInterval(t) }
-  }, [])
-  const waFirmaAlerta = waDesvinculadas.map(a => `${a.id}|${a.at}`).join(',')
-  // El marco de WhatsApp ocupa TODA la zona de contenido: cancela el relleno de la zona (margenes
-  // negativos) y toma su alto visible, asi llega de borde a borde y de arriba a abajo sin scroll
-  const waFrameRef = useRef(null)
-  useEffect(() => {
-    if (seccion !== 'whatsapp') return
-    const ajustar = () => {
-      const el = waFrameRef.current
-      if (!el) return
-      const cont = el.closest('.main, .bo-main')
-      if (!cont) return
-      const cs = window.getComputedStyle(cont)
-      const arriba = parseFloat(cs.paddingTop) || 0
-      const derecha = parseFloat(cs.paddingRight) || 0
-      const abajo = parseFloat(cs.paddingBottom) || 0
-      const izquierda = parseFloat(cs.paddingLeft) || 0
-      el.style.margin = `${-arriba}px ${-derecha}px ${-abajo}px ${-izquierda}px`
-      el.style.width = `calc(100% + ${izquierda + derecha}px)`
-      el.style.height = Math.max(480, cont.clientHeight) + 'px'
-    }
-    ajustar()
-    const t = setTimeout(ajustar, 300)
-    window.addEventListener('resize', ajustar)
-    return () => { clearTimeout(t); window.removeEventListener('resize', ajustar) }
-  }, [seccion, waMontado])
 
   // ── Data ──
   const [asesores,      setAsesores]      = useState([])
@@ -2619,8 +2570,6 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
   // ── JSX ───────────────────────────────────────────────────────────────────
   return (
     <div className="bo-root">
-      {/* Salas internas de WhatsApp como recuadros flotantes (en todo Backoffice) */}
-      <SalasFlotantes />
       {/* TOPBAR */}
       <div className="topbar module-topbar-standard">
         <div className="bo-topbar-left">
@@ -2670,7 +2619,6 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
           <button className={`bo-nav${seccion==='rendimiento'?' active':''}`} onClick={()=>irSeccion('rendimiento')}><BoNavIcon tipo="rendimiento" /> <span>Rendimiento</span></button>
           <button className={`bo-nav${seccion==='avance'?' active':''}`} onClick={()=>irSeccion('avance')}><BoNavIcon tipo="avance" /> <span>Avance Asesores</span></button>
           <div className="sidebar-sep">Comunicación</div>
-          <button className={`bo-nav${seccion==='whatsapp'?' active':''}`} onClick={()=>irSeccion('whatsapp')}><BoNavIcon tipo="whatsapp" /> <span>WhatsApp</span></button>
           <button className={`bo-nav${seccion==='moviles'?' active':''}`} onClick={()=>irSeccion('moviles')}><BoNavIcon tipo="whatsapp" /> <span>WhatsApp MÓVILES</span></button>
           <div className="bo-sidebar-registro">
             <div className="sidebar-sep">Agregar registro</div>
@@ -2690,20 +2638,6 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
         </aside>
 
         <main className="bo-main">
-
-          {waDesvinculadas.length > 0 && seccion !== 'whatsapp' && waAlertaOculta !== waFirmaAlerta && (
-            <div role="alert" style={{display:'flex',alignItems:'center',gap:12,margin:'0 0 14px',padding:'10px 14px',borderRadius:10,background:'#fef2f2',border:'1px solid #fca5a5',color:'#991b1b',fontSize:13}}>
-              <div style={{flex:1,minWidth:0}}>
-                <strong>{waDesvinculadas.length === 1 ? 'Se desvinculó una línea de WhatsApp: ' : `Se desvincularon ${waDesvinculadas.length} líneas de WhatsApp: `}</strong>
-                {waDesvinculadas.map(a => a.title || a.id).join(', ')}. No recibe ni envía mensajes hasta que Jefatura la vuelva a vincular.
-              </div>
-              <button type="button" onClick={()=>irSeccion('whatsapp')}
-                style={{border:0,borderRadius:8,background:'#e53e3e',color:'#fff',fontWeight:600,fontSize:12.5,padding:'7px 12px',cursor:'pointer',fontFamily:'inherit'}}>Ver WhatsApp</button>
-              <button type="button" aria-label="Ocultar aviso" title="Ocultar hasta que haya otra desvinculación"
-                onClick={()=>{ setWaAlertaOculta(waFirmaAlerta); try { sessionStorage.setItem('bo_wa_alerta_oculta', waFirmaAlerta) } catch {} }}
-                style={{border:0,background:'transparent',color:'#991b1b',fontSize:18,lineHeight:1,cursor:'pointer',padding:'0 4px'}}>×</button>
-            </div>
-          )}
 
           {/* ══ SECCIÓN: BASE ══════════════════════════════════════════════════ */}
           <section className={`bo-seccion${seccion==='base'?'':' hidden'}`}>
@@ -3755,18 +3689,6 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
                 </tbody>
               </table>
             </div>
-          </section>
-
-          {/* ══ SECCIÓN: WHATSAPP ═════════════════════════════════════════════ */}
-          <section className={`bo-seccion${seccion==='whatsapp'?'':' hidden'}`}>
-            {waMontado && (
-              <iframe
-                ref={waFrameRef}
-                title="WhatsApp"
-                src="/wa/?sin-cuentas=1&sin-salas=1"
-                style={{display:'block',width:'100%',height:'calc(100vh - 130px)',minHeight:480,border:0,background:'transparent'}}
-              />
-            )}
           </section>
 
           {/* ══ SECCIÓN: MÓVILES (CRM de WhatsApp) ═════════════════════════════ */}
