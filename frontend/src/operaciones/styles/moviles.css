@@ -75,7 +75,7 @@
 
 /* Las tres columnas ocupan todo el alto disponible de la pantalla */
 @media (min-width: 1101px) {
-  .mv-cols { height: calc(100vh - 215px); min-height: 420px; align-items: stretch; }
+  .mv-cols { height: calc(100vh - 215px); align-items: stretch; }
   .mv-col { display: flex; flex-direction: column; min-height: 0; }
   .mv-col-list { flex: 1; max-height: none; min-height: 0; }
 }

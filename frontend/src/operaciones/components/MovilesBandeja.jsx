@@ -181,6 +181,22 @@ export default function MovilesBandeja() {
   const [abierto, setAbierto] = useState(null)
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(true)
+  const colsRef = useRef(null)
+
+  // Las columnas llegan exactamente hasta el borde inferior de la ventana (se mide su posición real).
+  useEffect(() => {
+    const ajustar = () => {
+      const el = colsRef.current
+      if (!el) return
+      if (window.innerWidth <= 1100) { el.style.height = ''; return }
+      const arriba = el.getBoundingClientRect().top
+      el.style.height = Math.max(420, window.innerHeight - arriba - 16) + 'px'
+    }
+    ajustar()
+    const t = setTimeout(ajustar, 200)
+    window.addEventListener('resize', ajustar)
+    return () => { clearTimeout(t); window.removeEventListener('resize', ajustar) }
+  }, [estado, error])
 
   const cargar = useCallback(async () => {
     try {
@@ -246,7 +262,7 @@ export default function MovilesBandeja() {
 
       {error && <div className="mv-error mv-error--page">{error}</div>}
 
-      <div className="mv-cols">
+      <div className="mv-cols" ref={colsRef}>
         <Columna titulo="Atendidos" total={r.atendidos} tono="naranja" items={c.atendidos || []}
           vacio={cargando ? 'Cargando…' : 'Sin contactos atendidos'} onAbrir={setAbierto} />
         <Columna titulo="Nuevos / Sin responder" total={sinResponder} tono="rojo" items={nuevos}
