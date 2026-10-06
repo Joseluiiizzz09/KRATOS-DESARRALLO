@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { API, ncHeaders } from '../services/api'
 import { setVisibleInterval, clearVisibleInterval } from '../utils/polling'
+import MovilesEnviarPlantilla from './MovilesEnviarPlantilla'
 import '../styles/moviles.css'
 
 /* Bandeja de la cuenta MÓVILES (CRM de WhatsApp) con la lógica y el aspecto de la bandeja de KRONO:
@@ -49,6 +50,8 @@ function hora(fecha) {
 // salvo el anuncio "Adquiere todo ilimitado", que es MOV 2.
 function campana(l) {
   const c = String(l.campana || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
+  const kratos = c.match(/^base\s+(mov\s*1|mov\s*2|lead\s*crm)$/)
+  if (kratos) return { texto: `BASE ${kratos[1].toUpperCase().replace(/\s+/g, ' ')}`, clase: 'base' }
   if (c.startsWith('base') || c === 'masivo') return { texto: 'BASE MASIVO', clase: 'base' }
   if (/mov\s*-?\s*2/.test(c) || c.includes('ilimitado')) return { texto: 'MOV 2', clase: 'mov2' }
   return { texto: 'MOV 1', clase: 'mov1' }
@@ -181,6 +184,7 @@ export default function MovilesBandeja() {
   const [busqueda, setBusqueda] = useState('')
   const [antiguedad, setAntiguedad] = useState('14')
   const [abierto, setAbierto] = useState(null)
+  const [enviarAbierto, setEnviarAbierto] = useState(false)
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(true)
   const colsRef = useRef(null)
@@ -249,6 +253,7 @@ export default function MovilesBandeja() {
           <option value="todos">Todos</option>
         </select>
         <div className="mv-toolbar-der">
+          <button type="button" className="mv-enviar mv-enviar--barra" onClick={() => setEnviarAbierto(true)}>Enviar plantilla</button>
           <span className="mv-sin-responder">Sin responder <b>{sinResponder.toLocaleString('es-PE')}</b></span>
           <span className="mv-bell" title="Mensajes sin leer">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6" /><path d="M10 19a2 2 0 0 0 4 0" /></svg>
@@ -270,6 +275,7 @@ export default function MovilesBandeja() {
           vacio={cargando ? 'Cargando…' : 'Sin contactos en la Black List'} onAbrir={setAbierto} />
       </div>
 
+      {enviarAbierto && <MovilesEnviarPlantilla onCerrar={() => setEnviarAbierto(false)} onEnviado={cargar} />}
       {abierto && <Chat key={abierto.id} lead={abierto} onCerrar={() => setAbierto(null)} onCambio={cargar} />}
     </div>
   )

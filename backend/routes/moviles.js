@@ -224,6 +224,68 @@ router.patch('/leads/:id/estado', auth(ROLES), async (req, res) => {
 });
 
 /* ------------------------------------------------
+   Envío de plantillas aprobadas desde KRATOS (por la cuenta MÓVILES del CRM)
+   - La campaña de KRATOS viaja en la etiqueta de base del CRM: "BASE MOV 1", "BASE MOV 2"...
+     Así el contacto queda en la columna Base masivo y, cuando responde, se sabe con qué
+     campaña cargarlo a la Base de KRATOS.
+   ------------------------------------------------ */
+const CAMPANAS_KRATOS = ['MOV 1', 'MOV 2', 'LEAD CRM'];
+const ETIQUETA_KRATOS = /^base\s+(mov\s*1|mov\s*2|lead\s*crm)$/i;
+
+/** "BASE MOV 2" -> "MOV 2"; null si la base no la envió KRATOS. */
+function campanaEnviadaPorKratos(lead) {
+  const m = String(lead.campana || '').trim().match(ETIQUETA_KRATOS);
+  if (!m) return null;
+  const c = m[1].toUpperCase().replace(/\s+/g, ' ');
+  return CAMPANAS_KRATOS.find((x) => x.replace(/\s+/g, '') === c.replace(/\s+/g, '')) || null;
+}
+
+router.get('/plantillas', auth(ROLES), async (req, res) => {
+  try {
+    const data = await crm('/plantillas');
+    const plantillas = (data.plantillas || []).map((t) => ({
+      nombre_meta: t.nombre_meta,
+      nombre: t.nombre_visible || t.nombre_meta,
+      texto: t.texto_cuerpo || '',
+      tipo: t.header_tipo || 'TEXT',
+      imagen: t.imagen_url || t.imagen_ejemplo || null,
+      idioma: t.idioma || '',
+      variables: t.variables || [],
+    }));
+    res.json({ ok: true, plantillas, campanas: CAMPANAS_KRATOS });
+  } catch (e) { responderError(res, e); }
+});
+
+/** Envía una plantilla a los números pegados. solo_revisar=true devuelve cuántos son válidos sin enviar. */
+router.post('/enviar', auth(ROLES), async (req, res) => {
+  try {
+    const plantilla = String(req.body?.plantilla || '').trim();
+    const campana = String(req.body?.campana || '').trim().toUpperCase();
+    const numeros = String(req.body?.numeros || '').slice(0, 200000);
+    if (!plantilla) return res.status(400).json({ ok: false, mensaje: 'Elige una plantilla' });
+    if (!CAMPANAS_KRATOS.includes(campana)) return res.status(400).json({ ok: false, mensaje: 'Elige la campaña' });
+    if (!numeros.trim()) return res.status(400).json({ ok: false, mensaje: 'Pega al menos un número' });
+    const data = await crm('/leads/cargar-texto', {
+      method: 'POST',
+      body: { texto: numeros, nombre_meta: plantilla, etiqueta_base: `BASE ${campana}`, solo_revisar: req.body?.solo_revisar === true },
+    });
+    if (data.revision) {
+      const lista = data.destinatarios || [];
+      return res.json({ ok: true, revision: true, total: lista.length, validos: lista.filter((d) => d.elegible).length });
+    }
+    res.json({ ok: true, job_id: data.job_id, total: data.total });
+  } catch (e) { responderError(res, e); }
+});
+
+router.get('/envios/:id', auth(ROLES), async (req, res) => {
+  try {
+    const id = String(req.params.id).replace(/[^a-zA-Z0-9-]/g, '');
+    const job = await crm(`/leads/job/${id}`);
+    res.json({ ok: true, total: job.total, procesados: job.procesados, errores: (job.errores || []).length, estado: job.status });
+  } catch (e) { responderError(res, e); }
+});
+
+/* ------------------------------------------------
    Interesados de MÓVILES -> Base de KRATOS (sin tipificar, sin asignar)
    ------------------------------------------------ */
 function fechaPeruHoy() {
@@ -237,45 +299,69 @@ function campanaDe(lead) {
   return /mov\s*-?\s*2/.test(c) || c.includes('ilimitado') ? 'MOV 2' : 'MOV 1';
 }
 
+async function cargarALaBase(lead, campana, motivo) {
+  let n1 = String(lead.telefono || '').replace(/\D/g, '');
+  if (n1.length === 11 && n1.startsWith('51')) n1 = n1.slice(2);
+  n1 = n1.substring(0, 20);
+  const usuario = String(lead.username || '').trim().replace(/^@+/, '').substring(0, 100);
+  if (!n1 && !usuario) return null;
+  const fecha = fechaPeruHoy();
+  const [existentes] = n1
+    ? await db.query('SELECT id FROM leads WHERE n1_normalizado = ? AND fecha = ? AND campana = ? LIMIT 1', [n1, fecha, campana])
+    : await db.query('SELECT id FROM leads WHERE usuario_whatsapp = ? AND fecha = ? AND campana = ? LIMIT 1', [usuario, fecha, campana]);
+  if (existentes[0]) return { id: existentes[0].id, nuevo: false };
+  const [backs] = await db.query(`SELECT id, nombre, usuario FROM usuarios WHERE cargo = 'backoffice' AND activo = 1 ORDER BY RAND() LIMIT 1`);
+  const resp = backs[0] || null;
+  const historial = JSON.stringify([{
+    tipo: 'CARGA', cargadoPor: resp?.nombre || 'Back Data', cargadoPorUsuario: resp?.usuario || '',
+    hora: horaPeruAhora(), fecha, motivo, origenCarga: 'WhatsApp MÓVILES',
+    origenUsuario: 'sistema-moviles', responsableAtencion: resp?.nombre || '', asignacionAutomatica: true,
+  }]);
+  const [ins] = await db.query(
+    `INSERT INTO leads (campana, n1, usuario_whatsapp, fecha, sin_asignar, historial, rotaciones,
+                        creado_por_id, creado_por_nombre, creado_por_usuario)
+     VALUES (?, ?, ?, ?, 1, ?, 0, ?, ?, ?)`,
+    [campana, n1, usuario, fecha, historial, resp?.id || null, resp?.nombre || 'Back Data', resp?.usuario || '']);
+  return { id: ins.insertId, nuevo: true };
+}
+
+async function yaProcesado(idCrm) {
+  const [ya] = await db.query('SELECT 1 FROM moviles_leads_sync WHERE lead_crm_id = ? LIMIT 1', [idCrm]);
+  return ya.length > 0;
+}
+
 async function pasarInteresadosALaBase() {
-  if (!configurado()) return { creados: 0 };
-  const data = await crm('/leads?columna=interesados&antiguedad=14&limit=100');
+  if (!configurado()) return { creados: 0, respondidos: 0 };
   let creados = 0;
-  for (const lead of (data.leads || []).filter(esDeMoviles)) {
-    const [ya] = await db.query('SELECT 1 FROM moviles_leads_sync WHERE lead_crm_id = ? LIMIT 1', [lead.id]);
-    if (ya.length) continue;
+  let respondidos = 0;
 
-    let n1 = String(lead.telefono || '').replace(/\D/g, '');
-    if (n1.length === 11 && n1.startsWith('51')) n1 = n1.slice(2);
-    n1 = n1.substring(0, 20);
-    const usuario = String(lead.username || '').trim().replace(/^@+/, '').substring(0, 100);
-    if (!n1 && !usuario) { await db.query('INSERT INTO moviles_leads_sync (lead_crm_id) VALUES (?)', [lead.id]); continue; }
-
-    const campana = campanaDe(lead);
-    const fecha = fechaPeruHoy();
-    const [existentes] = n1
-      ? await db.query('SELECT id FROM leads WHERE n1_normalizado = ? AND fecha = ? AND campana = ? LIMIT 1', [n1, fecha, campana])
-      : await db.query('SELECT id FROM leads WHERE usuario_whatsapp = ? AND fecha = ? AND campana = ? LIMIT 1', [usuario, fecha, campana]);
-    let idKratos = existentes[0]?.id || null;
-    if (!idKratos) {
-      const [backs] = await db.query(`SELECT id, nombre, usuario FROM usuarios WHERE cargo = 'backoffice' AND activo = 1 ORDER BY RAND() LIMIT 1`);
-      const resp = backs[0] || null;
-      const historial = JSON.stringify([{
-        tipo: 'CARGA', cargadoPor: resp?.nombre || 'Back Data', cargadoPorUsuario: resp?.usuario || '',
-        hora: horaPeruAhora(), fecha, motivo: 'Interesado en MÓVILES (WhatsApp)', origenCarga: 'WhatsApp MÓVILES',
-        origenUsuario: 'sistema-moviles', responsableAtencion: resp?.nombre || '', asignacionAutomatica: true,
-      }]);
-      const [ins] = await db.query(
-        `INSERT INTO leads (campana, n1, usuario_whatsapp, fecha, sin_asignar, historial, rotaciones,
-                            creado_por_id, creado_por_nombre, creado_por_usuario)
-         VALUES (?, ?, ?, ?, 1, ?, 0, ?, ?, ?)`,
-        [campana, n1, usuario, fecha, historial, resp?.id || null, resp?.nombre || 'Back Data', resp?.usuario || '']);
-      idKratos = ins.insertId;
-      creados += 1;
-    }
-    await db.query('INSERT INTO moviles_leads_sync (lead_crm_id, lead_kratos_id) VALUES (?, ?)', [lead.id, idKratos]);
+  // 1) Respondieron a una plantilla enviada desde KRATOS -> Atendidos en el CRM y a la Base con su campaña.
+  const [masivoNuevos, masivoInteresados] = await Promise.all([
+    crm('/leads?columna=nuevos&origen=masivo&antiguedad=14&limit=100'),
+    crm('/leads?columna=interesados&origen=masivo&antiguedad=14&limit=100'),
+  ]);
+  for (const lead of [...(masivoNuevos.leads || []), ...(masivoInteresados.leads || [])]) {
+    if (!esDeMoviles(lead)) continue;
+    const campana = campanaEnviadaPorKratos(lead);
+    if (!campana) continue;
+    const respondio = lead.estado === 'interesado' || String(lead.ultimo_mensaje_dir || '') === 'entrante';
+    if (!respondio || await yaProcesado(lead.id)) continue;
+    const r = await cargarALaBase(lead, campana, `Respondió la plantilla de WhatsApp (${campana})`);
+    if (r?.nuevo) creados += 1;
+    await crm(`/leads/${lead.id}/marcar-atendido`, { method: 'PATCH', body: {} });
+    await db.query('INSERT IGNORE INTO moviles_leads_sync (lead_crm_id, lead_kratos_id) VALUES (?, ?)', [lead.id, r?.id || null]);
+    respondidos += 1;
   }
-  return { creados };
+
+  // 2) Interesados que llegaron por anuncio de Meta -> Base (MOV 1 / MOV 2).
+  const data = await crm('/leads?columna=interesados&antiguedad=14&limit=100');
+  for (const lead of (data.leads || []).filter(esDeMoviles)) {
+    if (campanaEnviadaPorKratos(lead) || await yaProcesado(lead.id)) continue;
+    const r = await cargarALaBase(lead, campanaDe(lead), 'Interesado en MÓVILES (WhatsApp)');
+    if (r?.nuevo) creados += 1;
+    await db.query('INSERT IGNORE INTO moviles_leads_sync (lead_crm_id, lead_kratos_id) VALUES (?, ?)', [lead.id, r?.id || null]);
+  }
+  return { creados, respondidos };
 }
 
 let timerSync = null;
