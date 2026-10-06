@@ -2423,13 +2423,18 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
     }
     const todosReg = Object.entries(baseData).flatMap(([fecha,regs])=>(regs||[]).map(r=>({...r,_rendFechaBase:fecha})))
       .filter(r => String(r.campana||'').toUpperCase().replace(/[\s-]+/g,'') !== 'ASCW')
-    const todasVentas = Object.values(ventasPorNumero)
-    const ventasPeriodo = todasVentas.filter(v => fechaIncluida(v.created_at))
-    const estadosCaidos = new Set(['CAIDA','RECHAZO','RECHAZO_CAMPO','RECHAZO CAMPO','RECHAZO_MESA','RECHAZO MESA','RECHAZADA','RECHAZADO','ANULADA','SERVICIO_ACTIVO','SERVICIO ACTIVO'])
-    const validacionesCaidas = new Set(['CORTA LLAMADA','BUZON DE VOZ','CORREGIR','FRAUDE','MALA OFERTA','NO CONTESTA','NO DESEA','SERVICIO ACTIVO'])
-    // INSTALADO_NO_VALIDADO y REASIGNACION ya NO cuentan como instalacion
-    // (decision explicita: solo INSTALADO exacto es una instalacion real).
-    const estadosInstalados = new Set(['INSTALADO'])
+    // Cada lead del periodo tipificado como venta se acredita al asesor que lo
+    // tipificó (último TIPIF_VEND con venta); si no hay evento, al asesor actual.
+    const ventasBase = todosReg
+      .filter(r => fechaIncluida(r._rendFechaBase))
+      .map(r => ({ r, tipif: String(tipifEfectiva(r)||'').trim().toUpperCase() }))
+      .filter(({ tipif }) => TIPIF_FAMILIA_VENTA.includes(tipif))
+      .map(({ r, tipif }) => {
+        const evento = (Array.isArray(r.historial) ? r.historial : [])
+          .filter(h => h?.tipo === 'TIPIF_VEND' && h.asesor && TIPIF_FAMILIA_VENTA.includes(String(h.tipif||'').trim().toUpperCase()))
+          .sort((x, y) => Number(y.ts||0) - Number(x.ts||0))[0]
+        return { tipif, asesor: String(evento?.asesor || r.asesor || '').trim().toUpperCase() }
+      })
     const asesoresFiltrados = asesores.filter(a => {
       if (rendFiltroSala && String(a.sala || '').trim() !== rendFiltroSala) return false
       if (rendFiltroAsesor && String(a.nombre || '').trim() !== rendFiltroAsesor) return false
@@ -2457,23 +2462,29 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
         }
         return String(r.asesor||'').trim().toUpperCase() === nombreNorm && fechaIncluida(r._rendFechaBase)
       }).length
-      const ventasAsesor = ventasPeriodo.filter(v => String(v.asesor_nombre||'').trim().toUpperCase() === nombreNorm)
-      const vigentes = ventasAsesor.filter(v => {
-        const estado = String(v.estado||'').trim().toUpperCase()
-        const validacion = String(v.estado_validacion||'').trim().toUpperCase().replace(/_/g,' ')
-        return !estadosCaidos.has(estado) && !validacionesCaidas.has(validacion)
-      })
-      const instaladasPeriodo = vigentes.filter(v => estadosInstalados.has(String(v.estado||'').trim().toUpperCase())).length
-      const cerradas = vigentes.length - instaladasPeriodo
-      const ventas = cerradas + instaladasPeriodo
+      // Ventas: la misma regla que el contador "VENTAS" de arriba (tipificación
+      // de la base: venta cerrada + venta caída + instalado), del periodo elegido.
+      const ventasAsesor = ventasBase.filter(v => v.asesor === nombreNorm)
+      const cuenta = tipif => ventasAsesor.filter(v => v.tipif === tipif).length
+      const cerradas = cuenta('VENTA CERRADA')
+      const caidas = cuenta('VENTA CAIDA')
+      const instaladas = cuenta('INSTALADO')
+      const ventas = ventasAsesor.length
       const conversion = leads > 0 ? Math.round((ventas / leads) * 100) : 0
-      // Columna "Instaladas": total historico del asesor (no del periodo
-      // filtrado arriba), usando la fecha real de instalacion del historial.
-      const instaladas = todasVentas.filter(v =>
-        String(v.asesor_nombre||'').trim().toUpperCase() === nombreNorm && v.fecha_instalado
-      ).length
-      return { nombre:a.nombre, usuario:a.usuario||'', sala:a.sala||'', leads, ventas, cerradas, instaladas, conversion }
+      return { nombre:a.nombre, usuario:a.usuario||'', sala:a.sala||'', leads, ventas, cerradas, caidas, instaladas, conversion }
     })
+    // Ventas cuyo asesor ya no está activo: se muestran aparte para que el
+    // total siga coincidiendo con el contador de arriba.
+    if (!rendFiltroSala && !rendFiltroAsesor) {
+      const conocidos = new Set(asesoresFiltrados.map(a => String(a.nombre||'').trim().toUpperCase()))
+      const otras = ventasBase.filter(v => !conocidos.has(v.asesor))
+      if (otras.length) data.push({
+        nombre:'OTROS / SIN ASESOR', usuario:'', sala:'', leads:0, ventas:otras.length,
+        cerradas:otras.filter(v=>v.tipif==='VENTA CERRADA').length,
+        caidas:otras.filter(v=>v.tipif==='VENTA CAIDA').length,
+        instaladas:otras.filter(v=>v.tipif==='INSTALADO').length, conversion:0,
+      })
+    }
     data.sort((a,b)=>rendOrden==='leads'
       ? b.leads-a.leads || b.ventas-a.ventas || a.nombre.localeCompare(b.nombre,'es')
       : b.ventas-a.ventas || b.leads-a.leads || a.nombre.localeCompare(b.nombre,'es'))
@@ -2488,6 +2499,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
   const rendTotLeads  = rendData.reduce((s,r)=>s+r.leads,0)
   const rendTotVentas = rendData.reduce((s,r)=>s+r.ventas,0)
   const rendTotCerradas = rendData.reduce((s,r)=>s+r.cerradas,0)
+  const rendTotCaidas = rendData.reduce((s,r)=>s+r.caidas,0)
   const rendTotInstaladas = rendData.reduce((s,r)=>s+r.instaladas,0)
   const rendConversion = rendTotLeads > 0 ? Math.round((rendTotVentas / rendTotLeads) * 100) : 0
 
@@ -3662,18 +3674,18 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
               </div>
             </div>
             <div className="rend-kpis">
-              {[['Total clientes',rendTotLeads,'rd-kpi-leads'],['Total ventas',rendTotVentas,'rd-kpi-ventas'],['Ventas cerradas',rendTotCerradas,'rd-kpi-ventas'],['Instaladas',rendTotInstaladas,'rd-kpi-leads'],['Conversión',`${rendConversion}%`,'rd-kpi-ventas']].map(([l,v,cls])=>(
+              {[['Total clientes',rendTotLeads,'rd-kpi-leads'],['Total ventas',rendTotVentas,'rd-kpi-ventas'],['Ventas cerradas',rendTotCerradas,'rd-kpi-ventas'],['Ventas caídas',rendTotCaidas,'rd-kpi-leads'],['Instaladas',rendTotInstaladas,'rd-kpi-leads'],['Conversión',`${rendConversion}%`,'rd-kpi-ventas']].map(([l,v,cls])=>(
                 <div key={l} className={`rend-kpi ${cls}`}><div className="rend-kpi-label">{l}</div><div className="rend-kpi-valor">{v}</div></div>
               ))}
             </div>
             <div className="bo-tabla-wrap">
               <table className="bo-tabla rend-tabla table table-sm table-hover">
                 <thead><tr>
-                  <th>#</th><th>Asesor</th><th>Clientes</th><th>Ventas</th><th>Ventas cerradas</th><th>Instaladas</th><th>Conversión</th>
+                  <th>#</th><th>Asesor</th><th>Clientes</th><th>Ventas</th><th>Ventas cerradas</th><th>Ventas caídas</th><th>Instaladas</th><th>Conversión</th>
                 </tr></thead>
                 <tbody>
                   {rendData.length === 0
-                    ? <tr><td colSpan={7} className="bo-empty">Sin datos.</td></tr>
+                    ? <tr><td colSpan={8}className="bo-empty">Sin datos.</td></tr>
                     : rendData.map((r,i)=>(
                         <tr key={r.nombre}>
                           <td><div className={`rend-pos${i<3?' '+['p1','p2','p3'][i]:''}`}>{i+1}</div></td>
@@ -3681,6 +3693,7 @@ const cargarLeads = useCallback(async (todasLasFechas = false, fechaSolicitada =
                           <td style={{fontWeight:600}}>{r.leads}</td>
                           <td><span className="rd-ventas-num">{r.ventas}</span></td>
                           <td>{r.cerradas}</td>
+                          <td>{r.caidas}</td>
                           <td>{r.instaladas}</td>
                           <td>{r.conversion}%</td>
                         </tr>
