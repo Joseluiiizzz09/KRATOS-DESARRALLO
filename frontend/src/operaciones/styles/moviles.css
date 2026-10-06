@@ -90,3 +90,24 @@
 @media (max-width: 1300px) and (min-width: 1101px) { .mv-cols { grid-template-columns: repeat(4, minmax(240px, 1fr)); overflow-x: auto; } }
 @media (max-width: 1100px) { .mv-cols { grid-template-columns: 1fr; } }
 .mv-count--azul { background: #e0e7ff; color: #3730a3; }
+
+/* Tarjetas compactas, como la bandeja de KRONO */
+.mv-col-head { padding: 10px 12px; }
+.mv-col-head h3 { font-size: 13px; }
+.mv-count { padding: 1px 9px; font-size: 11px; }
+.mv-col-list { gap: 6px; padding: 6px; overflow-x: hidden; }
+.mv-card { gap: 8px; padding: 7px 10px; border-radius: 8px; }
+.mv-avatar { flex: 0 0 24px; width: 24px; height: 24px; font-size: 9px; }
+.mv-card-body { gap: 1px; }
+.mv-card-nombre { font-size: 12px; }
+.mv-card-nombre small { font-size: 8px; }
+.mv-card-hora { font-size: 10px; }
+.mv-card-tel { font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mv-card-msg { font-size: 11px; }
+.mv-card-tags { gap: 4px; margin-top: 3px; }
+.mv-tag { padding: 1px 6px; border-radius: 4px; font-size: 9px; }
+.mv-unread { right: 8px; bottom: 7px; min-width: 16px; height: 16px; padding: 0 4px; font-size: 9px; }
+.mv-toolbar { margin-bottom: 12px; gap: 10px; }
+.mv-bandeja-btn, .mv-buscar, .mv-select, .mv-sin-responder, .mv-bell { height: 34px; font-size: 13px; }
+.mv-bell { width: 34px; }
+.mv-buscar input { font-size: 13px; }
