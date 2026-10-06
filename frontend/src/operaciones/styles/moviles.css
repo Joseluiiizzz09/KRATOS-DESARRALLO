@@ -72,3 +72,10 @@
 .mv-aviso h3 { margin: 0 0 8px; font-size: 18px; color: #111827; }
 .mv-aviso p { margin: 0; color: #475569; font-size: 14px; line-height: 1.5; }
 .mv-aviso code { background: #f1f5f9; padding: 1px 6px; border-radius: 6px; font-size: 12px; }
+
+/* Las tres columnas ocupan todo el alto disponible de la pantalla */
+@media (min-width: 1101px) {
+  .mv-cols { height: calc(100vh - 215px); min-height: 420px; align-items: stretch; }
+  .mv-col { display: flex; flex-direction: column; min-height: 0; }
+  .mv-col-list { flex: 1; max-height: none; min-height: 0; }
+}
