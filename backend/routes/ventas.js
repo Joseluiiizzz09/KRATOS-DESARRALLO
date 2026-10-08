@@ -1661,7 +1661,9 @@ router.patch('/:id/reasignar', auth(['supervisor','jefatura']), async (req, res)
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const actor = await obtenerActor(conn, req.user.id);
+    // En acceso directo de Jefatura, req.user representa la vista seleccionada
+    // y req.actor conserva al administrador que ejecuta el cambio.
+    const actor = await obtenerActor(conn, req.actor?.id || req.user.id);
     if (!actor || !actor.activo || !['supervisor','jefatura'].includes(actor.cargo)) {
       await conn.rollback();
       return res.status(403).json({ ok: false, mensaje: 'No tienes permiso para reasignar ventas.' });
