@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { Field, Filters, Pager } from '../../components/bo.jsx';
 import { ESTADOS_VENTA, estadoVenta } from '../../data/catalog.js';
 import SaleModal from '../../components/SaleModal.jsx';
+import { ReasignarVentaModal } from '../../operaciones/components/VentaAssignmentModal.jsx';
 
 /** "2026-09-30" -> "30/09/2026". */
 function fechaCorta(iso) {
@@ -21,6 +22,7 @@ export default function Ventas() {
   const [data, setData] = useState({ sales: [], total: 0, pageSize: 20 });
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(null);
+  const [reasignando, setReasignando] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -91,7 +93,10 @@ export default function Ventas() {
                   <td>{sale.advisor || '—'}</td>
                   <td className="ka-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>{(sale.createdAt || '').slice(11, 16) || '—'}</td>
                   <td>
-                    <button type="button" className="ka-btn" onClick={() => setEditando(sale)}>Editar</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button type="button" className="ka-btn" onClick={() => setEditando(sale)}>Editar</button>
+                      <button type="button" className="ka-btn" onClick={() => setReasignando(sale)}>Reasignar</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -115,6 +120,23 @@ export default function Ventas() {
           }}
           onClose={() => setEditando(null)}
           onSubmit={async (payload) => { await api.supUpdateSale(token, editando.id, payload); setEditando(null); load(); }}
+        />
+      )}
+
+      {reasignando && (
+        <ReasignarVentaModal
+          venta={{
+            ...reasignando,
+            nombre: reasignando.clientName,
+            dni: reasignando.documentNumber,
+            asesor_id: reasignando.advisorId,
+            asesor_nombre: reasignando.advisor,
+          }}
+          asesores={advisors.map((advisor) => ({ ...advisor, activo: true, cargo: 'asesor' }))}
+          salas={[...new Set(advisors.map((advisor) => advisor.sala).filter(Boolean))]}
+          alcance="sala"
+          onClose={() => setReasignando(null)}
+          onSuccess={() => { setReasignando(null); load(); }}
         />
       )}
     </div>
